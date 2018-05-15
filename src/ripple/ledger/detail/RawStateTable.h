@@ -68,7 +68,7 @@ public:
         Keylet const& k) const;
 
     void
-    destroyZXC (ZXCAmount const& fee);
+    destroyIDAC (IDACAmount const& fee);
 
     std::unique_ptr<ReadView::sles_type::iter_base>
     slesBegin (ReadView const& base) const;
@@ -95,7 +95,7 @@ private:
         std::pair<Action, std::shared_ptr<SLE>>>, false>>;
 
     items_t items_;
-    ZXCAmount dropsDestroyed_ = 0;
+    IDACAmount dropsDestroyed_ = 0;
 };
 
 } // detail

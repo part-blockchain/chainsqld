@@ -30,18 +30,18 @@ namespace ripple {
 
 // See https://ripple.com/wiki/Transaction_Format#Payment_.280.29
 
-ZXCAmount
+IDACAmount
 Payment::calculateMaxSpend(STTx const& tx)
 {
     if (tx.isFieldPresent(sfSendMax))
     {
         auto const& sendMax = tx[sfSendMax];
-        return sendMax.native() ? sendMax.zxc() : beast::zero;
+        return sendMax.native() ? sendMax.idac() : beast::zero;
     }
-    /* If there's no sfSendMax in ZXC, and the sfAmount isn't
-    in ZXC, then the transaction can not send ZXC. */
+    /* If there's no sfSendMax in IDAC, and the sfAmount isn't
+    in IDAC, then the transaction can not send IDAC. */
     auto const& saDstAmount = tx.getFieldAmount(sfAmount);
-    return saDstAmount.native() ? saDstAmount.zxc() : beast::zero;
+    return saDstAmount.native() ? saDstAmount.idac() : beast::zero;
 }
 
 TER
@@ -87,8 +87,8 @@ Payment::preflight (PreflightContext const& ctx)
     auto const& uSrcCurrency = maxSourceAmount.getCurrency ();
     auto const& uDstCurrency = saDstAmount.getCurrency ();
 
-    // isZero() is ZXC.  FIX!
-    bool const bZXCDirect = uSrcCurrency.isZero () && uDstCurrency.isZero ();
+    // isZero() is IDAC.  FIX!
+    bool const bIDACDirect = uSrcCurrency.isZero () && uDstCurrency.isZero ();
 
     if (!isLegalNet (saDstAmount) || !isLegalNet (maxSourceAmount))
         return temBAD_AMOUNT;
@@ -128,40 +128,40 @@ Payment::preflight (PreflightContext const& ctx)
             " to self without path for " << to_string (uDstCurrency);
         return temREDUNDANT;
     }
-    if (bZXCDirect && bMax)
+    if (bIDACDirect && bMax)
     {
         // Consistent but redundant transaction.
         JLOG(j.trace()) << "Malformed transaction: " <<
-            "SendMax specified for ZXC to ZXC.";
-        return temBAD_SEND_ZXC_MAX;
+            "SendMax specified for IDAC to IDAC.";
+        return temBAD_SEND_IDAC_MAX;
     }
-    if (bZXCDirect && bPaths)
+    if (bIDACDirect && bPaths)
     {
-        // ZXC is sent without paths.
+        // IDAC is sent without paths.
         JLOG(j.trace()) << "Malformed transaction: " <<
-            "Paths specified for ZXC to ZXC.";
-        return temBAD_SEND_ZXC_PATHS;
+            "Paths specified for IDAC to IDAC.";
+        return temBAD_SEND_IDAC_PATHS;
     }
-    if (bZXCDirect && partialPaymentAllowed)
-    {
-        // Consistent but redundant transaction.
-        JLOG(j.trace()) << "Malformed transaction: " <<
-            "Partial payment specified for ZXC to ZXC.";
-        return temBAD_SEND_ZXC_PARTIAL;
-    }
-    if (bZXCDirect && limitQuality)
+    if (bIDACDirect && partialPaymentAllowed)
     {
         // Consistent but redundant transaction.
         JLOG(j.trace()) << "Malformed transaction: " <<
-            "Limit quality specified for ZXC to ZXC.";
-        return temBAD_SEND_ZXC_LIMIT;
+            "Partial payment specified for IDAC to IDAC.";
+        return temBAD_SEND_IDAC_PARTIAL;
     }
-    if (bZXCDirect && !defaultPathsAllowed)
+    if (bIDACDirect && limitQuality)
     {
         // Consistent but redundant transaction.
         JLOG(j.trace()) << "Malformed transaction: " <<
-            "No ripple direct specified for ZXC to ZXC.";
-        return temBAD_SEND_ZXC_NO_DIRECT;
+            "Limit quality specified for IDAC to IDAC.";
+        return temBAD_SEND_IDAC_LIMIT;
+    }
+    if (bIDACDirect && !defaultPathsAllowed)
+    {
+        // Consistent but redundant transaction.
+        JLOG(j.trace()) << "Malformed transaction: " <<
+            "No ripple direct specified for IDAC to IDAC.";
+        return temBAD_SEND_IDAC_NO_DIRECT;
     }
 
     auto const deliverMin = tx[~sfDeliverMin];
@@ -252,7 +252,7 @@ Payment::preclaim(PreclaimContext const& ctx)
             // TODO: dedupe
             // Another transaction could create the account and then this
             // transaction would succeed.
-            return tecNO_DST_INSUF_ZXC;
+            return tecNO_DST_INSUF_IDAC;
         }
     }
     else if ((sleDst->getFlags() & lsfRequireDestTag) &&
@@ -410,7 +410,7 @@ Payment::doApply ()
     {
         assert (saDstAmount.native ());
 
-        // Direct ZXC payment.
+        // Direct IDAC payment.
 
         // uOwnerCount is the number of entries in this legder for this
         // account that require a reserve.
@@ -424,15 +424,15 @@ Payment::doApply ()
         // fees were charged. We want to make sure we have enough reserve
         // to send. Allow final spend to use reserve for fee.
         auto const mmm = std::max(reserve,
-            ctx_.tx.getFieldAmount (sfFee).zxc ());
+            ctx_.tx.getFieldAmount (sfFee).idac ());
 
-        if (mPriorBalance < saDstAmount.zxc () + mmm)
+        if (mPriorBalance < saDstAmount.idac () + mmm)
         {
             // Vote no. However the transaction might succeed, if applied in
             // a different order.
             JLOG(j_.trace()) << "Delay transaction: Insufficient funds: " <<
                 " " << to_string (mPriorBalance) <<
-                " / " << to_string (saDstAmount.zxc () + mmm) <<
+                " / " << to_string (saDstAmount.idac () + mmm) <<
                 " (" << to_string (reserve) << ")";
 
             terResult = tecUNFUNDED_PAYMENT;

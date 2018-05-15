@@ -37,9 +37,9 @@ class Discrepancy_test : public beast::unit_test::suite
     // A payment with path and sendmax is made and the transaction is queried
     // to verify that the net of balance changes match the fee charged.
     void
-    testZXCDiscrepancy (std::initializer_list<uint256> fs)
+    testIDACDiscrepancy (std::initializer_list<uint256> fs)
     {
-        testcase ("Discrepancy test : ZXC Discrepancy");
+        testcase ("Discrepancy test : IDAC Discrepancy");
         using namespace test::jtx;
         Env env {*this, with_features(fs)};
 
@@ -51,11 +51,11 @@ class Discrepancy_test : public beast::unit_test::suite
         Account A6 {"A6"};
         Account A7 {"A7"};
 
-        env.fund(ZXC(2000), A1);
-        env.fund(ZXC(1000), A2, A6, A7);
-        env.fund(ZXC(5000), A3);
-        env.fund(ZXC(1000000), A4);
-        env.fund(ZXC(600000), A5);
+        env.fund(IDAC(2000), A1);
+        env.fund(IDAC(1000), A2, A6, A7);
+        env.fund(IDAC(5000), A3);
+        env.fund(IDAC(1000000), A4);
+        env.fund(IDAC(600000), A5);
         env.close();
 
         env(trust(A1, A3["CNY"](200000)));
@@ -82,15 +82,15 @@ class Discrepancy_test : public beast::unit_test::suite
         env(pay(A6, A7, A6["CNY"](261)));
         env.close();
 
-        env(offer(A4, ZXC(49147), A2["JPY"](34501)));
-        env(offer(A5, A3["CNY"](3150), ZXC(80086)));
-        env(offer(A7, ZXC(1233), A6["CNY"](25)));
+        env(offer(A4, IDAC(49147), A2["JPY"](34501)));
+        env(offer(A5, A3["CNY"](3150), IDAC(80086)));
+        env(offer(A7, IDAC(1233), A6["CNY"](25)));
         env.close();
 
         test::PathSet payPaths {
             test::Path {A2["JPY"], A2},
-            test::Path {ZXC, A2["JPY"], A2},
-            test::Path {A6, ZXC, A2["JPY"], A2} };
+            test::Path {IDAC, A2["JPY"], A2},
+            test::Path {A6, IDAC, A2["JPY"], A2} };
 
         env(pay(A1, A1, A2["JPY"](1000)),
             json(payPaths.json()),
@@ -144,10 +144,10 @@ class Discrepancy_test : public beast::unit_test::suite
 public:
     void run ()
     {
-        testZXCDiscrepancy ({});
-        testZXCDiscrepancy ({featureFlow});
-        testZXCDiscrepancy ({featureFlow, fix1373});
-        testZXCDiscrepancy ({featureFlow, fix1373, featureFlowCross});
+        testIDACDiscrepancy ({});
+        testIDACDiscrepancy ({featureFlow});
+        testIDACDiscrepancy ({featureFlow, fix1373});
+        testIDACDiscrepancy ({featureFlow, fix1373, featureFlowCross});
     }
 };
 

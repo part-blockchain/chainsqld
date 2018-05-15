@@ -40,7 +40,7 @@ class NoRippleCheck_test : public beast::unit_test::suite
         Env env {*this};
 
         auto const alice = Account {"alice"};
-        env.fund (ZXC(10000), alice);
+        env.fund (IDAC(10000), alice);
         env.close ();
 
         { // missing account field
@@ -136,7 +136,7 @@ class NoRippleCheck_test : public beast::unit_test::suite
         auto const gw = Account {"gw"};
         auto const alice = Account {"alice"};
 
-        env.fund (ZXC(10000), gw, alice);
+        env.fund (IDAC(10000), gw, alice);
         if ((user && problems) || (!user && !problems))
         {
             env (fset (alice, asfDefaultRipple));
@@ -248,7 +248,7 @@ class NoRippleCheckLimits_test : public beast::unit_test::suite
         Env env {*this, admin ? envconfig () : envconfig(no_admin)};
 
         auto const alice = Account {"alice"};
-        env.fund (ZXC (100000), alice);
+        env.fund (IDAC (100000), alice);
         env (fset (alice, asfDefaultRipple));
         env.close ();
 
@@ -274,7 +274,7 @@ class NoRippleCheckLimits_test : public beast::unit_test::suite
                 }
             }
             auto const gw = Account {"gw" + std::to_string(i)};
-            env.fund (ZXC (1000), gw);
+            env.fund (IDAC (1000), gw);
             env (trust (alice, gw["USD"](10)));
             env.close();
         }

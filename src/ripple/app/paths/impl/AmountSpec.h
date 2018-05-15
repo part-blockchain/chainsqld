@@ -21,7 +21,7 @@
 #define RIPPLE_PATH_IMPL_AMOUNTSPEC_H_INCLUDED
 
 #include <ripple/protocol/IOUAmount.h>
-#include <ripple/protocol/ZXCAmount.h>
+#include <ripple/protocol/IDACAmount.h>
 #include <ripple/protocol/STAmount.h>
 
 namespace ripple {
@@ -31,7 +31,7 @@ struct AmountSpec
     bool native;
     union
     {
-        ZXCAmount zxc;
+        IDACAmount idac;
         IOUAmount iou;
     };
     boost::optional<AccountID> issuer;
@@ -44,7 +44,7 @@ struct AmountSpec
         AmountSpec const& amt)
     {
         if (amt.native)
-            stream << to_string (amt.zxc);
+            stream << to_string (amt.idac);
         else
             stream << to_string (amt.iou);
         if (amt.currency)
@@ -64,7 +64,7 @@ struct EitherAmount
     union
     {
         IOUAmount iou;
-        ZXCAmount zxc;
+        IDACAmount idac;
     };
 
     EitherAmount () = default;
@@ -81,8 +81,8 @@ struct EitherAmount
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #endif
     explicit
-    EitherAmount (ZXCAmount const& a)
-            :zxc(a)
+    EitherAmount (IDACAmount const& a)
+            :idac(a)
     {
 #ifndef NDEBUG
         native = true;
@@ -99,7 +99,7 @@ struct EitherAmount
         native = a.native;
 #endif
         if (a.native)
-            zxc = a.zxc;
+            idac = a.idac;
         else
             iou = a.iou;
     }
@@ -124,11 +124,11 @@ get<IOUAmount> (EitherAmount& amt)
 
 template <>
 inline
-ZXCAmount&
-get<ZXCAmount> (EitherAmount& amt)
+IDACAmount&
+get<IDACAmount> (EitherAmount& amt)
 {
     assert (amt.native);
-    return amt.zxc;
+    return amt.idac;
 }
 
 template <class T>
@@ -150,11 +150,11 @@ get<IOUAmount> (EitherAmount const& amt)
 
 template <>
 inline
-ZXCAmount const&
-get<ZXCAmount> (EitherAmount const& amt)
+IDACAmount const&
+get<IDACAmount> (EitherAmount const& amt)
 {
     assert (amt.native);
-    return amt.zxc;
+    return amt.idac;
 }
 
 inline
@@ -167,10 +167,10 @@ toAmountSpec (STAmount const& amt)
         isNeg ? - std::int64_t (amt.mantissa ()) : amt.mantissa ();
     AmountSpec result;
 
-    result.native = isZXC (amt);
+    result.native = isIDAC (amt);
     if (result.native)
     {
-        result.zxc = ZXCAmount (sMant);
+        result.idac = IDACAmount (sMant);
     }
     else
     {
@@ -186,8 +186,8 @@ inline
 EitherAmount
 toEitherAmount (STAmount const& amt)
 {
-    if (isZXC (amt))
-        return EitherAmount{amt.zxc()};
+    if (isIDAC (amt))
+        return EitherAmount{amt.idac()};
     return EitherAmount{amt.iou()};
 }
 
@@ -198,12 +198,12 @@ toAmountSpec (
     boost::optional<Currency> const& c)
 {
     AmountSpec r;
-    r.native = (!c || isZXC (*c));
+    r.native = (!c || isIDAC (*c));
     r.currency = c;
     assert (ea.native == r.native);
     if (r.native)
     {
-        r.zxc = ea.zxc;
+        r.idac = ea.idac;
     }
     else
     {

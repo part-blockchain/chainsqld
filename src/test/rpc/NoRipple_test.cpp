@@ -39,7 +39,7 @@ public:
         auto const gw = Account("gateway");
         auto const alice = Account("alice");
 
-        env.fund(ZXC(10000), gw, alice);
+        env.fund(IDAC(10000), gw, alice);
 
         auto const USD = gw["USD"];
 
@@ -79,7 +79,7 @@ public:
         auto const bob = Account("bob");
         auto const carol = Account("carol");
 
-        env.fund(ZXC(10000), gw, alice, bob, carol);
+        env.fund(IDAC(10000), gw, alice, bob, carol);
 
         env.trust(alice["USD"](100), bob);
         env.trust(bob["USD"](100), carol);
@@ -124,7 +124,7 @@ public:
         auto const bob = Account("bob");
         auto const carol = Account("carol");
 
-        env.fund(ZXC(10000), alice, bob, carol);
+        env.fund(IDAC(10000), alice, bob, carol);
 
         env(trust(bob, alice["USD"](100)));
         env(trust(carol, bob["USD"](100)));
@@ -161,7 +161,7 @@ public:
         auto const alice = Account("alice");
         auto const bob =   Account("bob");
 
-        env.fund(ZXC(10000), gw, noripple(alice, bob));
+        env.fund(IDAC(10000), gw, noripple(alice, bob));
 
         env(fset(bob, asfDefaultRipple));
 

@@ -75,7 +75,7 @@ public:
         nt_SOURCE,     // The source account: with an issuer account, if needed.
         nt_ACCOUNTS,   // Accounts that connect from this source/currency.
         nt_BOOKS,      // Order books that connect to this currency.
-        nt_ZXC_BOOK,   // The order book from this currency to ZXC.
+        nt_IDAC_BOOK,   // The order book from this currency to IDAC.
         nt_DEST_BOOK,  // The order book to the destination currency/issuer.
         nt_DESTINATION // The destination account only.
     };
@@ -87,11 +87,11 @@ public:
     // in a path request.
     enum PaymentType
     {
-        pt_ZXC_to_ZXC,
-        pt_ZXC_to_nonZXC,
-        pt_nonZXC_to_ZXC,
-        pt_nonZXC_to_same,   // Destination currency is the same as source.
-        pt_nonZXC_to_nonZXC  // Destination currency is NOT the same as source.
+        pt_IDAC_to_IDAC,
+        pt_IDAC_to_nonIDAC,
+        pt_nonIDAC_to_IDAC,
+        pt_nonIDAC_to_same,   // Destination currency is the same as source.
+        pt_nonIDAC_to_nonIDAC  // Destination currency is NOT the same as source.
     };
 
     struct PathRank
@@ -202,8 +202,8 @@ private:
     // Add order books
     static std::uint32_t const afADD_BOOKS = 0x002;
 
-    // Add order book to ZXC only
-    static std::uint32_t const afOB_ZXC = 0x010;
+    // Add order book to IDAC only
+    static std::uint32_t const afOB_IDAC = 0x010;
 
     // Must link to destination currency
     static std::uint32_t const afOB_LAST = 0x040;

@@ -29,13 +29,13 @@ hash_set<Currency>
 accountDestCurrencies(
     AccountID const& account,
         std::shared_ptr<RippleLineCache> const& cache,
-            bool includeZXC);
+            bool includeIDAC);
 
 hash_set<Currency>
 accountSourceCurrencies(
     AccountID const& account,
         std::shared_ptr<RippleLineCache> const& lrLedger,
-             bool includeZXC);
+             bool includeIDAC);
 
 } // ripple
 

@@ -18,7 +18,7 @@
 //==============================================================================
 
 #include <BeastConfig.h>
-#include <ripple/protocol/ZXCAmount.h>
+#include <ripple/protocol/IDACAmount.h>
 #include <ripple/beast/unit_test.h>
 
 namespace ripple {
@@ -32,7 +32,7 @@ public:
 
         for (auto i : { -1, 0, 1})
         {
-            ZXCAmount const x(i);
+            IDACAmount const x(i);
 
             if (i < 0)
                 BEAST_EXPECT(x.signum () < 0);
@@ -49,7 +49,7 @@ public:
 
         for (auto i : { -1, 0, 1})
         {
-            ZXCAmount const x (i);
+            IDACAmount const x (i);
 
             BEAST_EXPECT((i == 0) == (x == zero));
             BEAST_EXPECT((i != 0) == (x != zero));
@@ -69,15 +69,15 @@ public:
 
     void testComparisons ()
     {
-        testcase ("ZXC Comparisons");
+        testcase ("IDAC Comparisons");
 
         for (auto i : { -1, 0, 1})
         {
-            ZXCAmount const x (i);
+            IDACAmount const x (i);
 
             for (auto j : { -1, 0, 1})
             {
-                ZXCAmount const y (j);
+                IDACAmount const y (j);
 
                 BEAST_EXPECT((i == j) == (x == y));
                 BEAST_EXPECT((i != j) == (x != y));
@@ -95,14 +95,14 @@ public:
 
         for (auto i : { -1, 0, 1})
         {
-            ZXCAmount const x (i);
+            IDACAmount const x (i);
 
             for (auto j : { -1, 0, 1})
             {
-                ZXCAmount const y (j);
+                IDACAmount const y (j);
 
-                BEAST_EXPECT(ZXCAmount(i + j) == (x + y));
-                BEAST_EXPECT(ZXCAmount(i - j) == (x - y));
+                BEAST_EXPECT(IDACAmount(i + j) == (x + y));
+                BEAST_EXPECT(IDACAmount(i - j) == (x - y));
 
                 BEAST_EXPECT((x + y) == (y + x));   // addition is commutative
             }
@@ -119,7 +119,7 @@ public:
         {
             // multiply by a number that would overflow then divide by the same
             // number, and check we didn't lose any value
-            ZXCAmount big (maxUInt64);
+            IDACAmount big (maxUInt64);
             BEAST_EXPECT(big == mulRatio (big, maxUInt32, maxUInt32, true));
             // rounding mode shouldn't matter as the result is exact
             BEAST_EXPECT(big == mulRatio (big, maxUInt32, maxUInt32, false));
@@ -127,7 +127,7 @@ public:
 
         {
             // Similar test as above, but for neative values
-            ZXCAmount big (maxUInt64);
+            IDACAmount big (maxUInt64);
             BEAST_EXPECT(big == mulRatio (big, maxUInt32, maxUInt32, true));
             // rounding mode shouldn't matter as the result is exact
             BEAST_EXPECT(big == mulRatio (big, maxUInt32, maxUInt32, false));
@@ -135,7 +135,7 @@ public:
 
         {
             // small amounts
-            ZXCAmount tiny (1);
+            IDACAmount tiny (1);
             // Round up should give the smallest allowable number
             BEAST_EXPECT(tiny == mulRatio (tiny, 1, maxUInt32, true));
             // rounding down should be zero
@@ -144,7 +144,7 @@ public:
                 mulRatio (tiny, maxUInt32 - 1, maxUInt32, false));
 
             // tiny negative numbers
-            ZXCAmount tinyNeg (-1);
+            IDACAmount tinyNeg (-1);
             // Round up should give zero
             BEAST_EXPECT(zero == mulRatio (tinyNeg, 1, maxUInt32, true));
             BEAST_EXPECT(zero == mulRatio (tinyNeg, maxUInt32 - 1, maxUInt32, true));
@@ -155,21 +155,21 @@ public:
         {
             // rounding
             {
-                ZXCAmount one (1);
+                IDACAmount one (1);
                 auto const rup = mulRatio (one, maxUInt32 - 1, maxUInt32, true);
                 auto const rdown = mulRatio (one, maxUInt32 - 1, maxUInt32, false);
                 BEAST_EXPECT(rup.drops () - rdown.drops () == 1);
             }
 
             {
-                ZXCAmount big (maxUInt64);
+                IDACAmount big (maxUInt64);
                 auto const rup = mulRatio (big, maxUInt32 - 1, maxUInt32, true);
                 auto const rdown = mulRatio (big, maxUInt32 - 1, maxUInt32, false);
                 BEAST_EXPECT(rup.drops () - rdown.drops () == 1);
             }
 
             {
-                ZXCAmount negOne (-1);
+                IDACAmount negOne (-1);
                 auto const rup = mulRatio (negOne, maxUInt32 - 1, maxUInt32, true);
                 auto const rdown = mulRatio (negOne, maxUInt32 - 1, maxUInt32, false);
                 BEAST_EXPECT(rup.drops () - rdown.drops () == 1);
@@ -178,13 +178,13 @@ public:
 
         {
             // division by zero
-            ZXCAmount one (1);
+            IDACAmount one (1);
             except ([&] {mulRatio (one, 1, 0, true);});
         }
 
         {
             // overflow
-            ZXCAmount big (maxUInt64);
+            IDACAmount big (maxUInt64);
             except ([&] {mulRatio (big, 2, 0, true);});
         }
     }

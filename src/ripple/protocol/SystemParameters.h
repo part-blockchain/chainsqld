@@ -45,7 +45,7 @@ static
 std::uint64_t const
 SYSTEM_CURRENCY_USERS = 100000000;
 
-/** Number of drops per 1 ZXC */
+/** Number of drops per 1 IDAC */
 static
 std::uint64_t const
 SYSTEM_CURRENCY_PARTS = 1000000;
@@ -60,7 +60,7 @@ static inline
 std::string const&
 systemCurrencyCode ()
 {
-    static std::string const code = "ZXC";
+    static std::string const code = "IDAC";
     return code;
 }
 

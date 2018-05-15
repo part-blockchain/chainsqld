@@ -127,7 +127,7 @@ isGlobalFrozen (ReadView const& view,
     AccountID const& issuer)
 {
     // VFALCO Perhaps this should assert
-    if (isZXC (issuer))
+    if (isIDAC (issuer))
         return false;
     auto const sle =
         view.read(keylet::account(issuer));
@@ -143,7 +143,7 @@ bool
 isFrozen (ReadView const& view, AccountID const& account,
     Currency const& currency, AccountID const& issuer)
 {
-    if (isZXC (currency))
+    if (isIDAC (currency))
         return false;
     auto sle =
         view.read(keylet::account(issuer));
@@ -169,9 +169,9 @@ accountHolds (ReadView const& view,
               beast::Journal j)
 {
     STAmount amount;
-    if (isZXC(currency))
+    if (isIDAC(currency))
     {
-        return {zxcLiquid (view, account, 0, j)};
+        return {idacLiquid (view, account, 0, j)};
     }
 
     // IOU: Return balance on trust line modulo freeze
@@ -278,8 +278,8 @@ confineOwnerCount (std::uint32_t current, std::int32_t adjustment,
     return adjusted;
 }
 
-ZXCAmount
-zxcLiquid (ReadView const& view, AccountID const& id,
+IDACAmount
+idacLiquid (ReadView const& view, AccountID const& id,
     std::int32_t ownerCountAdj, beast::Journal j)
 {
     auto const sle = view.read(keylet::account(id));
@@ -299,7 +299,7 @@ zxcLiquid (ReadView const& view, AccountID const& id,
         auto const fullBalance =
             sle->getFieldAmount(sfBalance);
 
-        auto const balance = view.balanceHook(id, zxcAccount(), fullBalance);
+        auto const balance = view.balanceHook(id, idacAccount(), fullBalance);
 
         STAmount amount = balance - reserve;
         if (balance < reserve)
@@ -314,12 +314,12 @@ zxcLiquid (ReadView const& view, AccountID const& id,
             " ownerCount=" << to_string (ownerCount) <<
             " ownerCountAdj=" << to_string (ownerCountAdj);
 
-        return amount.zxc();
+        return amount.idac();
     }
     else
     {
         // pre-switchover
-        // ZXC: return balance minus reserve
+        // IDAC: return balance minus reserve
         std::uint32_t const ownerCount =
             confineOwnerCount (sle->getFieldU32 (sfOwnerCount), ownerCountAdj);
         auto const reserve =
@@ -338,7 +338,7 @@ zxcLiquid (ReadView const& view, AccountID const& id,
             " ownerCount=" << to_string (ownerCount) <<
             " ownerCountAdj=" << to_string (ownerCountAdj);
 
-        return view.balanceHook(id, zxcAccount(), amount).zxc();
+        return view.balanceHook(id, idacAccount(), amount).idac();
     }
 }
 
@@ -1336,8 +1336,8 @@ rippleCredit (ApplyView& view,
 
     TER terResult;
 
-    assert (!isZXC (uSenderID) && uSenderID != noAccount());
-    assert (!isZXC (uReceiverID) && uReceiverID != noAccount());
+    assert (!isIDAC (uSenderID) && uSenderID != noAccount());
+    assert (!isIDAC (uReceiverID) && uReceiverID != noAccount());
 
     if (!sleRippleState)
     {
@@ -1494,7 +1494,7 @@ rippleSend (ApplyView& view,
 {
     auto const issuer   = saAmount.getIssuer ();
 
-    assert (!isZXC (uSenderID) && !isZXC (uReceiverID));
+    assert (!isIDAC (uSenderID) && !isIDAC (uReceiverID));
     assert (uSenderID != uReceiverID);
 
     if (uSenderID == issuer || uReceiverID == issuer || issuer == noAccount())
@@ -1568,7 +1568,7 @@ accountSend (ApplyView& view,
         view.creditHook (uSenderID, uReceiverID, saAmount, dummyBalance);
     }
 
-    /* ZXC send which does not check reserve and can do pure adjustment.
+    /* IDAC send which does not check reserve and can do pure adjustment.
      * Note that sender or receiver may be null and this not a mistake; this
      * setup is used during pathfinding and it is carefully controlled to
      * ensure that transfers are balanced.
@@ -1614,9 +1614,9 @@ accountSend (ApplyView& view,
         {
             auto const sndBal = sender->getFieldAmount (sfBalance);
             if (fv2Switch)
-                view.creditHook (uSenderID, zxcAccount (), saAmount, sndBal);
+                view.creditHook (uSenderID, idacAccount (), saAmount, sndBal);
 
-            // Decrement ZXC balance.
+            // Decrement IDAC balance.
             sender->setFieldAmount (sfBalance, sndBal - saAmount);
             view.update (sender);
         }
@@ -1624,12 +1624,12 @@ accountSend (ApplyView& view,
 
     if (tesSUCCESS == terResult && receiver)
     {
-        // Increment ZXC balance.
+        // Increment IDAC balance.
         auto const rcvBal = receiver->getFieldAmount (sfBalance);
         receiver->setFieldAmount (sfBalance, rcvBal + saAmount);
 
         if (fv2Switch)
-            view.creditHook (zxcAccount (), uReceiverID, saAmount, -rcvBal);
+            view.creditHook (idacAccount (), uReceiverID, saAmount, -rcvBal);
 
         view.update (receiver);
     }
@@ -1712,7 +1712,7 @@ issueIOU (ApplyView& view,
     AccountID const& account,
         STAmount const& amount, Issue const& issue, beast::Journal j)
 {
-    assert (!isZXC (account) && !isZXC (issue.account));
+    assert (!isIDAC (account) && !isIDAC (issue.account));
 
     // Consistency check
     assert (issue == amount.issue ());
@@ -1785,7 +1785,7 @@ redeemIOU (ApplyView& view,
     Issue const& issue,
     beast::Journal j)
 {
-    assert (!isZXC (account) && !isZXC (issue.account));
+    assert (!isIDAC (account) && !isIDAC (issue.account));
 
     // Consistency check
     assert (issue == amount.issue ());
@@ -1849,7 +1849,7 @@ redeemIOU (ApplyView& view,
 }
 
 TER
-transferZXC (ApplyView& view,
+transferIDAC (ApplyView& view,
     AccountID const& from,
     AccountID const& to,
     STAmount const& amount,
@@ -1863,7 +1863,7 @@ transferZXC (ApplyView& view,
     SLE::pointer sender = view.peek (keylet::account(from));
     SLE::pointer receiver = view.peek (keylet::account(to));
 
-    JLOG (j.trace()) << "transferZXC: " <<
+    JLOG (j.trace()) << "transferIDAC: " <<
         to_string (from) <<  " -> " << to_string (to) <<
         ") : " << amount.getFullText ();
 
@@ -1877,7 +1877,7 @@ transferZXC (ApplyView& view,
             : tecFAILED_PROCESSING;
     }
 
-    // Decrement ZXC balance.
+    // Decrement IDAC balance.
     sender->setFieldAmount (sfBalance,
         sender->getFieldAmount (sfBalance) - amount);
     view.update (sender);

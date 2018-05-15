@@ -35,8 +35,8 @@ namespace ripple {
 /** The flavor of an offer crossing */
 enum class CrossType
 {
-    ZxcToIou,
-    IouToZxc,
+    IdacToIou,
+    IouToIdac,
     IouToIou
 };
 
@@ -78,7 +78,7 @@ protected:
 
         bool sanity_check () const
         {
-            if (isZXC (order.in) && isZXC (order.out))
+            if (isIDAC (order.in) && isIDAC (order.out))
                 return false;
 
             return order.in >= zero &&
@@ -93,12 +93,12 @@ private:
     log_flow (char const* description, Flow const& flow);
 
     Flow
-    flow_zxc_to_iou (Amounts const& offer, Quality quality,
+    flow_idac_to_iou (Amounts const& offer, Quality quality,
         STAmount const& owner_funds, STAmount const& taker_funds,
         Rate const& rate_out);
 
     Flow
-    flow_iou_to_zxc (Amounts const& offer, Quality quality,
+    flow_iou_to_idac (Amounts const& offer, Quality quality,
         STAmount const& owner_funds, STAmount const& taker_funds,
         Rate const& rate_in);
 
@@ -239,9 +239,9 @@ public:
     get_funds (AccountID const& account, STAmount const& funds) const;
 
     STAmount const&
-    get_zxc_flow () const
+    get_idac_flow () const
     {
-        return zxc_flow_;
+        return idac_flow_;
     }
 
     std::uint32_t
@@ -284,7 +284,7 @@ private:
         BasicTaker::Flow const& flow2, Offer& leg2);
 
     TER
-    transferZXC (AccountID const& from, AccountID const& to, STAmount const& amount);
+    transferIDAC (AccountID const& from, AccountID const& to, STAmount const& amount);
 
     TER
     redeemIOU (AccountID const& account, STAmount const& amount, Issue const& issue);
@@ -296,8 +296,8 @@ private:
     // The underlying ledger entry we are dealing with
     ApplyView& view_;
 
-    // The amount of ZXC that flowed if we were autobridging
-    STAmount zxc_flow_;
+    // The amount of IDAC that flowed if we were autobridging
+    STAmount idac_flow_;
 
     // The number direct crossings that we performed
     std::uint32_t direct_crossings_;

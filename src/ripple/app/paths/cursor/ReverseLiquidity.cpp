@@ -62,7 +62,7 @@ TER PathCursor::reverseLiquidity () const
         return reverseLiquidityForAccount ();
 
     // Otherwise the node is an Offer.
-    if (isZXC (nextNode().account_))
+    if (isIDAC (nextNode().account_))
     {
         JLOG (j_.trace())
             << "reverseLiquidityForOffer: "

@@ -25,7 +25,7 @@
 #include <ripple/app/paths/impl/Steps.h>
 #include <ripple/basics/Log.h>
 #include <ripple/protocol/IOUAmount.h>
-#include <ripple/protocol/ZXCAmount.h>
+#include <ripple/protocol/IDACAmount.h>
 
 #include <boost/container/flat_set.hpp>
 
@@ -72,9 +72,9 @@ flow (
     Issue const srcIssue = [&] {
         if (sendMax)
             return sendMax->issue ();
-        if (!isZXC (deliver.issue ().currency))
+        if (!isIDAC (deliver.issue ().currency))
             return Issue (deliver.issue ().currency, src);
-        return zxcIssue ();
+        return idacIssue ();
     }();
 
     Issue const dstIssue = deliver.issue ();
@@ -112,39 +112,39 @@ flow (
         }
     }
 
-    const bool srcIsZXC = isZXC (srcIssue.currency);
-    const bool dstIsZXC = isZXC (dstIssue.currency);
+    const bool srcIsIDAC = isIDAC (srcIssue.currency);
+    const bool dstIsIDAC = isIDAC (dstIssue.currency);
 
     auto const asDeliver = toAmountSpec (deliver);
 
-    // The src account may send either zxc or iou. The dst account may receive
-    // either zxc or iou. Since ZXC and IOU amounts are represented by different
+    // The src account may send either idac or iou. The dst account may receive
+    // either idac or iou. Since IDAC and IOU amounts are represented by different
     // types, use templates to tell `flow` about the amount types.
-    if (srcIsZXC && dstIsZXC)
+    if (srcIsIDAC && dstIsIDAC)
     {
         return finishFlow (sb, srcIssue, dstIssue,
-            flow<ZXCAmount, ZXCAmount> (
-                sb, strands, asDeliver.zxc, partialPayment, offerCrossing,
+            flow<IDACAmount, IDACAmount> (
+                sb, strands, asDeliver.idac, partialPayment, offerCrossing,
                 limitQuality, sendMax, j, flowDebugInfo));
     }
 
-    if (srcIsZXC && !dstIsZXC)
+    if (srcIsIDAC && !dstIsIDAC)
     {
         return finishFlow (sb, srcIssue, dstIssue,
-            flow<ZXCAmount, IOUAmount> (
+            flow<IDACAmount, IOUAmount> (
                 sb, strands, asDeliver.iou, partialPayment, offerCrossing,
                 limitQuality, sendMax, j, flowDebugInfo));
     }
 
-    if (!srcIsZXC && dstIsZXC)
+    if (!srcIsIDAC && dstIsIDAC)
     {
         return finishFlow (sb, srcIssue, dstIssue,
-            flow<IOUAmount, ZXCAmount> (
-                sb, strands, asDeliver.zxc, partialPayment, offerCrossing,
+            flow<IOUAmount, IDACAmount> (
+                sb, strands, asDeliver.idac, partialPayment, offerCrossing,
                 limitQuality, sendMax, j, flowDebugInfo));
     }
 
-    assert (!srcIsZXC && !dstIsZXC);
+    assert (!srcIsIDAC && !dstIsIDAC);
     return finishFlow (sb, srcIssue, dstIssue,
         flow<IOUAmount, IOUAmount> (
             sb, strands, asDeliver.iou, partialPayment, offerCrossing,

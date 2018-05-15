@@ -105,7 +105,7 @@ struct ChainSql_test : public beast::unit_test::suite
         auto const alice = Account("alice");
 
         //Env env(*this, features(featureFlow), features(featureOwnerPaysFee));
-        //env.fund(ZXC(10000), alice);
+        //env.fund(IDAC(10000), alice);
         //env(paytableset(alice));
         //logs_ = std::make_unique<SuiteLogs>(*this);
         //

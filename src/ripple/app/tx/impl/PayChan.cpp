@@ -29,7 +29,7 @@
 #include <ripple/protocol/PayChan.h>
 #include <ripple/protocol/PublicKey.h>
 #include <ripple/protocol/TxFlags.h>
-#include <ripple/protocol/ZXCAmount.h>
+#include <ripple/protocol/IDACAmount.h>
 #include <ripple/ledger/View.h>
 
 namespace ripple {
@@ -37,8 +37,8 @@ namespace ripple {
 /*
     PaymentChannel
 
-        Payment channels permit off-ledger checkpoints of ZXC payments flowing
-        in a single direction. A channel sequesters the owner's ZXC in its own
+        Payment channels permit off-ledger checkpoints of IDAC payments flowing
+        in a single direction. A channel sequesters the owner's IDAC in its own
         ledger entry. The owner can authorize the recipient to claim up to a
         given balance by giving the receiver a signed message (off-ledger). The
         recipient can use this signed message to claim any unpaid balance while
@@ -59,7 +59,7 @@ namespace ripple {
         Destination
             The recipient at the end of the channel.
         Amount
-            The amount of ZXC to deposit in the channel immediately.
+            The amount of IDAC to deposit in the channel immediately.
         SettleDelay
             The amount of time everyone but the recipient must wait for a
             superior claim.
@@ -87,7 +87,7 @@ namespace ripple {
         Channel
             The 256-bit ID of the channel.
         Amount
-            The amount of ZXC to add.
+            The amount of IDAC to add.
         Expiration (optional)
             Time the channel closes. The transaction will fail if the expiration
             times does not satisfy the SettleDelay constraints.
@@ -98,10 +98,10 @@ namespace ripple {
         Channel
             The 256-bit ID of the channel.
         Balance (optional)
-            The total amount of ZXC delivered after this claim is processed (optional, not
+            The total amount of IDAC delivered after this claim is processed (optional, not
             needed if just closing).
         Amount (optional)
-            The amount of ZXC the signature is for (not needed if equal to Balance or just
+            The amount of IDAC the signature is for (not needed if equal to Balance or just
             closing the line).
         Signature (optional)
             Authorization for the balance above, signed by the owner (optional,
@@ -165,7 +165,7 @@ PayChanCreate::preflight (PreflightContext const& ctx)
     if (!isTesSuccess (ret))
         return ret;
 
-    if (!isZXC (ctx.tx[sfAmount]) || (ctx.tx[sfAmount] <= beast::zero))
+    if (!isIDAC (ctx.tx[sfAmount]) || (ctx.tx[sfAmount] <= beast::zero))
         return temBAD_AMOUNT;
 
     if (ctx.tx[sfAccount] == ctx.tx[sfDestination])
@@ -206,7 +206,7 @@ PayChanCreate::preclaim(PreclaimContext const &ctx)
         if (((*sled)[sfFlags] & lsfRequireDestTag) &&
             !ctx.tx[~sfDestinationTag])
             return tecDST_TAG_NEEDED;
-        if ((*sled)[sfFlags] & lsfDisallowZXC)
+        if ((*sled)[sfFlags] & lsfDisallowIDAC)
             return tecNO_TARGET;
     }
 
@@ -266,7 +266,7 @@ PayChanFund::preflight (PreflightContext const& ctx)
     if (!isTesSuccess (ret))
         return ret;
 
-    if (!isZXC (ctx.tx[sfAmount]) || (ctx.tx[sfAmount] <= beast::zero))
+    if (!isIDAC (ctx.tx[sfAmount]) || (ctx.tx[sfAmount] <= beast::zero))
         return temBAD_AMOUNT;
 
     return preflight2 (ctx);
@@ -352,11 +352,11 @@ PayChanClaim::preflight (PreflightContext const& ctx)
         return ret;
 
     auto const bal = ctx.tx[~sfBalance];
-    if (bal && (!isZXC (*bal) || *bal <= beast::zero))
+    if (bal && (!isIDAC (*bal) || *bal <= beast::zero))
         return temBAD_AMOUNT;
 
     auto const amt = ctx.tx[~sfAmount];
-    if (amt && (!isZXC (*amt) || *amt <= beast::zero))
+    if (amt && (!isIDAC (*amt) || *amt <= beast::zero))
         return temBAD_AMOUNT;
 
     if (bal && amt && *bal > *amt)
@@ -380,8 +380,8 @@ PayChanClaim::preflight (PreflightContext const& ctx)
         // The signature isn't needed if txAccount == src, but if it's
         // present, check it
 
-        auto const reqBalance = bal->zxc ();
-        auto const authAmt = amt ? amt->zxc() : reqBalance;
+        auto const reqBalance = bal->idac ();
+        auto const authAmt = amt ? amt->idac() : reqBalance;
 
         if (reqBalance > authAmt)
         {
@@ -432,9 +432,9 @@ PayChanClaim::doApply()
 
     if (ctx_.tx[~sfBalance])
     {
-        auto const chanBalance = slep->getFieldAmount (sfBalance).zxc ();
-        auto const chanFunds = slep->getFieldAmount (sfAmount).zxc ();
-        auto const reqBalance = ctx_.tx[sfBalance].zxc ();
+        auto const chanBalance = slep->getFieldAmount (sfBalance).idac ();
+        auto const chanFunds = slep->getFieldAmount (sfAmount).idac ();
+        auto const reqBalance = ctx_.tx[sfBalance].idac ();
 
         if (txAccount == dst && !ctx_.tx[~sfSignature])
             return temBAD_SIGNATURE;
@@ -457,11 +457,11 @@ PayChanClaim::doApply()
         if (!sled)
             return terNO_ACCOUNT;
 
-        if (txAccount == src && ((*sled)[sfFlags] & lsfDisallowZXC))
+        if (txAccount == src && ((*sled)[sfFlags] & lsfDisallowIDAC))
             return tecNO_TARGET;
 
         (*slep)[sfBalance] = ctx_.tx[sfBalance];
-        ZXCAmount const reqDelta = reqBalance - chanBalance;
+        IDACAmount const reqDelta = reqBalance - chanBalance;
         assert (reqDelta >= beast::zero);
         (*sled)[sfBalance] = (*sled)[sfBalance] + reqDelta;
         ctx_.view ().update (sled);

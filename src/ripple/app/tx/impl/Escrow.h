@@ -35,7 +35,7 @@ public:
     }
 
     static
-    ZXCAmount
+    IDACAmount
     calculateMaxSpend(STTx const& tx);
 
     static

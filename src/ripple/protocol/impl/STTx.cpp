@@ -39,7 +39,7 @@
 #include <type_traits>
 #include <utility>
 #include <ripple/json/json_reader.h>
-#include <peersafe/protocol/TableDefines.h>
+#include <idac/protocol/TableDefines.h>
 
 namespace ripple {
 
@@ -395,7 +395,7 @@ STTx::getMentionedAccounts () const
         else if (auto sa = dynamic_cast<STAmount const*> (&it))
         {
             auto const& issuer = sa->getIssuer ();
-            if (! isZXC (issuer))
+            if (! isIDAC (issuer))
                 list.insert(issuer);
         }
     }

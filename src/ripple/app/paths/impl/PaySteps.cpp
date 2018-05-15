@@ -24,7 +24,7 @@
 #include <ripple/ledger/ReadView.h>
 #include <ripple/protocol/Feature.h>
 #include <ripple/protocol/IOUAmount.h>
-#include <ripple/protocol/ZXCAmount.h>
+#include <ripple/protocol/IDACAmount.h>
 
 #include <boost/range/adaptors.hpp>
 #include <boost/range/algorithm.hpp>
@@ -58,17 +58,17 @@ bool checkNear (IOUAmount const& expected, IOUAmount const& actual)
     return r <= ratTol;
 };
 
-bool checkNear (ZXCAmount const& expected, ZXCAmount const& actual)
+bool checkNear (IDACAmount const& expected, IDACAmount const& actual)
 {
     return expected == actual;
 };
 
 static
-bool isZXCAccount (STPathElement const& pe)
+bool isIDACAccount (STPathElement const& pe)
 {
     if (pe.getNodeType () != STPathElement::typeAccount)
         return false;
-    return isZXC (pe.getAccountID ());
+    return isIDAC (pe.getAccountID ());
 };
 
 
@@ -84,13 +84,13 @@ toStep (
 
     if (ctx.isFirst && e1->isAccount () &&
         (e1->getNodeType () & STPathElement::typeCurrency) &&
-        isZXC (e1->getCurrency ()))
+        isIDAC (e1->getCurrency ()))
     {
-        return make_ZXCEndpointStep (ctx, e1->getAccountID ());
+        return make_IDACEndpointStep (ctx, e1->getAccountID ());
     }
 
-    if (ctx.isLast && isZXCAccount (*e1) && e2->isAccount())
-        return make_ZXCEndpointStep (ctx, e2->getAccountID());
+    if (ctx.isLast && isIDACAccount (*e1) && e2->isAccount())
+        return make_IDACEndpointStep (ctx, e2->getAccountID());
 
     if (e1->isAccount() && e2->isAccount())
     {
@@ -118,18 +118,18 @@ toStep (
         ? e2->getIssuerID ()
         : curIssue.account;
 
-    if (isZXC (curIssue.currency) && isZXC (outCurrency))
+    if (isIDAC (curIssue.currency) && isIDAC (outCurrency))
     {
-        JLOG (j.warn()) << "Found zxc/zxc offer payment step";
+        JLOG (j.warn()) << "Found idac/idac offer payment step";
         return {temBAD_PATH, std::unique_ptr<Step>{}};
     }
 
     assert (e2->isOffer ());
 
-    if (isZXC (outCurrency))
+    if (isIDAC (outCurrency))
         return make_BookStepIX (ctx, curIssue);
 
-    if (isZXC (curIssue.currency))
+    if (isIDAC (curIssue.currency))
         return make_BookStepXI (ctx, {outCurrency, outIssuer});
 
     return make_BookStepII (ctx, curIssue, {outCurrency, outIssuer});
@@ -148,14 +148,14 @@ toStrandV1 (
     bool offerCrossing,
     beast::Journal j)
 {
-    if (isZXC (src))
+    if (isIDAC (src))
     {
-        JLOG (j.debug()) << "toStrand with zxcAccount as src";
+        JLOG (j.debug()) << "toStrand with idacAccount as src";
         return {temBAD_PATH, Strand{}};
     }
-    if (isZXC (dst))
+    if (isIDAC (dst))
     {
-        JLOG (j.debug()) << "toStrand with zxcAccount as dst";
+        JLOG (j.debug()) << "toStrand with idacAccount as dst";
         return {temBAD_PATH, Strand{}};
     }
     if (!isConsistent (deliver))
@@ -173,8 +173,8 @@ toStrandV1 (
     {
         auto& currency =
             sendMaxIssue ? sendMaxIssue->currency : deliver.currency;
-        if (isZXC (currency))
-            return zxcIssue ();
+        if (isIDAC (currency))
+            return idacIssue ();
         return Issue{currency, src};
     }();
 
@@ -281,7 +281,7 @@ toStrandV1 (
 
         if (cur->isAccount() && next->isAccount())
         {
-            if (!isZXC (curIssue.currency) &&
+            if (!isIDAC (curIssue.currency) &&
                 curIssue.account != cur->getAccountID () &&
                 curIssue.account != next->getAccountID ())
             {
@@ -316,7 +316,7 @@ toStrandV1 (
         else if (cur->isOffer() && next->isAccount())
         {
             if (curIssue.account != next->getAccountID () &&
-                !isZXC (next->getAccountID ()))
+                !isIDAC (next->getAccountID ()))
             {
                 JLOG (j.trace()) << "Inserting implied account after offer";
                 auto msr = make_DirectStepI (ctx(), curIssue.account,
@@ -335,7 +335,7 @@ toStrandV1 (
             auto const& nextIssuer =
                 next->hasIssuer () ? next->getIssuerID () : curIssue.account;
 
-            if (isZXC (curIssue.currency))
+            if (isIDAC (curIssue.currency))
             {
                 JLOG (j.trace()) << "Inserting implied XI offer";
                 auto msr = make_BookStepXI (
@@ -344,7 +344,7 @@ toStrandV1 (
                     return {msr.first, Strand{}};
                 result.push_back (std::move (msr.second));
             }
-            else if (isZXC (nextCurrency))
+            else if (isIDAC (nextCurrency))
             {
                 JLOG (j.trace()) << "Inserting implied IX offer";
                 auto msr = make_BookStepIX (ctx(), curIssue);
@@ -396,7 +396,7 @@ toStrandV2 (
     bool offerCrossing,
     beast::Journal j)
 {
-    if (isZXC(src) || isZXC(dst) ||
+    if (isIDAC(src) || isIDAC(dst) ||
         !isConsistent(deliver) || (sendMaxIssue && !isConsistent(*sendMaxIssue)))
         return {temBAD_PATH, Strand{}};
 
@@ -420,14 +420,14 @@ toStrandV2 (
         if (hasAccount && (hasIssuer || hasCurrency))
             return {temBAD_PATH, Strand{}};
 
-        if (hasIssuer && isZXC(pe.getIssuerID()))
+        if (hasIssuer && isIDAC(pe.getIssuerID()))
             return {temBAD_PATH, Strand{}};
 
-        if (hasAccount && isZXC(pe.getAccountID()))
+        if (hasAccount && isIDAC(pe.getAccountID()))
             return {temBAD_PATH, Strand{}};
 
         if (hasCurrency && hasIssuer &&
-            isZXC(pe.getCurrency()) != isZXC(pe.getIssuerID()))
+            isIDAC(pe.getCurrency()) != isIDAC(pe.getIssuerID()))
             return {temBAD_PATH, Strand{}};
 
         if (hasIssuer && (pe.getIssuerID() == noAccount()))
@@ -441,8 +441,8 @@ toStrandV2 (
     {
         auto const& currency =
             sendMaxIssue ? sendMaxIssue->currency : deliver.currency;
-        if (isZXC (currency))
-            return zxcIssue ();
+        if (isIDAC (currency))
+            return idacIssue ();
         return Issue{currency, src};
     }();
 
@@ -547,13 +547,13 @@ toStrandV2 (
         if (cur->hasCurrency())
         {
             curIssue.currency = cur->getCurrency ();
-            if (isZXC(curIssue.currency))
-                curIssue.account = zxcAccount();
+            if (isIDAC(curIssue.currency))
+                curIssue.account = idacAccount();
         }
 
         if (cur->isAccount() && next->isAccount())
         {
-            if (!isZXC (curIssue.currency) &&
+            if (!isIDAC (curIssue.currency) &&
                 curIssue.account != cur->getAccountID () &&
                 curIssue.account != next->getAccountID ())
             {
@@ -564,7 +564,7 @@ toStrandV2 (
                     return {msr.first, Strand{}};
                 result.push_back (std::move (msr.second));
                 impliedPE.emplace(STPathElement::typeAccount,
-                    curIssue.account, zxcCurrency(), zxcAccount());
+                    curIssue.account, idacCurrency(), idacAccount());
                 cur = &*impliedPE;
             }
         }
@@ -579,23 +579,23 @@ toStrandV2 (
                     return {msr.first, Strand{}};
                 result.push_back (std::move (msr.second));
                 impliedPE.emplace(STPathElement::typeAccount,
-                    curIssue.account, zxcCurrency(), zxcAccount());
+                    curIssue.account, idacCurrency(), idacAccount());
                 cur = &*impliedPE;
             }
         }
         else if (cur->isOffer() && next->isAccount())
         {
             if (curIssue.account != next->getAccountID () &&
-                !isZXC (next->getAccountID ()))
+                !isIDAC (next->getAccountID ()))
             {
-                if (isZXC(curIssue))
+                if (isIDAC(curIssue))
                 {
                     if (i != normPath.size() - 2)
                         return {temBAD_PATH, Strand{}};
                     else
                     {
-                        // Last step. insert zxc endpoint step
-                        auto msr = make_ZXCEndpointStep (ctx(), next->getAccountID());
+                        // Last step. insert idac endpoint step
+                        auto msr = make_IDACEndpointStep (ctx(), next->getAccountID());
                         if (msr.first != tesSUCCESS)
                             return {msr.first, Strand{}};
                         result.push_back(std::move(msr.second));
@@ -641,15 +641,15 @@ toStrandV2 (
                 return std::make_pair(r->in.account, r->out.account);
             Throw<FlowException>(
                 tefEXCEPTION, "Step should be either a direct or book step");
-            return std::make_pair(zxcAccount(), zxcAccount());
+            return std::make_pair(idacAccount(), idacAccount());
         };
 
         auto curAccount = src;
         auto curIssue = [&] {
             auto& currency =
                 sendMaxIssue ? sendMaxIssue->currency : deliver.currency;
-            if (isZXC(currency))
-                return zxcIssue();
+            if (isIDAC(currency))
+                return idacIssue();
             return Issue{currency, src};
         }();
 
@@ -839,26 +839,26 @@ StrandContext::StrandContext (
 
 template<class InAmt, class OutAmt>
 bool
-isDirectZxcToZxc(Strand const& strand)
+isDirectIdacToIdac(Strand const& strand)
 {
     return false;
 }
 
 template<>
 bool
-isDirectZxcToZxc<ZXCAmount, ZXCAmount> (Strand const& strand)
+isDirectIdacToIdac<IDACAmount, IDACAmount> (Strand const& strand)
 {
     return (strand.size () == 2);
 }
 
 template
 bool
-isDirectZxcToZxc<ZXCAmount, IOUAmount> (Strand const& strand);
+isDirectIdacToIdac<IDACAmount, IOUAmount> (Strand const& strand);
 template
 bool
-isDirectZxcToZxc<IOUAmount, ZXCAmount> (Strand const& strand);
+isDirectIdacToIdac<IOUAmount, IDACAmount> (Strand const& strand);
 template
 bool
-isDirectZxcToZxc<IOUAmount, IOUAmount> (Strand const& strand);
+isDirectIdacToIdac<IOUAmount, IOUAmount> (Strand const& strand);
 
 } // ripple

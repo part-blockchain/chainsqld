@@ -68,7 +68,7 @@ class TransactionHistory_test : public beast::unit_test::suite
         {
             accounts.emplace_back("A" + std::to_string(i));
             auto const& acct=accounts.back();
-            env.fund(ZXC(10000), acct);
+            env.fund(IDAC(10000), acct);
             env.close();
             if(i > 0)
             {
@@ -76,7 +76,7 @@ class TransactionHistory_test : public beast::unit_test::suite
                 env.trust(acct["USD"](1000), prev);
                 env(pay(acct, prev, acct["USD"](5)));
             }
-            env(offer(acct, ZXC(100), acct["USD"](1)));
+            env(offer(acct, IDAC(100), acct["USD"](1)));
             env.close();
 
             // verify the latest transaction in env (offer)

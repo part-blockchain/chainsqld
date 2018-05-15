@@ -132,7 +132,7 @@ bool getSingleSection (IniFileSections& secSource,
 //
 //------------------------------------------------------------------------------
 
-char const* const Config::configFileName = "chainsqld.cfg";
+char const* const Config::configFileName = "idacd.cfg";
 char const* const Config::databaseDirName = "db";
 char const* const Config::validatorsFileName = "validators.txt";
 

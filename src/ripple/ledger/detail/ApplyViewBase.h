@@ -25,7 +25,7 @@
 #include <ripple/ledger/OpenView.h>
 #include <ripple/ledger/ReadView.h>
 #include <ripple/ledger/detail/ApplyStateTable.h>
-#include <ripple/protocol/ZXCAmount.h>
+#include <ripple/protocol/IDACAmount.h>
 
 namespace ripple {
 namespace detail {
@@ -125,8 +125,8 @@ public:
         SLE> const& sle) override;
 
     void
-    rawDestroyZXC (
-        ZXCAmount const& feeDrops) override;
+    rawDestroyIDAC (
+        IDACAmount const& feeDrops) override;
 
     friend
     CashDiff cashFlowDiff (

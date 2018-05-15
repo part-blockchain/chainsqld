@@ -541,17 +541,17 @@ class View_test
         auto const USD = gw["USD"];
         auto const EUR = gw["EUR"];
 
-        env.fund(ZXC(10000), alice, bob, carol, gw);
+        env.fund(IDAC(10000), alice, bob, carol, gw);
         env.trust(USD(100), alice, bob, carol);
         {
             // Global freezing.
             env(pay(gw, alice, USD(50)));
-            env(offer(alice, ZXC(5), USD(5)));
+            env(offer(alice, IDAC(5), USD(5)));
 
             // Now freeze gw.
             env(fset (gw, asfGlobalFreeze));
             env.close();
-            env(offer(alice, ZXC(4), USD(5)), ter(tecFROZEN));
+            env(offer(alice, IDAC(4), USD(5)), ter(tecFROZEN));
             env.close();
 
             // Alice's USD balance should be zero if frozen.
@@ -561,7 +561,7 @@ class View_test
             // Thaw gw and try again.
             env(fclear (gw, asfGlobalFreeze));
             env.close();
-            env(offer("alice", ZXC(4), USD(5)));
+            env(offer("alice", IDAC(4), USD(5)));
         }
         {
             // Local freezing.
@@ -595,24 +595,24 @@ class View_test
             BEAST_EXPECT(USD(50) == accountHolds (*env.closed(),
                 carol, USD.currency, gw, fhZERO_IF_FROZEN, env.journal));
 
-            // carol's ZXC balance should be her holdings minus her reserve.
-            auto const carolsZXC = accountHolds (*env.closed(), carol,
-                zxcCurrency(), zxcAccount(), fhZERO_IF_FROZEN, env.journal);
-            // carol's ZXC balance:              10000
+            // carol's IDAC balance should be her holdings minus her reserve.
+            auto const carolsIDAC = accountHolds (*env.closed(), carol,
+                idacCurrency(), idacAccount(), fhZERO_IF_FROZEN, env.journal);
+            // carol's IDAC balance:              10000
             // base reserve:                      -200
             // 1 trust line times its reserve: 1 * -50
             //                                 -------
             // carol's available balance:         9750
-            BEAST_EXPECT(carolsZXC == ZXC(9750));
+            BEAST_EXPECT(carolsIDAC == IDAC(9750));
 
-            // carol should be able to spend *more* than her ZXC balance on
+            // carol should be able to spend *more* than her IDAC balance on
             // a fee by eating into her reserve.
-            env(noop(carol), fee(carolsZXC + ZXC(10)));
+            env(noop(carol), fee(carolsIDAC + IDAC(10)));
             env.close();
 
-            // carol's ZXC balance should now show as zero.
-            BEAST_EXPECT(ZXC(0) == accountHolds (*env.closed(),
-                carol, zxcCurrency(), gw, fhZERO_IF_FROZEN, env.journal));
+            // carol's IDAC balance should now show as zero.
+            BEAST_EXPECT(IDAC(0) == accountHolds (*env.closed(),
+                carol, idacCurrency(), gw, fhZERO_IF_FROZEN, env.journal));
         }
         {
             // accountFunds().
@@ -652,7 +652,7 @@ class View_test
 
         auto const gw1 = Account("gw1");
 
-        env.fund(ZXC(10000), gw1);
+        env.fund(IDAC(10000), gw1);
         env.close();
 
         auto rdView = env.closed();
@@ -680,11 +680,11 @@ class View_test
         // The first Env.
         Env eA(*this);
 
-        eA.fund(ZXC(10000), alice);
+        eA.fund(IDAC(10000), alice);
         eA.close();
         auto const rdViewA3 = eA.closed();
 
-        eA.fund(ZXC(10000), bob);
+        eA.fund(IDAC(10000), bob);
         eA.close();
         auto const rdViewA4 = eA.closed();
 
@@ -694,11 +694,11 @@ class View_test
 
         // Make ledgers that are incompatible with the first ledgers.  Note
         // that bob is funded before alice.
-        eB.fund(ZXC(10000), bob);
+        eB.fund(IDAC(10000), bob);
         eB.close();
         auto const rdViewB3 = eB.closed();
 
-        eB.fund(ZXC(10000), alice);
+        eB.fund(IDAC(10000), alice);
         eB.close();
         auto const rdViewB4 = eB.closed();
 
@@ -759,7 +759,7 @@ class View_test
         {
             Env env(*this);
             BEAST_EXPECT(env.app().openLedger().empty());
-            env.fund(ZXC(10000), Account("test"));
+            env.fund(IDAC(10000), Account("test"));
             BEAST_EXPECT(! env.app().openLedger().empty());
         }
     }

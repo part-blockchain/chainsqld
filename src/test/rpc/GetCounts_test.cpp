@@ -52,7 +52,7 @@ class GetCounts_test : public beast::unit_test::suite
         env.close();
         Account alice {"alice"};
         Account bob {"bob"};
-        env.fund (ZXC(10000), alice, bob);
+        env.fund (IDAC(10000), alice, bob);
         env.trust (alice["USD"](1000), bob);
         for(auto i=0; i<20; ++i)
         {

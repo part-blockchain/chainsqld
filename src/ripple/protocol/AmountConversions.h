@@ -21,7 +21,7 @@
 #define RIPPLE_PROTOCOL_AMOUNTCONVERSION_H_INCLUDED
 
 #include <ripple/protocol/IOUAmount.h>
-#include <ripple/protocol/ZXCAmount.h>
+#include <ripple/protocol/IDACAmount.h>
 #include <ripple/protocol/STAmount.h>
 
 namespace ripple {
@@ -45,19 +45,19 @@ toSTAmount (IOUAmount const& iou)
 
 inline
 STAmount
-toSTAmount (ZXCAmount const& zxc)
+toSTAmount (IDACAmount const& idac)
 {
-    bool const isNeg = zxc.signum() < 0;
-    std::uint64_t const umant = isNeg ? - zxc.drops () : zxc.drops ();
+    bool const isNeg = idac.signum() < 0;
+    std::uint64_t const umant = isNeg ? - idac.drops () : idac.drops ();
     return STAmount (umant, isNeg);
 }
 
 inline
 STAmount
-toSTAmount (ZXCAmount const& zxc, Issue const& iss)
+toSTAmount (IDACAmount const& idac, Issue const& iss)
 {
-    assert (isZXC(iss.account) && isZXC(iss.currency));
-    return toSTAmount (zxc);
+    assert (isIDAC(iss.account) && isIDAC(iss.currency));
+    return toSTAmount (idac);
 }
 
 template <class T>
@@ -86,22 +86,22 @@ toAmount<IOUAmount> (STAmount const& amt)
     std::int64_t const sMant =
             isNeg ? - std::int64_t (amt.mantissa ()) : amt.mantissa ();
 
-    assert (! isZXC (amt));
+    assert (! isIDAC (amt));
     return IOUAmount (sMant, amt.exponent ());
 }
 
 template <>
 inline
-ZXCAmount
-toAmount<ZXCAmount> (STAmount const& amt)
+IDACAmount
+toAmount<IDACAmount> (STAmount const& amt)
 {
     assert (amt.mantissa () < std::numeric_limits<std::int64_t>::max ());
     bool const isNeg = amt.negative ();
     std::int64_t const sMant =
             isNeg ? - std::int64_t (amt.mantissa ()) : amt.mantissa ();
 
-    assert (isZXC (amt));
-    return ZXCAmount (sMant);
+    assert (isIDAC (amt));
+    return IDACAmount (sMant);
 }
 
 

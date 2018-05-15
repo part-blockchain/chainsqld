@@ -30,13 +30,13 @@
 
 namespace ripple {
 
-ZXCAmount
+IDACAmount
 CreateOffer::calculateMaxSpend(STTx const& tx)
 {
     auto const& saTakerGets = tx[sfTakerGets];
 
     return saTakerGets.native() ?
-        saTakerGets.zxc() : beast::zero;
+        saTakerGets.idac() : beast::zero;
 }
 
 TER
@@ -95,7 +95,7 @@ CreateOffer::preflight (PreflightContext const& ctx)
     if (saTakerPays.native () && saTakerGets.native ())
     {
         JLOG(j.debug()) <<
-            "Malformed offer: redundant (ZXC for ZXC)";
+            "Malformed offer: redundant (IDAC for IDAC)";
         return temBAD_OFFER;
     }
     if (saTakerPays <= zero || saTakerGets <= zero)
@@ -117,7 +117,7 @@ CreateOffer::preflight (PreflightContext const& ctx)
             "Malformed offer: redundant (IOU for IOU)";
         return temREDUNDANT;
     }
-    // We don't allow a non-native currency to use the currency code ZXC.
+    // We don't allow a non-native currency to use the currency code IDAC.
     if (badCurrency() == uPaysCurrency || badCurrency() == uGetsCurrency)
     {
         JLOG(j.debug()) <<
@@ -218,7 +218,7 @@ CreateOffer::checkAcceptAsset(ReadView const& view,
         beast::Journal const j, Issue const& issue)
 {
     // Only valid for custom currencies
-    assert (!isZXC (issue.currency));
+    assert (!isIDAC (issue.currency));
 
     auto const issuerAccount = view.read(
         keylet::account(issue.account));
@@ -336,21 +336,21 @@ CreateOffer::bridged_cross (
 {
     auto const& takerAmount = taker.original_offer ();
 
-    assert (!isZXC (takerAmount.in) && !isZXC (takerAmount.out));
+    assert (!isIDAC (takerAmount.in) && !isIDAC (takerAmount.out));
 
-    if (isZXC (takerAmount.in) || isZXC (takerAmount.out))
-        Throw<std::logic_error> ("Bridging with ZXC and an endpoint.");
+    if (isIDAC (takerAmount.in) || isIDAC (takerAmount.out))
+        Throw<std::logic_error> ("Bridging with IDAC and an endpoint.");
 
     OfferStream offers_direct (view, view_cancel,
         Book (taker.issue_in (), taker.issue_out ()),
             when, stepCounter_, j_);
 
     OfferStream offers_leg1 (view, view_cancel,
-        Book (taker.issue_in (), zxcIssue ()),
+        Book (taker.issue_in (), idacIssue ()),
         when, stepCounter_, j_);
 
     OfferStream offers_leg2 (view, view_cancel,
-        Book (zxcIssue (), taker.issue_out ()),
+        Book (idacIssue (), taker.issue_out ()),
         when, stepCounter_, j_);
 
     TER cross_result = tesSUCCESS;
@@ -608,7 +608,7 @@ CreateOffer::takerCross (
     // If the taker is unfunded before we begin crossing
     // there's nothing to do - just return an error.
     //
-    // We check this in preclaim, but when selling ZXC
+    // We check this in preclaim, but when selling IDAC
     // charged fees can cause a user's available balance
     // to go to 0 (by causing it to dip below the reserve)
     // so we check this case again.
@@ -645,7 +645,7 @@ CreateOffer::flowCross (
         // If the taker is unfunded before we begin crossing there's nothing
         // to do - just return an error.
         //
-        // We check this in preclaim, but when selling ZXC charged fees can
+        // We check this in preclaim, but when selling IDAC charged fees can
         // cause a user's available balance to go to 0 (by causing it to dip
         // below the reserve) so we check this case again.
         STAmount const inStartBalance = accountFunds (
@@ -688,14 +688,14 @@ CreateOffer::flowCross (
             sendMax = inStartBalance;
 
         // Always invoke flow() with the default path.  However if neither
-        // of the takerAmount currencies are ZXC then we cross through an
-        // additional path with ZXC as the intermediate between two books.
+        // of the takerAmount currencies are IDAC then we cross through an
+        // additional path with IDAC as the intermediate between two books.
         // This second path we have to build ourselves.
         STPathSet paths;
         if (!takerAmount.in.native() & !takerAmount.out.native())
         {
             STPath path;
-            path.emplace_back (boost::none, zxcCurrency(), boost::none);
+            path.emplace_back (boost::none, idacCurrency(), boost::none);
             paths.emplace_back (std::move(path));
         }
         // Special handling for the tfSell flag.
@@ -1033,14 +1033,14 @@ void
 CreateOffer::preCompute()
 {
     cross_type_ = CrossType::IouToIou;
-    bool const pays_zxc =
+    bool const pays_idac =
         ctx_.tx.getFieldAmount (sfTakerPays).native ();
-    bool const gets_zxc =
+    bool const gets_idac =
         ctx_.tx.getFieldAmount (sfTakerGets).native ();
-    if (pays_zxc && !gets_zxc)
-        cross_type_ = CrossType::IouToZxc;
-    else if (gets_zxc && !pays_zxc)
-        cross_type_ = CrossType::ZxcToIou;
+    if (pays_idac && !gets_idac)
+        cross_type_ = CrossType::IouToIdac;
+    else if (gets_idac && !pays_idac)
+        cross_type_ = CrossType::IdacToIou;
 
     return Transactor::preCompute();
 }
@@ -1115,7 +1115,7 @@ CreateOffer::applyGuts (Sandbox& sb, Sandbox& sbCancel)
         auto const& uGetsIssuerID = saTakerGets.getIssuer ();
 
         std::uint8_t uTickSize = Quality::maxTickSize;
-        if (!isZXC (uPaysIssuerID))
+        if (!isIDAC (uPaysIssuerID))
         {
             auto const sle =
                 sb.read(keylet::account(uPaysIssuerID));
@@ -1123,7 +1123,7 @@ CreateOffer::applyGuts (Sandbox& sb, Sandbox& sbCancel)
                 uTickSize = std::min (uTickSize,
                     (*sle)[sfTickSize]);
         }
-        if (!isZXC (uGetsIssuerID))
+        if (!isIDAC (uGetsIssuerID))
         {
             auto const sle =
                 sb.read(keylet::account(uGetsIssuerID));
@@ -1267,7 +1267,7 @@ CreateOffer::applyGuts (Sandbox& sb, Sandbox& sbCancel)
 
     auto const sleCreator = sb.peek (keylet::account(account_));
     {
-        ZXCAmount reserve = ctx_.view().fees().accountReserve(
+        IDACAmount reserve = ctx_.view().fees().accountReserve(
             sleCreator->getFieldU32 (sfOwnerCount) + 1);
 
         if (mPriorBalance < reserve)

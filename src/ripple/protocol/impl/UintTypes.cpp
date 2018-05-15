@@ -42,16 +42,19 @@ std::string to_string(Currency const& currency)
         return "1";
 
     static Currency const sIsoBits (
-        from_hex_text<Currency>("FFFFFFFFFFFFFFFFFFFFFFFF000000FFFFFFFFFF"));
+        from_hex_text<Currency>("FFFFFFFFFFFFFFFFFFFFFF000000000000000000"));
 
     if ((currency & sIsoBits).isZero ())
     {
         // The offset of the 3 character ISO code in the currency descriptor
         int const isoOffset = 12;
+		int const startOffset = 11;
+
+		char length = currency.data()[startOffset];
 
         std::string const iso(
             currency.data () + isoOffset,
-            currency.data () + isoOffset + 3);
+            currency.data () + isoOffset + length);
 
         // Specifying the system currency code using ISO-style representation
         // is not allowed.
@@ -74,18 +77,19 @@ bool to_currency(Currency& currency, std::string const& code)
     }
 
     static const int CURRENCY_CODE_LENGTH = 3;
-    if (code.size () == CURRENCY_CODE_LENGTH)
+	static const int CURRENCY_CODE_MAXLENGTH = 8;
+    if (code.size () >= CURRENCY_CODE_LENGTH && code.size() <= CURRENCY_CODE_MAXLENGTH)
     {
-        Blob codeBlob (CURRENCY_CODE_LENGTH);
+        Blob codeBlob (code.size());
 
         std::transform (code.begin (), code.end (), codeBlob.begin (), ::toupper);
 
         Serializer  s;
 
-        s.addZeros (96 / 8);
+        s.addZeros (88 / 8);
+		s.add8(code.size());
         s.addRaw (codeBlob);
-        s.addZeros (16 / 8);
-        s.addZeros (24 / 8);
+        s.addZeros (20 - 12 - code.size());
 
         s.get160 (currency, 0);
         return true;
@@ -105,7 +109,7 @@ Currency to_currency(std::string const& code)
     return currency;
 }
 
-Currency const& zxcCurrency()
+Currency const& idacCurrency()
 {
     static Currency const currency(0);
     return currency;
@@ -119,7 +123,7 @@ Currency const& noCurrency()
 
 Currency const& badCurrency()
 {
-	//0x5852500000000000 ZXC
+	//0x5852500000000000 IDAC
     static Currency const currency(0x5A58430000000000);
     return currency;
 }

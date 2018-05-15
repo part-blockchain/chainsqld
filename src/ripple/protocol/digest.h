@@ -24,7 +24,7 @@
 #include <ripple/beast/crypto/ripemd.h>
 #include <ripple/beast/crypto/sha2.h>
 #include <ripple/beast/hash/endian.h>
-#include <peersafe/gmencrypt/hardencrypt/HardEncryptObj.h>
+#include <idac/gmencrypt/hardencrypt/HardEncryptObj.h>
 #include <algorithm>
 #include <array>
 

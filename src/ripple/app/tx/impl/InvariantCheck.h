@@ -77,13 +77,13 @@ public:
 #endif
 
 /**
- * @brief Invariant: A transaction must not create ZXC and should only destroy
- * ZXC, up to the transaction fee.
+ * @brief Invariant: A transaction must not create IDAC and should only destroy
+ * IDAC, up to the transaction fee.
  *
  * For this check, we start with a signed 64-bit integer set to zero. As we go
  * through the ledger entries, look only at account roots, escrow payments,
- * and payment channels.  Remove from the total any previous ZXC values and add
- * to the total any new ZXC values. The net balance of a payment channel is
+ * and payment channels.  Remove from the total any previous IDAC values and add
+ * to the total any new IDAC values. The net balance of a payment channel is
  * computed from two fields (amount and balance) and deletions are ignored
  * for paychan and escrow because the amount fields have not been adjusted for
  * those in the case of deletion.
@@ -92,7 +92,7 @@ public:
  * to the negative of the tx fee.
  *
  */
-class ZXCNotCreated
+class IDACNotCreated
 {
     std::int64_t drops_ = 0;
 
@@ -132,10 +132,10 @@ public:
 };
 
 /**
- * @brief Invariant: An account ZXC balance must be in ZXC and take a value
+ * @brief Invariant: An account IDAC balance must be in IDAC and take a value
                      between 0 and SYSTEM_CURRENCY_START drops, inclusive.
  */
-class ZXCBalanceChecks
+class IDACBalanceChecks
 {
     bool bad_ = false;
 
@@ -174,11 +174,11 @@ public:
 };
 
 /**
- * @brief Invariant: Trust lines using ZXC are not allowed.
+ * @brief Invariant: Trust lines using IDAC are not allowed.
  */
-class NoZXCTrustLines
+class NoIDACTrustLines
 {
-    bool zxcTrustLine_ = false;
+    bool idacTrustLine_ = false;
 
 public:
 
@@ -195,7 +195,7 @@ public:
 
 /**
  * @brief Invariant: offers should be for non-negative amounts and must not
- *                   be ZXC to ZXC.
+ *                   be IDAC to IDAC.
  */
 class NoBadOffers
 {
@@ -242,9 +242,9 @@ public:
 using InvariantChecks = std::tuple<
     AccountRootsNotDeleted,
     LedgerEntryTypesMatch,
-    ZXCBalanceChecks,
-    ZXCNotCreated,
-    NoZXCTrustLines,
+    IDACBalanceChecks,
+    IDACNotCreated,
+    NoIDACTrustLines,
     NoBadOffers,
     NoZeroEscrow
 >;

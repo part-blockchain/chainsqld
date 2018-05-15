@@ -120,7 +120,7 @@ public:
 
 /** Structure describing the consequences to the account
     of applying a transaction if the transaction consumes
-    the maximum ZXC allowed.
+    the maximum IDAC allowed.
 
     @see calculateConsequences
 */
@@ -141,13 +141,13 @@ struct TxConsequences
     /// transactions
     ConsequenceCategory const category;
     /// Transaction fee
-    ZXCAmount const fee;
+    IDACAmount const fee;
     /// Does NOT include the fee.
-    ZXCAmount const potentialSpend;
+    IDACAmount const potentialSpend;
 
     /// Constructor
     TxConsequences(ConsequenceCategory const category_,
-        ZXCAmount const fee_, ZXCAmount const spend_)
+        IDACAmount const fee_, IDACAmount const spend_)
         : category(category_)
         , fee(fee_)
         , potentialSpend(spend_)
@@ -240,8 +240,8 @@ std::uint64_t
 calculateBaseFee(Application& app, ReadView const& view,
     STTx const& tx, beast::Journal j);
 
-/** Determine the ZXC balance consequences if a transaction
-    consumes the maximum ZXC allowed.
+/** Determine the IDAC balance consequences if a transaction
+    consumes the maximum IDAC allowed.
 
     @pre The transaction has been checked
     and validated using `preflight`

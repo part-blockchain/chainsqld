@@ -109,7 +109,7 @@ getVersionString ()
 std::string const& getFullVersionString ()
 {
     static std::string const value =
-        "chainsqld-" + getVersionString();
+        "idacd-" + getVersionString();
     return value;
 }
 

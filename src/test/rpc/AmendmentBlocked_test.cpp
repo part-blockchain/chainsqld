@@ -34,7 +34,7 @@ class AmendmentBlocked_test : public beast::unit_test::suite
         auto const USD = gw["USD"];
         auto const alice = Account {"alice"};
         auto const bob = Account {"bob"};
-        env.fund (ZXC(10000), alice, bob, gw);
+        env.fund (IDAC(10000), alice, bob, gw);
         env.trust (USD(600), alice);
         env.trust (USD(700), bob);
         env(pay (gw, alice, USD(70)));

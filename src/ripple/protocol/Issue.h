@@ -66,7 +66,7 @@ hash_append(Hasher& h, Issue const& r)
 
 /** Ordered comparison.
     The assets are ordered first by currency and then by account,
-    if the currency is not ZXC.
+    if the currency is not IDAC.
 */
 int
 compare (Issue const& lhs, Issue const& rhs);
@@ -93,10 +93,10 @@ operator<= (Issue const& lhs, Issue const& rhs);
 
 //------------------------------------------------------------------------------
 
-/** Returns an asset specifier that represents ZXC. */
-inline Issue const& zxcIssue ()
+/** Returns an asset specifier that represents IDAC. */
+inline Issue const& idacIssue ()
 {
-    static Issue issue {zxcCurrency(), zxcAccount()};
+    static Issue issue {idacCurrency(), idacAccount()};
     return issue;
 }
 

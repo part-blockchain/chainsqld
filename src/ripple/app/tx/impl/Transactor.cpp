@@ -32,9 +32,9 @@
 #include <ripple/protocol/Indexes.h>
 #include <ripple/protocol/types.h>
 #include <ripple/app/ledger/LedgerMaster.h>
-#include <peersafe/app/storage/TableStorageItem.h>
-#include <peersafe/app/storage/TableStorage.h>
-#include <peersafe/app/sql/TxStore.h>
+#include <idac/app/storage/TableStorageItem.h>
+#include <idac/app/storage/TableStorage.h>
+#include <idac/app/sql/TxStore.h>
 #include <ripple/protocol/Protocol.h>
 #include <ripple/protocol/digest.h>
 
@@ -73,7 +73,7 @@ preflight1 (PreflightContext const& ctx)
 
     // No point in going any further if the transaction fee is malformed.
     auto const fee = ctx.tx.getFieldAmount (sfFee);
-    if (!fee.native () || fee.negative () || !isLegalAmount (fee.zxc ()))
+    if (!fee.native () || fee.negative () || !isLegalAmount (fee.idac ()))
     {
         JLOG(ctx.j.debug()) << "preflight1: invalid fee";
         return temBAD_FEE;
@@ -109,7 +109,7 @@ preflight2 (PreflightContext const& ctx)
 }
 
 static
-ZXCAmount
+IDACAmount
 calculateFee(Application& app, std::uint64_t const baseFee,
     Fees const& fees, ApplyFlags flags)
 {
@@ -158,13 +158,13 @@ std::uint64_t Transactor::calculateBaseFee (
     return baseFee + (signerCount * baseFee);
 }
 
-ZXCAmount
+IDACAmount
 Transactor::calculateFeePaid(STTx const& tx)
 {
-    return tx[sfFee].zxc();
+    return tx[sfFee].idac();
 }
 
-ZXCAmount
+IDACAmount
 Transactor::calculateMaxSpend(STTx const& tx)
 {
     return beast::zero;
@@ -182,7 +182,7 @@ Transactor::checkFee (PreclaimContext const& ctx, std::uint64_t baseFee)
 
 	if (ctx.tx.isChainSqlBaseType())
 	{
-		int zxcDrops = 1000000;
+		int idacDrops = 1000000;
 		double multiplier = 0.001;
 		if (ctx.tx.isFieldPresent(sfRaw)) 
 		{
@@ -194,7 +194,7 @@ Transactor::checkFee (PreclaimContext const& ctx, std::uint64_t baseFee)
 			auto statements = ctx.tx.getFieldVL(sfStatements);
 			multiplier += statements.size() / 1024.0;
 		}
-		auto extraAmount = new ZXCAmount((int)(zxcDrops * multiplier));
+		auto extraAmount = new IDACAmount((int)(idacDrops * multiplier));
 		feeDue += *extraAmount;
 	}
 
@@ -212,7 +212,7 @@ Transactor::checkFee (PreclaimContext const& ctx, std::uint64_t baseFee)
     auto const id = ctx.tx.getAccountID(sfAccount);
     auto const sle = ctx.view.read(
         keylet::account(id));
-    auto const balance = (*sle)[sfBalance].zxc();
+    auto const balance = (*sle)[sfBalance].idac();
 
     if (balance < feePaid)
     {
@@ -245,7 +245,7 @@ TER Transactor::payFee ()
     mSourceBalance -= feePaid;
     sle->setFieldAmount (sfBalance, mSourceBalance);
 
-    // VFALCO Should we call view().rawDestroyZXC() here as well?
+    // VFALCO Should we call view().rawDestroyIDAC() here as well?
 
     return tesSUCCESS;
 }
@@ -336,7 +336,7 @@ TER Transactor::apply ()
 
     if (sle)
     {
-        mPriorBalance   = STAmount ((*sle)[sfBalance]).zxc ();
+        mPriorBalance   = STAmount ((*sle)[sfBalance]).idac ();
         mSourceBalance  = mPriorBalance;
 
         setSeq();
@@ -618,14 +618,14 @@ void removeUnfundedOffers (ApplyView& view, std::vector<uint256> const& offers, 
 }
 
 void
-Transactor::claimFee (ZXCAmount& fee, TER terResult, std::vector<uint256> const& removedOffers)
+Transactor::claimFee (IDACAmount& fee, TER terResult, std::vector<uint256> const& removedOffers)
 {
     ctx_.discard();
 
     auto const txnAcct = view().peek(
         keylet::account(ctx_.tx.getAccountID(sfAccount)));
 
-    auto const balance = txnAcct->getFieldAmount (sfBalance).zxc ();
+    auto const balance = txnAcct->getFieldAmount (sfBalance).idac ();
 
     // balance should have already been
     // checked in checkFee / preFlight.
@@ -694,7 +694,7 @@ Transactor::operator()()
     }
 
     bool didApply = isTesSuccess (terResult);
-    auto fee = ctx_.tx.getFieldAmount(sfFee).zxc ();
+    auto fee = ctx_.tx.getFieldAmount(sfFee).idac ();
 
     if (ctx_.size() > oversizeMetaDataCap)
         terResult = tecOVERSIZE;
@@ -768,7 +768,7 @@ Transactor::operator()()
             }
 
             if (fee != zero)
-                ctx_.destroyZXC (fee);
+                ctx_.destroyIDAC (fee);
         }
 
         ctx_.apply(terResult);

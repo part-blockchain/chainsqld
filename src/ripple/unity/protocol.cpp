@@ -62,7 +62,7 @@
 #include <ripple/protocol/impl/STVector256.cpp>
 #include <ripple/protocol/impl/IOUAmount.cpp>
 #include <ripple/protocol/impl/RippleAddress.cpp>
-#include <peersafe/protocol/impl/STEntry.cpp>
+#include <idac/protocol/impl/STEntry.cpp>
 
 #if DOXYGEN
 #include <ripple/protocol/README.md>

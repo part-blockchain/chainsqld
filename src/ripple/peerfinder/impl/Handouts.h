@@ -332,7 +332,7 @@ ConnectHandouts::try_insert (beast::IP::Endpoint const& endpoint)
         [&endpoint](beast::IP::Endpoint const& other)
         {
             // Ignore port for security reasons
-			// by peersafe
+			// by idac
             return other.address() ==
 				endpoint.address() && other.port() ==
 				endpoint.port();

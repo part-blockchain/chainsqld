@@ -42,9 +42,9 @@ Json::Value Node::getJson () const
 
     jvNode[jss::type]  = uFlags;
 
-    bool const hasCurrency = !isZXC (issue_.currency);
-    bool const hasAccount = !isZXC (account_);
-    bool const hasIssuer = !isZXC (issue_.account);
+    bool const hasCurrency = !isIDAC (issue_.currency);
+    bool const hasAccount = !isIDAC (account_);
+    bool const hasIssuer = !isIDAC (issue_.account);
 
     if (isAccount() || hasAccount)
         jvFlags.append (!isAccount() == hasAccount ? "account" : "-account");
@@ -65,13 +65,13 @@ Json::Value Node::getJson () const
 
     jvNode["flags"] = jvFlags;
 
-    if (!isZXC (account_))
+    if (!isIDAC (account_))
         jvNode[jss::account] = to_string (account_);
 
-    if (!isZXC (issue_.currency))
+    if (!isIDAC (issue_.currency))
         jvNode[jss::currency] = to_string (issue_.currency);
 
-    if (!isZXC (issue_.account))
+    if (!isIDAC (issue_.account))
         jvNode[jss::issuer] = to_string (issue_.account);
 
     if (saRevRedeem)

@@ -43,22 +43,22 @@ using Currency = base_uint<160, detail::CurrencyTag>;
 /** NodeID is a 160-bit hash representing one node. */
 using NodeID = base_uint<160, detail::NodeIDTag>;
 
-/** ZXC currency. */
-Currency const& zxcCurrency();
+/** IDAC currency. */
+Currency const& idacCurrency();
 
 /** A placeholder for empty currencies. */
 Currency const& noCurrency();
 
-/** We deliberately disallow the currency that looks like "ZXC" because too
-    many people were using it instead of the correct ZXC currency. */
+/** We deliberately disallow the currency that looks like "IDAC" because too
+    many people were using it instead of the correct IDAC currency. */
 Currency const& badCurrency();
 
-inline bool isZXC(Currency const& c)
+inline bool isIDAC(Currency const& c)
 {
     return c == zero;
 }
 
-/** Returns "", "ZXC", or three letter ISO code. */
+/** Returns "", "IDAC", or three letter ISO code. */
 std::string to_string(Currency const& c);
 
 /** Tries to convert a string to a Currency, returns true on success. */

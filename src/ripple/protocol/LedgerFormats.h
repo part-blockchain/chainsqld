@@ -80,7 +80,7 @@ enum LedgerEntryType
 
     ltESCROW            = 'u',
 
-    // Simple unidirection zxc channel
+    // Simple unidirection idac channel
     ltPAYCHAN           = 'x',
 
     // No longer used or supported. Left here to prevent accidental
@@ -119,7 +119,7 @@ enum LedgerNameSpace
     spaceFee            = 'e',
     spaceTicket         = 'T',
     spaceSignerList     = 'S',
-    spaceZXCUChannel    = 'x',
+    spaceIDACUChannel    = 'x',
 
     // No longer used or supported. Left here to reserve the space and
     // avoid accidental reuse of the space.
@@ -135,7 +135,7 @@ enum LedgerSpecificFlags
     lsfPasswordSpent    = 0x00010000,   // True, if password set fee is spent.
     lsfRequireDestTag   = 0x00020000,   // True, to require a DestinationTag for payments.
     lsfRequireAuth      = 0x00040000,   // True, to require a authorization to hold IOUs.
-    lsfDisallowZXC      = 0x00080000,   // True, to disallow sending ZXC.
+    lsfDisallowIDAC      = 0x00080000,   // True, to disallow sending IDAC.
     lsfDisableMaster    = 0x00100000,   // True, force regular key
     lsfNoFreeze         = 0x00200000,   // True, cannot freeze ripple states
     lsfGlobalFreeze     = 0x00400000,   // True, all assets frozen

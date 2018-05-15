@@ -33,7 +33,7 @@
 #include <ripple/app/paths/impl/PaySteps.cpp>
 #include <ripple/app/paths/impl/DirectStep.cpp>
 #include <ripple/app/paths/impl/BookStep.cpp>
-#include <ripple/app/paths/impl/ZXCEndpointStep.cpp>
+#include <ripple/app/paths/impl/IDACEndpointStep.cpp>
 
 #include <ripple/app/paths/cursor/AdvanceNode.cpp>
 #include <ripple/app/paths/cursor/DeliverNodeForward.cpp>

@@ -113,11 +113,11 @@ class TransactionEntry_test : public beast::unit_test::suite
         Account A1 {"A1"};
         Account A2 {"A2"};
 
-        env.fund(ZXC(10000), A1);
+        env.fund(IDAC(10000), A1);
         auto fund_1_tx =
             boost::lexical_cast<std::string>(env.tx()->getTransactionID());
 
-        env.fund(ZXC(10000), A2);
+        env.fund(IDAC(10000), A2);
         auto fund_2_tx =
             boost::lexical_cast<std::string>(env.tx()->getTransactionID());
 
@@ -143,7 +143,7 @@ class TransactionEntry_test : public beast::unit_test::suite
         check_tx(env.closed()->seq(), trust_tx);
         check_tx(env.closed()->seq(), pay_tx, "Payment");
 
-        env(offer(A2, ZXC(100), A2["USD"](1)));
+        env(offer(A2, IDAC(100), A2["USD"](1)));
         auto offer_tx =
             boost::lexical_cast<std::string>(env.tx()->getTransactionID());
 

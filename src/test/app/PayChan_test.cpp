@@ -54,7 +54,7 @@ struct PayChan_test : public beast::unit_test::suite
         STAmount const& authAmt)
     {
         Serializer msg;
-        serializePayChanAuthorization (msg, channel, authAmt.zxc ());
+        serializePayChanAuthorization (msg, channel, authAmt.idac ());
         return sign (pk, sk, msg.slice ());
     }
 
@@ -64,7 +64,7 @@ struct PayChan_test : public beast::unit_test::suite
     {
         auto const slep = view.read ({ltPAYCHAN, chan});
         if (!slep)
-            return ZXCAmount{-1};
+            return IDACAmount{-1};
         return (*slep)[sfBalance];
     }
 
@@ -82,7 +82,7 @@ struct PayChan_test : public beast::unit_test::suite
     {
         auto const slep = view.read ({ltPAYCHAN, chan});
         if (!slep)
-            return ZXCAmount{-1};
+            return IDACAmount{-1};
         return (*slep)[sfAmount];
     }
 
@@ -179,77 +179,77 @@ struct PayChan_test : public beast::unit_test::suite
         auto const alice = Account ("alice");
         auto const bob = Account ("bob");
         auto USDA = alice["USD"];
-        env.fund (ZXC (10000), alice, bob);
+        env.fund (IDAC (10000), alice, bob);
         auto const pk = alice.pk ();
         auto const settleDelay = 100s;
-        env (create (alice, bob, ZXC (1000), settleDelay, pk));
+        env (create (alice, bob, IDAC (1000), settleDelay, pk));
         auto const chan = channel (*env.current (), alice, bob);
-        BEAST_EXPECT (channelBalance (*env.current (), chan) == ZXC (0));
-        BEAST_EXPECT (channelAmount (*env.current (), chan) == ZXC (1000));
+        BEAST_EXPECT (channelBalance (*env.current (), chan) == IDAC (0));
+        BEAST_EXPECT (channelAmount (*env.current (), chan) == IDAC (1000));
 
         {
             auto const preAlice = env.balance (alice);
-            env (fund (alice, chan, ZXC (1000)));
+            env (fund (alice, chan, IDAC (1000)));
             auto const feeDrops = env.current ()->fees ().base;
-            BEAST_EXPECT (env.balance (alice) == preAlice - ZXC (1000) - feeDrops);
+            BEAST_EXPECT (env.balance (alice) == preAlice - IDAC (1000) - feeDrops);
         }
 
         auto chanBal = channelBalance (*env.current (), chan);
         auto chanAmt = channelAmount (*env.current (), chan);
-        BEAST_EXPECT (chanBal == ZXC (0));
-        BEAST_EXPECT (chanAmt == ZXC (2000));
+        BEAST_EXPECT (chanBal == IDAC (0));
+        BEAST_EXPECT (chanAmt == IDAC (2000));
 
         {
-            // bad amounts (non-zxc, negative amounts)
+            // bad amounts (non-idac, negative amounts)
             env (create (alice, bob, USDA (1000), settleDelay, pk),
                 ter (temBAD_AMOUNT));
             env (fund (alice, chan, USDA (1000)),
                 ter (temBAD_AMOUNT));
-            env (create (alice, bob, ZXC (-1000), settleDelay, pk),
+            env (create (alice, bob, IDAC (-1000), settleDelay, pk),
                 ter (temBAD_AMOUNT));
-            env (fund (alice, chan, ZXC (-1000)),
+            env (fund (alice, chan, IDAC (-1000)),
                 ter (temBAD_AMOUNT));
         }
 
         // invalid account
-        env (create (alice, "noAccount", ZXC (1000), settleDelay, pk),
+        env (create (alice, "noAccount", IDAC (1000), settleDelay, pk),
             ter (tecNO_DST));
         // can't create channel to the same account
-        env (create (alice, alice, ZXC (1000), settleDelay, pk),
+        env (create (alice, alice, IDAC (1000), settleDelay, pk),
              ter (temDST_IS_SRC));
         // invalid channel
-        env (fund (alice, channel (*env.current (), alice, "noAccount"), ZXC (1000)),
+        env (fund (alice, channel (*env.current (), alice, "noAccount"), IDAC (1000)),
             ter (tecNO_ENTRY));
         // not enough funds
-        env (create (alice, bob, ZXC (10000), settleDelay, pk),
+        env (create (alice, bob, IDAC (10000), settleDelay, pk),
             ter (tecUNFUNDED));
 
         {
-            // No signature claim with bad amounts (negative and non-zxc)
+            // No signature claim with bad amounts (negative and non-idac)
             auto const iou = USDA (100).value ();
-            auto const negZXC = ZXC (-100).value ();
-            auto const posZXC = ZXC (100).value ();
+            auto const negIDAC = IDAC (-100).value ();
+            auto const posIDAC = IDAC (100).value ();
             env (claim (alice, chan, iou, iou), ter (temBAD_AMOUNT));
-            env (claim (alice, chan, posZXC, iou), ter (temBAD_AMOUNT));
-            env (claim (alice, chan, iou, posZXC), ter (temBAD_AMOUNT));
-            env (claim (alice, chan, negZXC, negZXC), ter (temBAD_AMOUNT));
-            env (claim (alice, chan, posZXC, negZXC), ter (temBAD_AMOUNT));
-            env (claim (alice, chan, negZXC, posZXC), ter (temBAD_AMOUNT));
+            env (claim (alice, chan, posIDAC, iou), ter (temBAD_AMOUNT));
+            env (claim (alice, chan, iou, posIDAC), ter (temBAD_AMOUNT));
+            env (claim (alice, chan, negIDAC, negIDAC), ter (temBAD_AMOUNT));
+            env (claim (alice, chan, posIDAC, negIDAC), ter (temBAD_AMOUNT));
+            env (claim (alice, chan, negIDAC, posIDAC), ter (temBAD_AMOUNT));
         }
         {
             // No signature claim more than authorized
-            auto const delta = ZXC (500);
+            auto const delta = IDAC (500);
             auto const reqBal = chanBal + delta;
-            auto const authAmt = reqBal + ZXC (-100);
+            auto const authAmt = reqBal + IDAC (-100);
             assert (reqBal <= chanAmt);
             env (claim (alice, chan, reqBal, authAmt), ter (temBAD_AMOUNT));
         }
         {
             // No signature needed since the owner is claiming
             auto const preBob = env.balance (bob);
-            auto const delta = ZXC (500);
+            auto const delta = IDAC (500);
             auto const reqBal = chanBal + delta;
-            auto const authAmt = reqBal + ZXC (100);
+            auto const authAmt = reqBal + IDAC (100);
             assert (reqBal <= chanAmt);
             env (claim (alice, chan, reqBal, authAmt));
             BEAST_EXPECT (channelBalance (*env.current (), chan) == reqBal);
@@ -260,9 +260,9 @@ struct PayChan_test : public beast::unit_test::suite
         {
             // Claim with signature
             auto preBob = env.balance (bob);
-            auto const delta = ZXC (500);
+            auto const delta = IDAC (500);
             auto const reqBal = chanBal + delta;
-            auto const authAmt = reqBal + ZXC (100);
+            auto const authAmt = reqBal + IDAC (100);
             assert (reqBal <= chanAmt);
             auto const sig =
                 signClaimAuth (alice.pk (), alice.sk (), chan, authAmt);
@@ -284,7 +284,7 @@ struct PayChan_test : public beast::unit_test::suite
         {
             // Try to claim more than authorized
             auto const preBob = env.balance (bob);
-            STAmount const authAmt = chanBal + ZXC (500);
+            STAmount const authAmt = chanBal + IDAC (500);
             STAmount const reqAmt = authAmt + 1;
             assert (reqAmt <= chanAmt);
             auto const sig =
@@ -297,15 +297,15 @@ struct PayChan_test : public beast::unit_test::suite
         }
 
         // Dst tries to fund the channel
-        env (fund (bob, chan, ZXC (1000)), ter (tecNO_PERMISSION));
+        env (fund (bob, chan, IDAC (1000)), ter (tecNO_PERMISSION));
         BEAST_EXPECT (channelBalance (*env.current (), chan) == chanBal);
         BEAST_EXPECT (channelAmount (*env.current (), chan) == chanAmt);
 
         {
             // Wrong signing key
             auto const sig =
-                signClaimAuth (bob.pk (), bob.sk (), chan, ZXC (1500));
-            env (claim (bob, chan, ZXC (1500).value (), ZXC (1500).value (),
+                signClaimAuth (bob.pk (), bob.sk (), chan, IDAC (1500));
+            env (claim (bob, chan, IDAC (1500).value (), IDAC (1500).value (),
                      Slice (sig), bob.pk ()),
                 ter (temBAD_SIGNER));
             BEAST_EXPECT (channelBalance (*env.current (), chan) == chanBal);
@@ -314,8 +314,8 @@ struct PayChan_test : public beast::unit_test::suite
         {
             // Bad signature
             auto const sig =
-                signClaimAuth (bob.pk (), bob.sk (), chan, ZXC (1500));
-            env (claim (bob, chan, ZXC (1500).value (), ZXC (1500).value (),
+                signClaimAuth (bob.pk (), bob.sk (), chan, IDAC (1500));
+            env (claim (bob, chan, IDAC (1500).value (), IDAC (1500).value (),
                      Slice (sig), alice.pk ()),
                 ter (temBAD_SIGNATURE));
             BEAST_EXPECT (channelBalance (*env.current (), chan) == chanBal);
@@ -347,12 +347,12 @@ struct PayChan_test : public beast::unit_test::suite
         {
             // If dst claims after cancel after, channel closes
             Env env (*this);
-            env.fund (ZXC (10000), alice, bob);
+            env.fund (IDAC (10000), alice, bob);
             auto const pk = alice.pk ();
             auto const settleDelay = 100s;
             NetClock::time_point const cancelAfter =
                 env.current ()->info ().parentCloseTime + 3600s;
-            auto const channelFunds = ZXC (1000);
+            auto const channelFunds = IDAC (1000);
             env (create (
                 alice, bob, channelFunds, settleDelay, pk, cancelAfter));
             auto const chan = channel (*env.current (), alice, bob);
@@ -369,9 +369,9 @@ struct PayChan_test : public beast::unit_test::suite
                 auto const chanAmt = channelAmount (*env.current (), chan);
                 auto preAlice = env.balance (alice);
                 auto preBob = env.balance (bob);
-                auto const delta = ZXC (500);
+                auto const delta = IDAC (500);
                 auto const reqBal = chanBal + delta;
-                auto const authAmt = reqBal + ZXC (100);
+                auto const authAmt = reqBal + IDAC (100);
                 assert (reqBal <= chanAmt);
                 auto const sig =
                     signClaimAuth (alice.pk (), alice.sk (), chan, authAmt);
@@ -386,12 +386,12 @@ struct PayChan_test : public beast::unit_test::suite
         {
             // Third party can close after cancel after
             Env env (*this);
-            env.fund (ZXC (10000), alice, bob, carol);
+            env.fund (IDAC (10000), alice, bob, carol);
             auto const pk = alice.pk ();
             auto const settleDelay = 100s;
             NetClock::time_point const cancelAfter =
                 env.current ()->info ().parentCloseTime + 3600s;
-            auto const channelFunds = ZXC (1000);
+            auto const channelFunds = IDAC (1000);
             env (create (
                 alice, bob, channelFunds, settleDelay, pk, cancelAfter));
             auto const chan = channel (*env.current (), alice, bob);
@@ -419,13 +419,13 @@ struct PayChan_test : public beast::unit_test::suite
         auto const alice = Account ("alice");
         auto const bob = Account ("bob");
         auto const carol = Account ("carol");
-        env.fund (ZXC (10000), alice, bob, carol);
+        env.fund (IDAC (10000), alice, bob, carol);
         auto const pk = alice.pk ();
         auto const settleDelay = 3600s;
         auto const closeTime = env.current ()->info ().parentCloseTime;
         auto const minExpiration = closeTime + settleDelay;
         NetClock::time_point const cancelAfter = closeTime + 7200s;
-        auto const channelFunds = ZXC (1000);
+        auto const channelFunds = IDAC (1000);
         env (create (alice, bob, channelFunds, settleDelay, pk, cancelAfter));
         auto const chan = channel (*env.current (), alice, bob);
         BEAST_EXPECT (channelExists (*env.current (), chan));
@@ -438,16 +438,16 @@ struct PayChan_test : public beast::unit_test::suite
             counts (minExpiration));
         // increase the expiration time
         env (fund (
-            alice, chan, ZXC (1), NetClock::time_point{minExpiration + 100s}));
+            alice, chan, IDAC (1), NetClock::time_point{minExpiration + 100s}));
         BEAST_EXPECT (*channelExpiration (*env.current (), chan) ==
             counts (minExpiration) + 100);
         // decrease the expiration, but still above minExpiration
         env (fund (
-            alice, chan, ZXC (1), NetClock::time_point{minExpiration + 50s}));
+            alice, chan, IDAC (1), NetClock::time_point{minExpiration + 50s}));
         BEAST_EXPECT (*channelExpiration (*env.current (), chan) ==
             counts (minExpiration) + 50);
         // decrease the expiration below minExpiration
-        env (fund (alice, chan, ZXC (1),
+        env (fund (alice, chan, IDAC (1),
                  NetClock::time_point{minExpiration - 50s}),
             ter (temBAD_EXPIRATION));
         BEAST_EXPECT (*channelExpiration (*env.current (), chan) ==
@@ -458,15 +458,15 @@ struct PayChan_test : public beast::unit_test::suite
         env (claim (alice, chan), txflags (tfRenew));
         BEAST_EXPECT (!channelExpiration (*env.current (), chan));
         // decrease the expiration below minExpiration
-        env (fund (alice, chan, ZXC (1),
+        env (fund (alice, chan, IDAC (1),
                  NetClock::time_point{minExpiration - 50s}),
             ter (temBAD_EXPIRATION));
         BEAST_EXPECT (!channelExpiration (*env.current (), chan));
-        env (fund (alice, chan, ZXC (1), NetClock::time_point{minExpiration}));
+        env (fund (alice, chan, IDAC (1), NetClock::time_point{minExpiration}));
         env.close (minExpiration);
         // Try to extend the expiration after the expiration has already passed
         env (fund (
-            alice, chan, ZXC (1), NetClock::time_point{minExpiration + 1000s}));
+            alice, chan, IDAC (1), NetClock::time_point{minExpiration + 1000s}));
         BEAST_EXPECT (!channelExists (*env.current (), chan));
     }
 
@@ -479,12 +479,12 @@ struct PayChan_test : public beast::unit_test::suite
         Env env (*this);
         auto const alice = Account ("alice");
         auto const bob = Account ("bob");
-        env.fund (ZXC (10000), alice, bob);
+        env.fund (IDAC (10000), alice, bob);
         auto const pk = alice.pk ();
         auto const settleDelay = 3600s;
         NetClock::time_point const settleTimepoint =
             env.current ()->info ().parentCloseTime + settleDelay;
-        auto const channelFunds = ZXC (1000);
+        auto const channelFunds = IDAC (1000);
         env (create (alice, bob, channelFunds, settleDelay, pk));
         auto const chan = channel (*env.current (), alice, bob);
         BEAST_EXPECT (channelExists (*env.current (), chan));
@@ -497,9 +497,9 @@ struct PayChan_test : public beast::unit_test::suite
             auto const chanBal = channelBalance (*env.current (), chan);
             auto const chanAmt = channelAmount (*env.current (), chan);
             auto preBob = env.balance (bob);
-            auto const delta = ZXC (500);
+            auto const delta = IDAC (500);
             auto const reqBal = chanBal + delta;
-            auto const authAmt = reqBal + ZXC (100);
+            auto const authAmt = reqBal + IDAC (100);
             assert (reqBal <= chanAmt);
             auto const sig =
                 signClaimAuth (alice.pk (), alice.sk (), chan, authAmt);
@@ -516,9 +516,9 @@ struct PayChan_test : public beast::unit_test::suite
             auto const chanAmt = channelAmount (*env.current (), chan);
             auto const preAlice = env.balance (alice);
             auto preBob = env.balance (bob);
-            auto const delta = ZXC (500);
+            auto const delta = IDAC (500);
             auto const reqBal = chanBal + delta;
-            auto const authAmt = reqBal + ZXC (100);
+            auto const authAmt = reqBal + IDAC (100);
             assert (reqBal <= chanAmt);
             auto const sig =
                 signClaimAuth (alice.pk (), alice.sk (), chan, authAmt);
@@ -539,10 +539,10 @@ struct PayChan_test : public beast::unit_test::suite
         Env env (*this);
         auto const alice = Account ("alice");
         auto const bob = Account ("bob");
-        env.fund (ZXC (10000), alice, bob);
+        env.fund (IDAC (10000), alice, bob);
         auto const pk = alice.pk ();
         auto const settleDelay = 3600s;
-        auto const channelFunds = ZXC (1000);
+        auto const channelFunds = IDAC (1000);
         env (create (alice, bob, channelFunds, settleDelay, pk));
         auto const chan = channel (*env.current (), alice, bob);
         BEAST_EXPECT (channelExists (*env.current (), chan));
@@ -575,10 +575,10 @@ struct PayChan_test : public beast::unit_test::suite
         Env env (*this);
         auto const alice = Account ("alice");
         auto const bob = Account ("bob");
-        env.fund (ZXC (10000), alice, bob);
+        env.fund (IDAC (10000), alice, bob);
         auto const pk = alice.pk ();
         auto const settleDelay = 3600s;
-        auto const channelFunds = ZXC (1000);
+        auto const channelFunds = IDAC (1000);
         env (create (alice, bob, channelFunds, settleDelay, pk));
         auto const chan = channel (*env.current (), alice, bob);
         BEAST_EXPECT (channelExists (*env.current (), chan));
@@ -590,7 +590,7 @@ struct PayChan_test : public beast::unit_test::suite
             auto chanAmt = channelAmount (*env.current (), chan);
             auto const preBob = env.balance (bob);
 
-            auto const delta = ZXC (500);
+            auto const delta = IDAC (500);
             auto const reqBal = chanBal + delta;
             assert (reqBal <= chanAmt);
             auto const sig =
@@ -608,7 +608,7 @@ struct PayChan_test : public beast::unit_test::suite
             auto chanAmt = channelAmount (*env.current (), chan);
             auto const preBob = env.balance (bob);
 
-            auto const delta = ZXC (500);
+            auto const delta = IDAC (500);
             auto const reqBal = chanBal + delta;
             assert (reqBal <= chanAmt);
             auto const sig =
@@ -623,44 +623,44 @@ struct PayChan_test : public beast::unit_test::suite
     }
 
     void
-    testDisallowZXC ()
+    testDisallowIDAC ()
     {
         // auth amount defaults to balance if not present
-        testcase ("Disallow ZXC");
+        testcase ("Disallow IDAC");
         using namespace jtx;
         using namespace std::literals::chrono_literals;
         {
-            // Create a channel where dst disallows ZXC
+            // Create a channel where dst disallows IDAC
             Env env (*this);
             auto const alice = Account ("alice");
             auto const bob = Account ("bob");
-            env.fund (ZXC (10000), alice, bob);
-            env (fset (bob, asfDisallowZXC));
+            env.fund (IDAC (10000), alice, bob);
+            env (fset (bob, asfDisallowIDAC));
             auto const pk = alice.pk ();
             auto const settleDelay = 3600s;
-            auto const channelFunds = ZXC (1000);
+            auto const channelFunds = IDAC (1000);
             env (create (alice, bob, channelFunds, settleDelay, pk),
                 ter (tecNO_TARGET));
             auto const chan = channel (*env.current (), alice, bob);
             BEAST_EXPECT (!channelExists (*env.current (), chan));
         }
         {
-            // Claim to a channel where dst disallows ZXC
-            // (channel is created before disallow zxc is set)
+            // Claim to a channel where dst disallows IDAC
+            // (channel is created before disallow idac is set)
             Env env (*this);
             auto const alice = Account ("alice");
             auto const bob = Account ("bob");
-            env.fund (ZXC (10000), alice, bob);
+            env.fund (IDAC (10000), alice, bob);
             auto const pk = alice.pk ();
             auto const settleDelay = 3600s;
-            auto const channelFunds = ZXC (1000);
+            auto const channelFunds = IDAC (1000);
             env (create (alice, bob, channelFunds, settleDelay, pk));
             auto const chan = channel (*env.current (), alice, bob);
             BEAST_EXPECT (channelExists (*env.current (), chan));
 
-            env (fset (bob, asfDisallowZXC));
+            env (fset (bob, asfDisallowIDAC));
             auto const preBob = env.balance (bob);
-            auto const reqBal = ZXC (500).value();
+            auto const reqBal = IDAC (500).value();
             env (claim (alice, chan, reqBal, reqBal), ter(tecNO_TARGET));
         }
     }
@@ -672,15 +672,15 @@ struct PayChan_test : public beast::unit_test::suite
         testcase ("Dst Tag");
         using namespace jtx;
         using namespace std::literals::chrono_literals;
-        // Create a channel where dst disallows ZXC
+        // Create a channel where dst disallows IDAC
         Env env (*this);
         auto const alice = Account ("alice");
         auto const bob = Account ("bob");
-        env.fund (ZXC (10000), alice, bob);
+        env.fund (IDAC (10000), alice, bob);
         env (fset (bob, asfRequireDest));
         auto const pk = alice.pk ();
         auto const settleDelay = 3600s;
-        auto const channelFunds = ZXC (1000);
+        auto const channelFunds = IDAC (1000);
         env (create (alice, bob, channelFunds, settleDelay, pk),
             ter (tecDST_TAG_NEEDED));
         BEAST_EXPECT (!channelExists (
@@ -701,10 +701,10 @@ struct PayChan_test : public beast::unit_test::suite
         Env env (*this);
         auto const alice = Account ("alice");
         auto const bob = Account ("bob");
-        env.fund (ZXC (10000), alice, bob);
+        env.fund (IDAC (10000), alice, bob);
         auto const pk = alice.pk ();
         auto const settleDelay = 3600s;
-        auto const channelFunds = ZXC (1000);
+        auto const channelFunds = IDAC (1000);
         env (create (alice, bob, channelFunds, settleDelay, pk));
         auto const chan1 = channel (*env.current (), alice, bob);
         BEAST_EXPECT (channelExists (*env.current (), chan1));
@@ -723,10 +723,10 @@ struct PayChan_test : public beast::unit_test::suite
         Env env (*this);
         auto const alice = Account ("alice");
         auto const bob = Account ("bob");
-        env.fund (ZXC (10000), alice, bob);
+        env.fund (IDAC (10000), alice, bob);
         auto const pk = alice.pk ();
         auto const settleDelay = 3600s;
-        auto const channelFunds = ZXC (1000);
+        auto const channelFunds = IDAC (1000);
         env (create (alice, bob, channelFunds, settleDelay, pk));
         env.close();
         auto const chan1Str = to_string (channel (*env.current (), alice, bob));
@@ -795,10 +795,10 @@ struct PayChan_test : public beast::unit_test::suite
         auto const bob = Account ("bob");
         auto const carol = Account ("carol");
         auto const dan = Account ("dan");
-        env.fund (ZXC (10000), alice, bob, carol, dan);
+        env.fund (IDAC (10000), alice, bob, carol, dan);
         auto const pk = alice.pk ();
         auto const settleDelay = 3600s;
-        auto const channelFunds = ZXC (1000);
+        auto const channelFunds = IDAC (1000);
 
         boost::optional<NetClock::time_point> cancelAfter;
 
@@ -834,11 +834,11 @@ struct PayChan_test : public beast::unit_test::suite
         auto const alice = Account ("alice");
         auto const bob = Account ("bob");
         auto USDA = alice["USD"];
-        env.fund (ZXC (10000), alice, bob);
+        env.fund (IDAC (10000), alice, bob);
         auto const pk = alice.pk ();
         auto const settleDelay = 100s;
 
-        auto jv = create (alice, bob, ZXC (1000), settleDelay, pk);
+        auto jv = create (alice, bob, IDAC (1000), settleDelay, pk);
         auto const pkHex = strHex (pk.slice ());
         jv["PublicKey"] = pkHex.substr(2, pkHex.size()-2);
         env (jv, ter(temMALFORMED));
@@ -854,7 +854,7 @@ struct PayChan_test : public beast::unit_test::suite
         env (jv);
         auto const chan = channel (*env.current (), alice, bob);
 
-        auto const authAmt = ZXC (100);
+        auto const authAmt = IDAC (100);
         auto const sig = signClaimAuth (alice.pk (), alice.sk (), chan, authAmt);
         jv = claim(bob, chan, authAmt.value(), authAmt.value(), Slice(sig), alice.pk());
         jv["PublicKey"] = pkHex.substr(2, pkHex.size()-2);
@@ -884,7 +884,7 @@ struct PayChan_test : public beast::unit_test::suite
         testExpiration ();
         testCloseDry ();
         testDefaultAmount ();
-        testDisallowZXC ();
+        testDisallowIDAC ();
         testDstTag ();
         testMultiple ();
         testRPC ();

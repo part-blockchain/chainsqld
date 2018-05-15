@@ -37,8 +37,8 @@ namespace jtx {
 
 /*
 
-The decision was made to accept amounts of drops and ZXC
-using an int type, since the range of ZXC is 100 billion
+The decision was made to accept amounts of drops and IDAC
+using an int type, since the range of IDAC is 100 billion
 and having both signed and unsigned overloads creates
 tricky code leading to overload resolution ambiguities.
 
@@ -61,14 +61,14 @@ struct None
 //------------------------------------------------------------------------------
 
 template <class T>
-struct dropsPerZXC
+struct dropsPerIDAC
 {
     static T const value = 1000000;
 };
 
-/** Represents an ZXC or IOU quantity
+/** Represents an IDAC or IOU quantity
     This customizes the string conversion and supports
-    ZXC conversions from integer and floating point.
+    IDAC conversions from integer and floating point.
 */
 struct PrettyAmount
 {
@@ -160,21 +160,21 @@ struct BookSpec
 
 //------------------------------------------------------------------------------
 
-struct ZXC_t
+struct IDAC_t
 {
     /** Implicit conversion to Issue.
 
-        This allows passing ZXC where
+        This allows passing IDAC where
         an Issue is expected.
     */
     operator Issue() const
     {
-        return zxcIssue();
+        return idacIssue();
     }
 
-    /** Returns an amount of ZXC as STAmount
+    /** Returns an amount of IDAC as STAmount
 
-        @param v The number of ZXC (not drops)
+        @param v The number of IDAC (not drops)
     */
     /** @{ */
     template <class T, class = std::enable_if_t<
@@ -185,14 +185,14 @@ struct ZXC_t
         return { std::conditional_t<
             std::is_signed<T>::value,
                 std::int64_t, std::uint64_t>{v} *
-                    dropsPerZXC<T>::value };
+                    dropsPerIDAC<T>::value };
     }
 
     PrettyAmount
     operator()(double v) const
     {
         auto const c =
-            dropsPerZXC<int>::value;
+            dropsPerIDAC<int>::value;
         if (v >= 0)
         {
             auto const d = std::uint64_t(
@@ -211,31 +211,31 @@ struct ZXC_t
     }
     /** @} */
 
-    /** Returns None-of-ZXC */
+    /** Returns None-of-IDAC */
     None
     operator()(none_t) const
     {
-        return { zxcIssue() };
+        return { idacIssue() };
     }
 
     friend
     BookSpec
-    operator~ (ZXC_t const&)
+    operator~ (IDAC_t const&)
     {        
-        return BookSpec( zxcAccount(),
-            zxcCurrency() );
+        return BookSpec( idacAccount(),
+            idacCurrency() );
     }
 };
 
-/** Converts to ZXC Issue or STAmount.
+/** Converts to IDAC Issue or STAmount.
 
     Examples:
-        ZXC         Converts to the ZXC Issue
-        ZXC(10)     Returns STAmount of 10 ZXC
+        IDAC         Converts to the IDAC Issue
+        IDAC(10)     Returns STAmount of 10 IDAC
 */
-extern ZXC_t const ZXC;
+extern IDAC_t const IDAC;
 
-/** Returns an ZXC STAmount.
+/** Returns an IDAC STAmount.
 
     Example:
         drops(10)   Returns STAmount of 10 drops

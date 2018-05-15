@@ -205,7 +205,7 @@ int run (int argc, char** argv)
 
     using namespace std;
 
-    beast::setCurrentThreadName ("chainsqld: main");
+    beast::setCurrentThreadName ("idacd: main");
 
     po::variables_map vm;
 
@@ -266,7 +266,7 @@ int run (int argc, char** argv)
     }
     catch (std::exception const&)
     {
-        std::cerr << "chainsqld: Incorrect command line syntax." << std::endl;
+        std::cerr << "idacd: Incorrect command line syntax." << std::endl;
         std::cerr << "Use '--help' for a list of options." << std::endl;
         return 1;
     }
@@ -279,7 +279,7 @@ int run (int argc, char** argv)
 
     if (vm.count ("version"))
     {
-        std::cout << "chainsqld version " <<
+        std::cout << "idacd version " <<
             BuildInfo::getVersionString () << std::endl;
         return 0;
     }
@@ -493,7 +493,7 @@ int run (int argc, char** argv)
     }
 
     // We have an RPC command to process:
-    beast::setCurrentThreadName ("chainsqld: rpc");
+    beast::setCurrentThreadName ("idacd: rpc");
     return RPCCall::fromCommandLine (
         *config,
         vm["parameters"].as<std::vector<std::string>>(),
@@ -520,11 +520,11 @@ int main (int argc, char** argv)
                             __GNUC_PATCHLEVEL__;
 
     static_assert (gccver >= 50100,
-        "GCC version 5.1.0 or later is required to compile chainsqld.");
+        "GCC version 5.1.0 or later is required to compile idacd.");
 #endif
 
     static_assert (BOOST_VERSION >= 105700,
-        "Boost version 1.57 or later is required to compile chainsqld");
+        "Boost version 1.57 or later is required to compile idacd");
 
     //
     // These debug heap calls do nothing in release or non Visual Studio builds.

@@ -23,7 +23,7 @@
 #include <ripple/protocol/AmountConversions.h>
 #include <ripple/protocol/IOUAmount.h>
 #include <ripple/protocol/STAmount.h>
-#include <ripple/protocol/ZXCAmount.h>
+#include <ripple/protocol/IDACAmount.h>
 
 #include <cstdint>
 #include <ostream>
@@ -194,7 +194,7 @@ public:
             return amount;
 
         // Use the existing STAmount implementation for now, but consider
-        // replacing with code specific to IOUAMount and ZXCAmount
+        // replacing with code specific to IOUAMount and IDACAmount
         Amounts stAmt (toSTAmount (amount.in), toSTAmount (amount.out));
         STAmount stLim (toSTAmount (limit));
         auto const stRes = ceil_in (stAmt, stLim);
@@ -216,7 +216,7 @@ public:
             return amount;
 
         // Use the existing STAmount implementation for now, but consider
-        // replacing with code specific to IOUAMount and ZXCAmount
+        // replacing with code specific to IOUAMount and IDACAmount
         Amounts stAmt (toSTAmount (amount.in), toSTAmount (amount.out));
         STAmount stLim (toSTAmount (limit));
         auto const stRes = ceil_out (stAmt, stLim);

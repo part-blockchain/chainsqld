@@ -189,7 +189,7 @@ void TOffer<IOUAmount, IOUAmount>::setFieldAmounts ()
 
 template<>
 inline
-void TOffer<IOUAmount, ZXCAmount>::setFieldAmounts ()
+void TOffer<IOUAmount, IDACAmount>::setFieldAmounts ()
 {
     m_entry->setFieldAmount (sfTakerPays, toSTAmount(m_amounts.in, issIn_));
     m_entry->setFieldAmount (sfTakerGets, toSTAmount(m_amounts.out));
@@ -197,7 +197,7 @@ void TOffer<IOUAmount, ZXCAmount>::setFieldAmounts ()
 
 template<>
 inline
-void TOffer<ZXCAmount, IOUAmount>::setFieldAmounts ()
+void TOffer<IDACAmount, IOUAmount>::setFieldAmounts ()
 {
     m_entry->setFieldAmount (sfTakerPays, toSTAmount(m_amounts.in));
     m_entry->setFieldAmount (sfTakerGets, toSTAmount(m_amounts.out, issOut_));

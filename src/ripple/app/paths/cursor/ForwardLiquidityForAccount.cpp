@@ -36,9 +36,9 @@ namespace path {
 // Then, compute current node's output for next node.
 // - Current node: specify what to push through to next.
 // - Output to next node is computed as input minus quality or transfer fee.
-// - If next node is an offer and output is non-ZXC then we are the issuer and
+// - If next node is an offer and output is non-IDAC then we are the issuer and
 //   do not need to push funds.
-// - If next node is an offer and output is ZXC then we need to deliver funds to
+// - If next node is an offer and output is IDAC then we need to deliver funds to
 //   limbo.
 TER PathCursor::forwardLiquidityForAccount () const
 {
@@ -288,7 +288,7 @@ TER PathCursor::forwardLiquidityForAccount () const
 
         if (nodeIndex_)
         {
-            // Non-ZXC, current node is the issuer.
+            // Non-IDAC, current node is the issuer.
             JLOG (j_.trace())
                 << "forwardLiquidityForAccount: account --> "
                 << "ACCOUNT --> offer";
@@ -355,15 +355,15 @@ TER PathCursor::forwardLiquidityForAccount () const
                 node().saFwdDeliver = std::min (
                     node().saFwdDeliver, pathState_.inReq() - pathState_.inAct());
 
-                // Limit ZXC by available. No limit for non-ZXC as issuer.
-                if (isZXC (node().issue_))
+                // Limit IDAC by available. No limit for non-IDAC as issuer.
+                if (isIDAC (node().issue_))
                     node().saFwdDeliver = std::min (
                         node().saFwdDeliver,
                         accountHolds(view(),
                             node().account_,
-                            zxcCurrency(),
-                            zxcAccount(),
-                            fhIGNORE_FREEZE, viewJ)); // ZXC can't be frozen
+                            idacCurrency(),
+                            idacAccount(),
+                            fhIGNORE_FREEZE, viewJ)); // IDAC can't be frozen
 
             }
 
@@ -374,15 +374,15 @@ TER PathCursor::forwardLiquidityForAccount () const
             {
                 resultCode   = tecPATH_DRY;
             }
-            else if (!isZXC (node().issue_))
+            else if (!isIDAC (node().issue_))
             {
-                // Non-ZXC, current node is the issuer.
+                // Non-IDAC, current node is the issuer.
                 // We could be delivering to multiple accounts, so we don't know
                 // which ripple balance will be adjusted.  Assume just issuing.
 
                 JLOG (j_.trace())
                     << "forwardLiquidityForAccount: ^ --> "
-                    << "ACCOUNT -- !ZXC --> offer";
+                    << "ACCOUNT -- !IDAC --> offer";
 
                 // As the issuer, would only issue.
                 // Don't need to actually deliver. As from delivering leave in
@@ -392,11 +392,11 @@ TER PathCursor::forwardLiquidityForAccount () const
             {
                 JLOG (j_.trace())
                     << "forwardLiquidityForAccount: ^ --> "
-                    << "ACCOUNT -- ZXC --> offer";
+                    << "ACCOUNT -- IDAC --> offer";
 
-                // Deliver ZXC to limbo.
+                // Deliver IDAC to limbo.
                 resultCode = accountSend(view(),
-                    node().account_, zxcAccount(), node().saFwdDeliver, viewJ);
+                    node().account_, idacAccount(), node().saFwdDeliver, viewJ);
             }
         }
     }

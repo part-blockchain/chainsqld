@@ -74,14 +74,14 @@ accountFunds (ReadView const& view, AccountID const& id,
     STAmount const& saDefault, FreezeHandling freezeHandling,
         beast::Journal j);
 
-// Return the account's liquid (not reserved) ZXC.  Generally prefer
+// Return the account's liquid (not reserved) IDAC.  Generally prefer
 // calling accountHolds() over this interface.  However this interface
 // allows the caller to temporarily adjust the owner count should that be
 // necessary.
 //
 // @param ownerCountAdj positive to add to count, negative to reduce count.
-ZXCAmount
-zxcLiquid (ReadView const& view, AccountID const& id,
+IDACAmount
+idacLiquid (ReadView const& view, AccountID const& id,
     std::int32_t ownerCountAdj, beast::Journal j);
 
 /** Iterate all items in an account's owner directory. */
@@ -332,7 +332,7 @@ redeemIOU (ApplyView& view,
                 beast::Journal j);
 
 TER
-transferZXC (ApplyView& view,
+transferIDAC (ApplyView& view,
     AccountID const& from,
         AccountID const& to,
             STAmount const& amount,
