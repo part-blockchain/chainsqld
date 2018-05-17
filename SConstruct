@@ -1038,12 +1038,12 @@ def get_classic_sources(toolchain):
     append_sources(result, *list_sources('src/ripple/rpc', '.cpp'))
     append_sources(result, *list_sources('src/ripple/shamap', '.cpp'))
     append_sources(result, *list_sources('src/ripple/server', '.cpp'))
-    append_sources(result, *list_sources('src/peersafe/app', '.cpp'))
-    append_sources(result, *list_sources('src/peersafe/basics', '.cpp'))
-    append_sources(result, *list_sources('src/peersafe/crypto', '.cpp'))
-    append_sources(result, *list_sources('src/peersafe/gmencrypt', '.cpp'))
-    append_sources(result, *list_sources('src/peersafe/protocol', '.cpp'))
-    append_sources(result, *list_sources('src/peersafe/rpc', '.cpp'))
+    append_sources(result, *list_sources('src/idac/app', '.cpp'))
+    append_sources(result, *list_sources('src/idac/basics', '.cpp'))
+    append_sources(result, *list_sources('src/idac/crypto', '.cpp'))
+    append_sources(result, *list_sources('src/idac/gmencrypt', '.cpp'))
+    append_sources(result, *list_sources('src/idac/protocol', '.cpp'))
+    append_sources(result, *list_sources('src/idac/rpc', '.cpp'))
     append_sources(result, *list_sources('src/test/app', '.cpp'))
     append_sources(result, *list_sources('src/test/basics', '.cpp'))
     append_sources(result, *list_sources('src/test/beast', '.cpp'))
@@ -1115,9 +1115,9 @@ def get_unity_sources(toolchain):
         'src/ripple/unity/rpcx2.cpp',
         'src/ripple/unity/shamap.cpp',
         'src/ripple/unity/server.cpp',
-        'src/peersafe/unity/gm_encrypt.cpp',
-        'src/peersafe/unity/app_table.cpp',
-        'src/peersafe/unity/app_sql.cpp',
+        'src/idac/unity/gm_encrypt.cpp',
+        'src/idac/unity/app_table.cpp',
+        'src/idac/unity/app_sql.cpp',
         'src/test/unity/app_test_unity1.cpp',
         'src/test/unity/app_test_unity2.cpp',
         'src/test/unity/basics_test_unity.cpp',
