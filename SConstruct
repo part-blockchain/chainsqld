@@ -1,4 +1,4 @@
-# chainsqld SConstruct
+# idacd SConstruct
 #
 '''
 
@@ -6,7 +6,7 @@
     ----------------------------------------------------------------------------
 
     <none>          Same as 'install'
-    install         Default target and copies it to build/chainsqld (default)
+    install         Default target and copies it to build/idacd (default)
 
     all             All available variants
     debug           All available debug variants
@@ -84,9 +84,9 @@ The following extra options may be used:
     --assert Enable asserts, even in release builds.
 
 GCC 5: If the gcc toolchain is used, gcc version 5 or better is required. On
-    linux distros that ship with gcc 4 (ubuntu < 15.10), chainsqld will force gcc
+    linux distros that ship with gcc 4 (ubuntu < 15.10), idacd will force gcc
     to use gcc4's ABI (there was an ABI change between versions). This allows us
-    to use the package manager to install chainsqld dependencies. It also means if
+    to use the package manager to install idacd dependencies. It also means if
     the user builds C++ dependencies themselves - such as boost - they must
     either be built with gcc 4 or with the preprocessor flag
     `_GLIBCXX_USE_CXX11_ABI` set to zero.
@@ -95,7 +95,7 @@ Clang on linux: Clang cannot use the new gcc 5 ABI (clang does not know about
     the `abi_tag` attribute). On linux distros that ship with the gcc 5 ABI
     (ubuntu >= 15.10), building with clang requires building boost and protobuf
     with the old ABI (best to build them with clang). It is best to statically
-    link chainsqld in this scenario (use the `--static` with scons), as dynamic
+    link idacd in this scenario (use the `--static` with scons), as dynamic
     linking may use a library with the incorrect ABI.
 
 
@@ -124,7 +124,7 @@ import glob
 import SCons.Action
 
 if (not platform.machine().endswith('64')):
-    print('Warning: Detected {} architecture. chainsqld requires a 64-bit OS.'.format(
+    print('Warning: Detected {} architecture. idacd requires a 64-bit OS.'.format(
           platform.machine()));
 
 sys.path.append(os.path.join('src', 'ripple', 'beast', 'site_scons'))
@@ -192,7 +192,7 @@ def check_openssl():
     build_time = 'Mon Apr  7 20:33:19 UTC 2014'
     if parse_time(d) < parse_time(build_time):
         raise Exception('Your openSSL was built on %s; '
-                        'chainsqld needs a version built on or after %s.'
+                        'idacd needs a version built on or after %s.'
                         % (line, build_time))
 
 
@@ -1317,7 +1317,7 @@ for tu_style in ['classic', 'unity']:
                 object_builder.add_source_files('src/ripple/unity/beastobjc.mm')
 
             target = env.Program(
-                target=os.path.join(variant_dir, 'chainsqld'),
+                target=os.path.join(variant_dir, 'idacd'),
                 source=object_builder.objects
                 )
 
@@ -1355,7 +1355,7 @@ for key, value in aliases.items():
     env.Alias(key, value)
 
 vcxproj = base.VSProject(
-    os.path.join('Builds', 'VisualStudio2015', 'chainsqld'),
+    os.path.join('Builds', 'VisualStudio2015', 'idacd'),
     source = [],
     VSPROJECT_ROOT_DIRS = [
         'build/',
@@ -1376,7 +1376,7 @@ def PhonyTargets(env = None, **kw):
     for target, action in kw.items():
         env.AlwaysBuild(env.Alias(target, [], action))
 
-# Build the list of chainsqld source files that hold unit tests
+# Build the list of idacd source files that hold unit tests
 def do_count(target, source, env):
     def list_testfiles(base, suffixes):
         def _iter(base):
