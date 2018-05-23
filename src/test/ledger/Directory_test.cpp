@@ -89,11 +89,11 @@ struct Directory_test : public beast::unit_test::suite
             testcase ("Directory Ordering (without 'SortedDirectories' amendment");
 
             Env env(*this, all_features_except(featureSortedDirectories));
-            env.fund(IDAC(10000000), alice, bob, gw);
+            env.fund(DAC(10000000), alice, bob, gw);
 
             // Insert 400 offers from Alice, then one from Bob:
             for (std::size_t i = 1; i <= 400; ++i)
-                env(offer(alice, USD(10), IDAC(10)));
+                env(offer(alice, USD(10), DAC(10)));
 
             // Check Alice's directory: it should contain one
             // entry for each offer she added. Within each
@@ -117,10 +117,10 @@ struct Directory_test : public beast::unit_test::suite
             testcase ("Directory Ordering (with 'SortedDirectories' amendment)");
 
             Env env(*this, with_features(featureSortedDirectories));
-            env.fund(IDAC(10000000), alice, gw);
+            env.fund(DAC(10000000), alice, gw);
 
             for (std::size_t i = 1; i <= 400; ++i)
-                env(offer(alice, USD(i), IDAC(i)));
+                env(offer(alice, USD(i), DAC(i)));
             env.close();
 
             // Check Alice's directory: it should contain one
@@ -159,14 +159,14 @@ struct Directory_test : public beast::unit_test::suite
             // Now check the orderbook: it should be in the order we placed
             // the offers.
             auto book = BookDirs(*env.current(),
-                Book({idacIssue(), USD.issue()}));
+                Book({dacIssue(), USD.issue()}));
             int count = 1;
 
             for (auto const& offer : book)
             {
                 count++;
                 BEAST_EXPECT(offer->getFieldAmount(sfTakerPays) == USD(count));
-                BEAST_EXPECT(offer->getFieldAmount(sfTakerGets) == IDAC(count));
+                BEAST_EXPECT(offer->getFieldAmount(sfTakerGets) == DAC(count));
             }
         }
     }
@@ -186,7 +186,7 @@ struct Directory_test : public beast::unit_test::suite
 
         Env env(*this, with_features(featureSortedDirectories, featureMultiSign));
 
-        env.fund(IDAC(1000000), alice, charlie, gw);
+        env.fund(DAC(1000000), alice, charlie, gw);
         env.close();
 
         // alice should have an empty directory.
@@ -250,7 +250,7 @@ struct Directory_test : public beast::unit_test::suite
                 env.close();
                 env(pay(gw, charlie, c(50)));
                 env.close();
-                env(offer(alice, c(50), IDAC(50)));
+                env(offer(alice, c(50), DAC(50)));
                 env.close();
             }
 
@@ -263,7 +263,7 @@ struct Directory_test : public beast::unit_test::suite
 
             for (auto const& c : cl)
             {
-                env(offer(charlie, IDAC(50), c(50)));
+                env(offer(charlie, DAC(50), c(50)));
                 env.close();
             }
             BEAST_EXPECT(! dirIsEmpty (*env.closed(), keylet::ownerDir(alice)));
@@ -294,7 +294,7 @@ struct Directory_test : public beast::unit_test::suite
         auto const alice = Account{"alice"};
         auto const USD = gw["USD"];
 
-        env.fund(IDAC(10000), alice, gw);
+        env.fund(DAC(10000), alice, gw);
         env.trust(USD(1000), alice);
         env(pay(gw, alice, USD(1000)));
 
@@ -303,7 +303,7 @@ struct Directory_test : public beast::unit_test::suite
         // Fill up three pages of offers
         for (int i = 0; i < 3; ++i)
             for (int j = 0; j < dirNodeMaxEntries; ++j)
-                env(offer(alice, IDAC(1), USD(1)));
+                env(offer(alice, DAC(1), USD(1)));
         env.close();
 
         // remove all the offers. Remove the middle page last
@@ -325,7 +325,7 @@ struct Directory_test : public beast::unit_test::suite
         // should have no entries and be empty:
         {
             Sandbox sb(env.closed().get(), tapNONE);
-            uint256 const bookBase = getBookBase({idacIssue(), USD.issue()});
+            uint256 const bookBase = getBookBase({dacIssue(), USD.issue()});
 
             BEAST_EXPECT(dirIsEmpty (sb, keylet::page(bookBase)));
             BEAST_EXPECT (!sb.succ(bookBase, getQualityNext(bookBase)));
@@ -354,7 +354,7 @@ struct Directory_test : public beast::unit_test::suite
         auto const alice = Account{"alice"};
         auto const USD = gw["USD"];
 
-        env.fund(IDAC(10000), alice);
+        env.fund(DAC(10000), alice);
         env.close();
 
         uint256 base;

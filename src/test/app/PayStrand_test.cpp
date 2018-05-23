@@ -39,7 +39,7 @@ struct DirectStepInfo
     Currency currency;
 };
 
-struct IDACEndpointStepInfo
+struct DACEndpointStepInfo
 {
     AccountID acc;
 };
@@ -92,11 +92,11 @@ equal(std::unique_ptr<Step> const& s1, DirectStepInfo const& dsi)
 }
 
 bool
-equal(std::unique_ptr<Step> const& s1, IDACEndpointStepInfo const& idacsi)
+equal(std::unique_ptr<Step> const& s1, DACEndpointStepInfo const& dacsi)
 {
     if (!s1)
         return false;
-    return test::idacEndpointStepEqual(*s1, idacsi.acc);
+    return test::dacEndpointStepEqual(*s1, dacsi.acc);
 }
 
 bool
@@ -139,7 +139,7 @@ STPathElement
 ape(AccountID const& a)
 {
     return STPathElement(
-        STPathElement::typeAccount, a, idacCurrency(), idacAccount());
+        STPathElement::typeAccount, a, dacCurrency(), dacAccount());
 };
 
 // Issue path element
@@ -148,7 +148,7 @@ ipe(Issue const& iss)
 {
     return STPathElement(
         STPathElement::typeCurrency | STPathElement::typeIssuer,
-        idacAccount(),
+        dacAccount(),
         iss.currency,
         iss.account);
 };
@@ -158,7 +158,7 @@ STPathElement
 iape(AccountID const& account)
 {
     return STPathElement(
-        STPathElement::typeIssuer, idacAccount(), idacCurrency(), account);
+        STPathElement::typeIssuer, dacAccount(), dacCurrency(), account);
 };
 
 // Currency path element
@@ -166,7 +166,7 @@ STPathElement
 cpe(Currency const& c)
 {
     return STPathElement(
-        STPathElement::typeCurrency, idacAccount(), c, idacAccount());
+        STPathElement::typeCurrency, dacAccount(), c, dacAccount());
 };
 
 // All path element
@@ -189,7 +189,7 @@ class ElementComboIter
       cur,
       rootAcc,
       rootIss,
-      idac,
+      dac,
       sameAccIss,
       existingAcc,
       existingCur,
@@ -245,9 +245,9 @@ public:
             (!hasAny({SB::prevAcc, SB::prevCur, SB::prevIss}) || prev_) &&
             (!hasAny({SB::rootAcc, SB::sameAccIss, SB::existingAcc, SB::prevAcc}) || has(SB::acc)) &&
             (!hasAny({SB::rootIss, SB::sameAccIss, SB::existingIss, SB::prevIss}) || has(SB::iss)) &&
-            (!hasAny({SB::idac, SB::existingCur, SB::prevCur}) || has(SB::cur)) &&
+            (!hasAny({SB::dac, SB::existingCur, SB::prevCur}) || has(SB::cur)) &&
             // These will be duplicates
-            (count({SB::idac, SB::existingCur, SB::prevCur}) <= 1) &&
+            (count({SB::dac, SB::existingCur, SB::prevCur}) <= 1) &&
             (count({SB::rootAcc, SB::existingAcc, SB::prevAcc}) <= 1) &&
             (count({SB::rootIss, SB::existingIss, SB::rootIss}) <= 1);
     }
@@ -285,7 +285,7 @@ public:
             if (!has(SB::acc))
                 return boost::none;
             if (has(SB::rootAcc))
-                return idacAccount();
+                return dacAccount();
             if (has(SB::existingAcc) && existingAcc)
                 return existingAcc;
             return accF().id();
@@ -294,7 +294,7 @@ public:
             if (!has(SB::iss))
                 return boost::none;
             if (has(SB::rootIss))
-                return idacAccount();
+                return dacAccount();
             if (has(SB::sameAccIss))
                 return acc;
             if (has(SB::existingIss) && existingIss)
@@ -304,8 +304,8 @@ public:
         auto const cur = [&]() -> boost::optional<Currency> {
             if (!has(SB::cur))
                 return boost::none;
-            if (has(SB::idac))
-                return idacCurrency();
+            if (has(SB::dac))
+                return dacCurrency();
             if (has(SB::existingCur) && existingCur)
                 return *existingCur;
             return currencyF();
@@ -418,7 +418,7 @@ struct ExistingElementPool
         }
 
         for (auto const& a : accounts)
-            env.fund(IDAC(100000), a);
+            env.fund(DAC(100000), a);
 
         // Every account trusts every other account with every currency
         for (auto ai1 = accounts.begin(), aie = accounts.end(); ai1 != aie;
@@ -470,44 +470,44 @@ struct ExistingElementPool
             env.close();
         }
 
-        // create offers to/from idac to every other ious
+        // create offers to/from dac to every other ious
         for (auto const& iou : ious)
         {
             auto const owner =
                 offererIndex ? accounts[*offererIndex] : iou.account;
-            env(offer(owner, iou(1000), IDAC(1000)), txflags(tfPassive));
-            env(offer(owner, IDAC(1000), iou(1000)), txflags(tfPassive));
+            env(offer(owner, iou(1000), DAC(1000)), txflags(tfPassive));
+            env(offer(owner, DAC(1000), iou(1000)), txflags(tfPassive));
             env.close();
         }
     }
 
     std::int64_t
-    totalIDAC(ReadView const& v, bool incRoot)
+    totalDAC(ReadView const& v, bool incRoot)
     {
-        std::uint64_t totalIDAC = 0;
+        std::uint64_t totalDAC = 0;
         auto add = [&](auto const& a) {
-            // IDAC balance
+            // DAC balance
             auto const sle = v.read(keylet::account(a));
             if (!sle)
                 return;
             auto const b = (*sle)[sfBalance];
-            totalIDAC += b.mantissa();
+            totalDAC += b.mantissa();
         };
         for (auto const& a : accounts)
             add(a);
         if (incRoot)
-            add(idacAccount());
-        return totalIDAC;
+            add(dacAccount());
+        return totalDAC;
     }
 
-    // Check that the balances for all accounts for all currencies & IDAC are the
+    // Check that the balances for all accounts for all currencies & DAC are the
     // same
     bool
     checkBalances(ReadView const& v1, ReadView const& v2)
     {
         std::vector<std::tuple<STAmount, STAmount, AccountID, AccountID>> diffs;
 
-        auto idacBalance = [](ReadView const& v, ripple::Keylet const& k) {
+        auto dacBalance = [](ReadView const& v, ripple::Keylet const& k) {
             auto const sle = v.read(k);
             if (!sle)
                 return STAmount{};
@@ -519,19 +519,19 @@ struct ExistingElementPool
                 return STAmount{};
             return (*sle)[sfBalance];
         };
-        std::uint64_t totalIDAC[2];
+        std::uint64_t totalDAC[2];
         for (auto ai1 = accounts.begin(), aie = accounts.end(); ai1 != aie;
              ++ai1)
         {
             {
-                // IDAC balance
+                // DAC balance
                 auto const ak = keylet::account(*ai1);
-                auto const b1 = idacBalance(v1, ak);
-                auto const b2 = idacBalance(v2, ak);
-                totalIDAC[0] += b1.mantissa();
-                totalIDAC[1] += b2.mantissa();
+                auto const b1 = dacBalance(v1, ak);
+                auto const b2 = dacBalance(v2, ak);
+                totalDAC[0] += b1.mantissa();
+                totalDAC[1] += b2.mantissa();
                 if (b1 != b2)
-                    diffs.emplace_back(b1, b2, idacAccount(), *ai1);
+                    diffs.emplace_back(b1, b2, dacAccount(), *ai1);
             }
             for (auto ai2 = accounts.begin(); ai2 != aie; ++ai2)
             {
@@ -684,7 +684,7 @@ struct PayStrandAllPairs_test : public beast::unit_test::suite
                 }
             }
 
-            // check combinations of src and dst currencies (inc idac)
+            // check combinations of src and dst currencies (inc dac)
             // Check the results
             auto const terMatch = [&] {
                 if (rcOutputs[0].result() == rcOutputs[1].result())
@@ -712,10 +712,10 @@ struct PayStrandAllPairs_test : public beast::unit_test::suite
                     }
                 }
 
-                // idac followed by offer that doesn't specify both currency and
-                // issuer (and currency is not idac, if specifyed)
-                if (isIDAC(sendMax) &&
-                    !(p[0].hasCurrency() && isIDAC(p[0].getCurrency())) &&
+                // dac followed by offer that doesn't specify both currency and
+                // issuer (and currency is not dac, if specifyed)
+                if (isDAC(sendMax) &&
+                    !(p[0].hasCurrency() && isDAC(p[0].getCurrency())) &&
                     !(p[0].hasCurrency() && p[0].hasIssuer()))
                 {
                     return true;
@@ -726,9 +726,9 @@ struct PayStrandAllPairs_test : public beast::unit_test::suite
                     auto const tCur = p[i].getNodeType();
                     auto const tNext = p[i + 1].getNodeType();
                     if ((tCur & STPathElement::typeCurrency) &&
-                        isIDAC(p[i].getCurrency()) &&
+                        isDAC(p[i].getCurrency()) &&
                         (tNext & STPathElement::typeAccount) &&
-                        !isIDAC(p[i + 1].getAccountID()))
+                        !isDAC(p[i + 1].getAccountID()))
                     {
                         return true;
                     }
@@ -747,9 +747,9 @@ struct PayStrandAllPairs_test : public beast::unit_test::suite
         std::vector<STPathElement> prefix;
         std::vector<STPathElement> suffix;
 
-        for (auto const srcAmtIsIDAC : {false, true})
+        for (auto const srcAmtIsDAC : {false, true})
         {
-            for (auto const dstAmtIsIDAC : {false, true})
+            for (auto const dstAmtIsDAC : {false, true})
             {
                 for (auto const hasPrefix : {false, true})
                 {
@@ -758,13 +758,13 @@ struct PayStrandAllPairs_test : public beast::unit_test::suite
                     suffix.clear();
 
                     STAmount const sendMax{
-                        srcAmtIsIDAC ? idacIssue() : Issue{eep.getAvailCurrency(),
+                        srcAmtIsDAC ? dacIssue() : Issue{eep.getAvailCurrency(),
                                                          eep.getAvailAccount()},
                         -1,  // (-1 == no limit)
                         0};
 
                     STAmount const deliver{
-                        dstAmtIsIDAC ? idacIssue() : Issue{eep.getAvailCurrency(),
+                        dstAmtIsDAC ? dacIssue() : Issue{eep.getAvailCurrency(),
                                                          eep.getAvailAccount()},
                         1,
                         0};
@@ -883,7 +883,7 @@ struct PayStrand_test : public beast::unit_test::suite
 
         using D = DirectStepInfo;
         using B = ripple::Book;
-        using IDACS = IDACEndpointStepInfo;
+        using DACS = DACEndpointStepInfo;
 
         auto test = [&, this](
             jtx::Env& env,
@@ -911,7 +911,7 @@ struct PayStrand_test : public beast::unit_test::suite
 
         {
             Env env(*this, with_features(fs));
-            env.fund(IDAC(10000), alice, bob, gw);
+            env.fund(DAC(10000), alice, bob, gw);
             env.trust(USD(1000), alice, bob);
             env.trust(EUR(1000), alice, bob);
             env(pay(gw, alice, EUR(100)));
@@ -923,7 +923,7 @@ struct PayStrand_test : public beast::unit_test::suite
                     *env.current(),
                     alice,
                     alice,
-                    /*deliver*/ idacIssue(),
+                    /*deliver*/ dacIssue(),
                     /*limitQuality*/ boost::none,
                     /*sendMaxIssue*/ EUR.issue(),
                     path,
@@ -933,14 +933,14 @@ struct PayStrand_test : public beast::unit_test::suite
                 BEAST_EXPECT(r.first == tesSUCCESS);
             }
             {
-                STPath const path = STPath({ipe(USD), cpe(idacCurrency())});
+                STPath const path = STPath({ipe(USD), cpe(dacCurrency())});
                 auto r = toStrand(
                     *env.current(),
                     alice,
                     alice,
-                    /*deliver*/ idacIssue(),
+                    /*deliver*/ dacIssue(),
                     /*limitQuality*/ boost::none,
-                    /*sendMaxIssue*/ idacIssue(),
+                    /*sendMaxIssue*/ dacIssue(),
                     path,
                     true,
                     false,
@@ -952,7 +952,7 @@ struct PayStrand_test : public beast::unit_test::suite
 
         {
             Env env(*this, with_features(fs));
-            env.fund(IDAC(10000), alice, bob, carol, gw);
+            env.fund(DAC(10000), alice, bob, carol, gw);
 
             test(env, USD, boost::none, STPath(), terNO_LINE);
 
@@ -1007,42 +1007,42 @@ struct PayStrand_test : public beast::unit_test::suite
                 B{USD, carol["USD"]},
                 D{carol, bob, usdC});
 
-            // Path with IDAC src currency
+            // Path with DAC src currency
             test(
                 env,
                 USD,
-                idacIssue(),
+                dacIssue(),
                 STPath({ipe(USD)}),
                 tesSUCCESS,
-                IDACS{alice},
-                B{IDAC, USD},
+                DACS{alice},
+                B{DAC, USD},
                 D{gw, bob, usdC});
 
-            // Path with IDAC dst currency
+            // Path with DAC dst currency
             test(
                 env,
-                idacIssue(),
+                dacIssue(),
                 USD.issue(),
-                STPath({ipe(IDAC)}),
+                STPath({ipe(DAC)}),
                 tesSUCCESS,
                 D{alice, gw, usdC},
-                B{USD, IDAC},
-                IDACS{bob});
+                B{USD, DAC},
+                DACS{bob});
 
-            // Path with IDAC cross currency bridged payment
+            // Path with DAC cross currency bridged payment
             test(
                 env,
                 EUR,
                 USD.issue(),
-                STPath({cpe(idacCurrency())}),
+                STPath({cpe(dacCurrency())}),
                 tesSUCCESS,
                 D{alice, gw, usdC},
-                B{USD, IDAC},
-                B{IDAC, EUR},
+                B{USD, DAC},
+                B{DAC, EUR},
                 D{gw, bob, eurC});
 
-            // IDAC -> IDAC transaction can't include a path
-            test(env, IDAC, boost::none, STPath({ape(carol)}), temBAD_PATH);
+            // DAC -> DAC transaction can't include a path
+            test(env, DAC, boost::none, STPath({ape(carol)}), temBAD_PATH);
 
             {
                 // The root account can't be the src or dst
@@ -1052,8 +1052,8 @@ struct PayStrand_test : public beast::unit_test::suite
                     auto r = toStrand(
                         *env.current(),
                         alice,
-                        idacAccount(),
-                        IDAC,
+                        dacAccount(),
+                        DAC,
                         boost::none,
                         USD.issue(),
                         STPath(),
@@ -1066,9 +1066,9 @@ struct PayStrand_test : public beast::unit_test::suite
                     // The root account can't be the src
                     auto r = toStrand(
                         *env.current(),
-                        idacAccount(),
+                        dacAccount(),
                         alice,
-                        IDAC,
+                        DAC,
                         boost::none,
                         boost::none,
                         STPath(),
@@ -1108,7 +1108,7 @@ struct PayStrand_test : public beast::unit_test::suite
                 USD,
                 boost::none,
                 STPath({STPathElement(
-                    0, idacAccount(), idacCurrency(), idacAccount())}),
+                    0, dacAccount(), dacCurrency(), dacAccount())}),
                 temBAD_PATH);
 
             // The same account can't appear more than once on a path
@@ -1136,28 +1136,28 @@ struct PayStrand_test : public beast::unit_test::suite
             using namespace jtx;
             Env env(*this, with_features(fs));
 
-            env.fund(IDAC(10000), alice, bob, carol, gw);
+            env.fund(DAC(10000), alice, bob, carol, gw);
             env.trust(USD(10000), alice, bob, carol);
             env.trust(EUR(10000), alice, bob, carol);
 
             env(pay(gw, bob, USD(100)));
             env(pay(gw, bob, EUR(100)));
 
-            env(offer(bob, IDAC(100), USD(100)));
+            env(offer(bob, DAC(100), USD(100)));
             env(offer(bob, USD(100), EUR(100)), txflags(tfPassive));
             env(offer(bob, EUR(100), USD(100)), txflags(tfPassive));
 
-            // payment path: IDAC -> IDAC/USD -> USD/EUR -> EUR/USD
+            // payment path: DAC -> DAC/USD -> USD/EUR -> EUR/USD
             env(pay(alice, carol, USD(100)),
                 path(~USD, ~EUR, ~USD),
-                sendmax(IDAC(200)),
+                sendmax(DAC(200)),
                 txflags(tfNoRippleDirect),
                 ter(temBAD_PATH_LOOP));
         }
 
         {
             Env env(*this, with_features(fs));
-            env.fund(IDAC(10000), alice, bob, noripple(gw));
+            env.fund(DAC(10000), alice, bob, noripple(gw));
             env.trust(USD(1000), alice, bob);
             env(pay(gw, alice, USD(100)));
             test(env, USD, boost::none, STPath(), terNO_RIPPLE);
@@ -1166,7 +1166,7 @@ struct PayStrand_test : public beast::unit_test::suite
         {
             // check global freeze
             Env env(*this, with_features(fs));
-            env.fund(IDAC(10000), alice, bob, gw);
+            env.fund(DAC(10000), alice, bob, gw);
             env.trust(USD(1000), alice, bob);
             env(pay(gw, alice, USD(100)));
 
@@ -1191,7 +1191,7 @@ struct PayStrand_test : public beast::unit_test::suite
         {
             // Freeze between gw and alice
             Env env(*this, with_features(fs));
-            env.fund(IDAC(10000), alice, bob, gw);
+            env.fund(DAC(10000), alice, bob, gw);
             env.trust(USD(1000), alice, bob);
             env(pay(gw, alice, USD(100)));
             test(env, USD, boost::none, STPath(), tesSUCCESS);
@@ -1204,7 +1204,7 @@ struct PayStrand_test : public beast::unit_test::suite
             // An account may require authorization to receive IOUs from an
             // issuer
             Env env(*this, with_features(fs));
-            env.fund(IDAC(10000), alice, bob, gw);
+            env.fund(DAC(10000), alice, bob, gw);
             env(fset(gw, asfRequireAuth));
             env.trust(USD(1000), alice, bob);
             // Authorize alice but not bob
@@ -1232,7 +1232,7 @@ struct PayStrand_test : public beast::unit_test::suite
         {
             // Check path with sendMax and node with correct sendMax already set
             Env env(*this, with_features(fs));
-            env.fund(IDAC(10000), alice, bob, gw);
+            env.fund(DAC(10000), alice, bob, gw);
             env.trust(USD(1000), alice, bob);
             env.trust(EUR(1000), alice, bob);
             env(pay(gw, alice, EUR(100)));
@@ -1245,22 +1245,22 @@ struct PayStrand_test : public beast::unit_test::suite
         }
 
         {
-            // last step idac from offer
+            // last step dac from offer
             Env env(*this, with_features(fs));
-            env.fund(IDAC(10000), alice, bob, gw);
+            env.fund(DAC(10000), alice, bob, gw);
             env.trust(USD(1000), alice, bob);
             env(pay(gw, alice, USD(100)));
 
-            // alice -> USD/IDAC -> bob
+            // alice -> USD/DAC -> bob
             STPath path;
             path.emplace_back(boost::none, USD.currency, USD.account.id());
-            path.emplace_back(boost::none, idacCurrency(), boost::none);
+            path.emplace_back(boost::none, dacCurrency(), boost::none);
 
             auto r = toStrand(
                 *env.current(),
                 alice,
                 bob,
-                IDAC,
+                DAC,
                 boost::none,
                 USD.issue(),
                 path,
@@ -1268,7 +1268,7 @@ struct PayStrand_test : public beast::unit_test::suite
                 false,
                 env.app().logs().journal("Flow"));
             BEAST_EXPECT(r.first == tesSUCCESS);
-            BEAST_EXPECT(equal(r.second, D{alice, gw, usdC}, B{USD.issue(), idacIssue()}, IDACS{bob}));
+            BEAST_EXPECT(equal(r.second, D{alice, gw, usdC}, B{USD.issue(), dacIssue()}, DACS{bob}));
         }
     }
 
@@ -1288,15 +1288,15 @@ struct PayStrand_test : public beast::unit_test::suite
         if (hasFeature(fix1373, fs))
         {
             Env env(*this, with_features(fs));
-            env.fund(IDAC(10000), alice, bob, gw);
+            env.fund(DAC(10000), alice, bob, gw);
 
             env.trust(USD(1000), alice, bob);
             env.trust(EUR(1000), alice, bob);
             env.trust(bob["USD"](1000), alice, gw);
             env.trust(bob["EUR"](1000), alice, gw);
 
-            env(offer(bob, IDAC(100), bob["USD"](100)), txflags(tfPassive));
-            env(offer(gw, IDAC(100), USD(100)), txflags(tfPassive));
+            env(offer(bob, DAC(100), bob["USD"](100)), txflags(tfPassive));
+            env(offer(gw, DAC(100), USD(100)), txflags(tfPassive));
 
             env(offer(bob, bob["USD"](100), bob["EUR"](100)),
                 txflags(tfPassive));
@@ -1313,7 +1313,7 @@ struct PayStrand_test : public beast::unit_test::suite
 
             env(pay(alice, alice, EUR(1)),
                 json(paths.json()),
-                sendmax(IDAC(10)),
+                sendmax(DAC(10)),
                 txflags(tfNoRippleDirect | tfPartialPayment),
                 ter(temBAD_PATH));
         }
@@ -1321,38 +1321,38 @@ struct PayStrand_test : public beast::unit_test::suite
         {
             Env env(*this, with_features(fs));
 
-            env.fund(IDAC(10000), alice, bob, carol, gw);
+            env.fund(DAC(10000), alice, bob, carol, gw);
             env.trust(USD(10000), alice, bob, carol);
 
             env(pay(gw, bob, USD(100)));
 
-            env(offer(bob, IDAC(100), USD(100)), txflags(tfPassive));
-            env(offer(bob, USD(100), IDAC(100)), txflags(tfPassive));
+            env(offer(bob, DAC(100), USD(100)), txflags(tfPassive));
+            env(offer(bob, USD(100), DAC(100)), txflags(tfPassive));
 
-            // payment path: IDAC -> IDAC/USD -> USD/IDAC
-            env(pay(alice, carol, IDAC(100)),
-                path(~USD, ~IDAC),
+            // payment path: DAC -> DAC/USD -> USD/DAC
+            env(pay(alice, carol, DAC(100)),
+                path(~USD, ~DAC),
                 txflags(tfNoRippleDirect),
-                ter(temBAD_SEND_IDAC_PATHS));
+                ter(temBAD_SEND_DAC_PATHS));
         }
 
         {
             Env env(*this, with_features(fs));
 
-            env.fund(IDAC(10000), alice, bob, carol, gw);
+            env.fund(DAC(10000), alice, bob, carol, gw);
             env.trust(USD(10000), alice, bob, carol);
 
             env(pay(gw, bob, USD(100)));
 
-            env(offer(bob, IDAC(100), USD(100)), txflags(tfPassive));
-            env(offer(bob, USD(100), IDAC(100)), txflags(tfPassive));
+            env(offer(bob, DAC(100), USD(100)), txflags(tfPassive));
+            env(offer(bob, USD(100), DAC(100)), txflags(tfPassive));
 
-            // payment path: IDAC -> IDAC/USD -> USD/IDAC
-            env(pay(alice, carol, IDAC(100)),
-                path(~USD, ~IDAC),
-                sendmax(IDAC(200)),
+            // payment path: DAC -> DAC/USD -> USD/DAC
+            env(pay(alice, carol, DAC(100)),
+                path(~USD, ~DAC),
+                sendmax(DAC(200)),
                 txflags(tfNoRippleDirect),
-                ter(temBAD_SEND_IDAC_MAX));
+                ter(temBAD_SEND_DAC_MAX));
         }
     }
 
@@ -1373,14 +1373,14 @@ struct PayStrand_test : public beast::unit_test::suite
         {
             Env env(*this, with_features(fs));
 
-            env.fund(IDAC(10000), alice, bob, carol, gw);
+            env.fund(DAC(10000), alice, bob, carol, gw);
             env.trust(USD(10000), alice, bob, carol);
 
             env(pay(gw, bob, USD(100)));
             env(pay(gw, alice, USD(100)));
 
-            env(offer(bob, IDAC(100), USD(100)), txflags(tfPassive));
-            env(offer(bob, USD(100), IDAC(100)), txflags(tfPassive));
+            env(offer(bob, DAC(100), USD(100)), txflags(tfPassive));
+            env(offer(bob, USD(100), DAC(100)), txflags(tfPassive));
 
             auto const expectedResult = [&] {
                 if (hasFeature(featureFlow, fs) &&
@@ -1388,17 +1388,17 @@ struct PayStrand_test : public beast::unit_test::suite
                     return tesSUCCESS;
                 return temBAD_PATH_LOOP;
             }();
-            // payment path: USD -> USD/IDAC -> IDAC/USD
+            // payment path: USD -> USD/DAC -> DAC/USD
             env(pay(alice, carol, USD(100)),
                 sendmax(USD(100)),
-                path(~IDAC, ~USD),
+                path(~DAC, ~USD),
                 txflags(tfNoRippleDirect),
                 ter(expectedResult));
         }
         {
             Env env(*this, with_features(fs));
 
-            env.fund(IDAC(10000), alice, bob, carol, gw);
+            env.fund(DAC(10000), alice, bob, carol, gw);
             env.trust(USD(10000), alice, bob, carol);
             env.trust(EUR(10000), alice, bob, carol);
             env.trust(CNY(10000), alice, bob, carol);
@@ -1407,13 +1407,13 @@ struct PayStrand_test : public beast::unit_test::suite
             env(pay(gw, bob, EUR(100)));
             env(pay(gw, bob, CNY(100)));
 
-            env(offer(bob, IDAC(100), USD(100)), txflags(tfPassive));
+            env(offer(bob, DAC(100), USD(100)), txflags(tfPassive));
             env(offer(bob, USD(100), EUR(100)), txflags(tfPassive));
             env(offer(bob, EUR(100), CNY(100)), txflags(tfPassive));
 
-            // payment path: IDAC->IDAC/USD->USD/EUR->USD/CNY
+            // payment path: DAC->DAC/USD->USD/EUR->USD/CNY
             env(pay(alice, carol, CNY(100)),
-                sendmax(IDAC(100)),
+                sendmax(DAC(100)),
                 path(~USD, ~EUR, ~USD, ~CNY),
                 txflags(tfNoRippleDirect),
                 ter(temBAD_PATH_LOOP));
@@ -1432,7 +1432,7 @@ struct PayStrand_test : public beast::unit_test::suite
         auto const USD = gw["USD"];
 
         Env env(*this, with_features(fs));
-        env.fund(IDAC(10000), alice, bob, gw);
+        env.fund(DAC(10000), alice, bob, gw);
 
         STAmount sendMax{USD.issue(), 100, 1};
         STAmount noAccountAmount{Issue{USD.currency, noAccount()}, 100, 1};

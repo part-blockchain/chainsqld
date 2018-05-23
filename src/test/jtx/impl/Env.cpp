@@ -178,7 +178,7 @@ Env::balance (Account const& account) const
 {
     auto const sle = le(account);
     if (! sle)
-        return IDAC(0);
+        return DAC(0);
     return {
         sle->getFieldAmount(sfBalance),
             "" };
@@ -188,7 +188,7 @@ PrettyAmount
 Env::balance (Account const& account,
     Issue const& issue) const
 {
-    if (isIDAC(issue.currency))
+    if (isDAC(issue.currency))
         return balance(account);
     auto const sle = le(keylet::line(
         account.id(), issue));

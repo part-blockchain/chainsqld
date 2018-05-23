@@ -33,7 +33,7 @@ struct CashSummary
 {
     // Sorted vectors.  All of the vectors fill in for std::maps.
     std::vector<std::pair<
-        AccountID, IDACAmount>> idacChanges;
+        AccountID, DACAmount>> dacChanges;
 
     std::vector<std::pair<
         std::tuple<AccountID, AccountID, Currency>, STAmount>> trustChanges;
@@ -52,7 +52,7 @@ struct CashSummary
 
     bool hasDiff () const
     {
-        return !idacChanges.empty()
+        return !dacChanges.empty()
             || !trustChanges.empty()
             || !trustDeletions.empty()
             || !offerChanges.empty()
@@ -61,7 +61,7 @@ struct CashSummary
 
     void reserve (size_t newCap)
     {
-        idacChanges.reserve (newCap);
+        dacChanges.reserve (newCap);
         trustChanges.reserve (newCap);
         trustDeletions.reserve (newCap);
         offerChanges.reserve (newCap);
@@ -70,7 +70,7 @@ struct CashSummary
 
     void shrink_to_fit()
     {
-        idacChanges.shrink_to_fit();
+        dacChanges.shrink_to_fit();
         trustChanges.shrink_to_fit();
         trustDeletions.shrink_to_fit();
         offerChanges.shrink_to_fit();
@@ -79,7 +79,7 @@ struct CashSummary
 
     void sort()
     {
-        std::sort (idacChanges.begin(), idacChanges.end());
+        std::sort (dacChanges.begin(), dacChanges.end());
         std::sort (trustChanges.begin(), trustChanges.end());
         std::sort (trustDeletions.begin(), trustDeletions.end());
         std::sort (offerChanges.begin(), offerChanges.end());
@@ -161,8 +161,8 @@ static bool getBasicCashFlow (CashSummary& result, bool isDelete,
         switch(prev.getType())
         {
         case ltACCOUNT_ROOT:
-            result.idacChanges.push_back (
-                std::make_pair (prev[sfAccount], IDACAmount {0}));
+            result.dacChanges.push_back (
+                std::make_pair (prev[sfAccount], DACAmount {0}));
             return true;
 
         case ltRIPPLE_STATE:
@@ -201,10 +201,10 @@ static bool getBasicCashFlow (CashSummary& result, bool isDelete,
         {
         case ltACCOUNT_ROOT:
         {
-            auto const curIdac = cur[sfBalance].idac();
-            if (!before || (*before)[sfBalance].idac() != curIdac)
-                result.idacChanges.push_back (
-                    std::make_pair (cur[sfAccount], curIdac));
+            auto const curDac = cur[sfBalance].dac();
+            if (!before || (*before)[sfBalance].dac() != curDac)
+                result.dacChanges.push_back (
+                    std::make_pair (cur[sfAccount], curDac));
             return true;
         }
         case ltRIPPLE_STATE:
@@ -281,11 +281,11 @@ getCashFlow (ReadView const& view, CashFilter f, ApplyStateTable const& table)
 class CashDiff::Impl
 {
 private:
-    // Note differences in destroyed IDAC between two ApplyStateTables.
+    // Note differences in destroyed DAC between two ApplyStateTables.
     struct DropsGone
     {
-        IDACAmount lhs;
-        IDACAmount rhs;
+        DACAmount lhs;
+        DACAmount rhs;
     };
 
     ReadView const& view_;
@@ -415,7 +415,7 @@ countKeys (detail::CashSummary const& lhs, detail::CashSummary const& rhs)
         std::transform (a.cbegin(), a.cend(),
             ret.cbegin(), ret.begin(), std::plus<std::size_t>());
     };
-    addIn (countKeys(lhs.idacChanges,     rhs.idacChanges));
+    addIn (countKeys(lhs.dacChanges,     rhs.dacChanges));
     addIn (countKeys(lhs.trustChanges,   rhs.trustChanges));
     addIn (countKeys(lhs.trustDeletions, rhs.trustDeletions));
     addIn (countKeys(lhs.offerChanges,   rhs.offerChanges));
@@ -483,13 +483,13 @@ bool CashDiff::Impl::rmDust ()
     bool removedDust = false;
 
     // Four of the containers can have small (floating point style)
-    // amount differences: idacChanges, trustChanges, offerChanges, and
+    // amount differences: dacChanges, trustChanges, offerChanges, and
     // offerDeletions.  Rifle through those containers and remove any
     // entries that are _almost_ the same between lhs and rhs.
 
-    // idacChanges.  We call a difference of 2 drops or less dust.
-    removedDust |= rmVecDust (lhsDiffs_.idacChanges, rhsDiffs_.idacChanges,
-        [](IDACAmount const& lhs, IDACAmount const& rhs)
+    // dacChanges.  We call a difference of 2 drops or less dust.
+    removedDust |= rmVecDust (lhsDiffs_.dacChanges, rhsDiffs_.dacChanges,
+        [](DACAmount const& lhs, DACAmount const& rhs)
         {
             return diffIsDust (lhs, rhs);
         });
@@ -566,9 +566,9 @@ void CashDiff::Impl::findDiffs (
     rhsKeys_    = counts[2];
 
     // Save only the differences between the results.
-    // idacChanges:
-    setDiff (lhsDiffs.idacChanges, rhsDiffs.idacChanges, lhsDiffs_.idacChanges);
-    setDiff (rhsDiffs.idacChanges, lhsDiffs.idacChanges, rhsDiffs_.idacChanges);
+    // dacChanges:
+    setDiff (lhsDiffs.dacChanges, rhsDiffs.dacChanges, lhsDiffs_.dacChanges);
+    setDiff (rhsDiffs.dacChanges, lhsDiffs.dacChanges, rhsDiffs_.dacChanges);
 
     // trustChanges:
     setDiff (lhsDiffs.trustChanges, rhsDiffs.trustChanges, lhsDiffs_.trustChanges);
@@ -666,7 +666,7 @@ bool diffIsDust (STAmount const& v1, STAmount const& v2, std::uint8_t e10)
     STAmount const& small = v1 < v2 ? v1 : v2;
     STAmount const& large = v1 < v2 ? v2 : v1;
 
-    // Handling IDAC is different from IOU.
+    // Handling DAC is different from IOU.
     if (v1.native())
     {
         std::uint64_t const s = small.mantissa();

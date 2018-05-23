@@ -66,7 +66,7 @@ class PaymentSandbox_test : public beast::unit_test::suite
         Account const snd ("snd");
         Account const rcv ("rcv");
 
-        env.fund (IDAC (10000), snd, rcv, gw1, gw2);
+        env.fund (DAC (10000), snd, rcv, gw1, gw2);
 
         auto const USD_gw1 = gw1["USD"];
         auto const USD_gw2 = gw2["USD"];
@@ -106,7 +106,7 @@ class PaymentSandbox_test : public beast::unit_test::suite
         Account const gw2 ("gw2");
         Account const alice ("alice");
 
-        env.fund (IDAC (10000), alice, gw1, gw2);
+        env.fund (DAC (10000), alice, gw1, gw2);
 
         auto j = env.app().journal ("View");
 
@@ -300,14 +300,14 @@ class PaymentSandbox_test : public beast::unit_test::suite
 
         beast::Journal dj;
 
-        auto accountFundsIDAC = [&dj](
-            ReadView const& view, AccountID const& id) -> IDACAmount
+        auto accountFundsDAC = [&dj](
+            ReadView const& view, AccountID const& id) -> DACAmount
         {
-            return toAmount<IDACAmount> (accountHolds (
-                view, id, idacCurrency (), idacAccount (), fhZERO_IF_FROZEN, dj));
+            return toAmount<DACAmount> (accountHolds (
+                view, id, dacCurrency (), dacAccount (), fhZERO_IF_FROZEN, dj));
         };
 
-        auto reserve = [](jtx::Env& env, std::uint32_t count) -> IDACAmount
+        auto reserve = [](jtx::Env& env, std::uint32_t count) -> DACAmount
         {
             return env.current ()->fees ().accountReserve (count);
         };
@@ -327,9 +327,9 @@ class PaymentSandbox_test : public beast::unit_test::suite
             // to drop below the reserve. Make sure her funds are zero (there was a bug that
             // caused her funds to become negative).
 
-            accountSend (sb, idacAccount (), alice, IDAC(100), dj);
-            accountSend (sb, alice, idacAccount (), IDAC(100), dj);
-            BEAST_EXPECT(accountFundsIDAC (sb, alice) == beast::zero);
+            accountSend (sb, dacAccount (), alice, DAC(100), dj);
+            accountSend (sb, alice, dacAccount (), DAC(100), dj);
+            BEAST_EXPECT(accountFundsDAC (sb, alice) == beast::zero);
         }
     }
 

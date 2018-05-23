@@ -24,13 +24,13 @@ namespace ripple {
 bool
 isConsistent (Issue const& ac)
 {
-    return isIDAC (ac.currency) == isIDAC (ac.account);
+    return isDAC (ac.currency) == isDAC (ac.account);
 }
 
 std::string
 to_string (Issue const& ac)
 {
-    if (isIDAC (ac.account))
+    if (isDAC (ac.account))
         return to_string (ac.currency);
 
     return to_string(ac.account) + "/" + to_string(ac.currency);
@@ -45,7 +45,7 @@ operator<< (std::ostream& os, Issue const& x)
 
 /** Ordered comparison.
     The assets are ordered first by currency and then by account,
-    if the currency is not IDAC.
+    if the currency is not DAC.
 */
 int
 compare (Issue const& lhs, Issue const& rhs)
@@ -53,7 +53,7 @@ compare (Issue const& lhs, Issue const& rhs)
     int diff = compare (lhs.currency, rhs.currency);
     if (diff != 0)
         return diff;
-    if (isIDAC (lhs.currency))
+    if (isDAC (lhs.currency))
         return 0;
     return compare (lhs.account, rhs.account);
 }

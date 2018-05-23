@@ -27,7 +27,7 @@
 #include <ripple/protocol/Protocol.h>
 #include <ripple/protocol/STLedgerEntry.h>
 #include <ripple/protocol/STTx.h>
-#include <ripple/protocol/IDACAmount.h>
+#include <ripple/protocol/DACAmount.h>
 #include <ripple/beast/hash/uhash.h>
 #include <ripple/beast/utility/Journal.h>
 #include <boost/optional.hpp>
@@ -59,7 +59,7 @@ struct Fees
         The reserve is calculated as the reserve base plus
         the reserve increment times the number of increments.
     */
-    IDACAmount
+    DACAmount
     accountReserve (std::size_t ownerCount) const
     {
         return { reserve + ownerCount * increment };
@@ -88,7 +88,7 @@ struct LedgerInfo
     uint256 accountHash = zero;
     uint256 parentHash = zero;
 
-    IDACAmount drops = zero;
+    DACAmount drops = zero;
 
     // If validated is false, it means "not yet validated."
     // Once validated is true, it will never be set false at a later time.

@@ -30,7 +30,7 @@ namespace detail {
 void
 ApplyStateTable::apply (RawView& to) const
 {
-    to.rawDestroyIDAC(dropsDestroyed_);
+    to.rawDestroyDAC(dropsDestroyed_);
     for (auto const& item : items_)
     {
         auto const& sle =
@@ -520,7 +520,7 @@ ApplyStateTable::update (ReadView const& base,
 }
 
 void
-ApplyStateTable::destroyIDAC(IDACAmount const& fee)
+ApplyStateTable::destroyDAC(DACAmount const& fee)
 {
     dropsDestroyed_ += fee;
 }

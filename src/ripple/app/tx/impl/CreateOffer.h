@@ -44,7 +44,7 @@ public:
 
     /** Override default behavior provided by Transactor base class. */
     static
-    IDACAmount
+    DACAmount
     calculateMaxSpend(STTx const& tx);
 
     /** Enforce constraints beyond those of the Transactor base class. */

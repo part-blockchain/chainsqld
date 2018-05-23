@@ -27,7 +27,7 @@ namespace jtx {
 void
 balance::operator()(Env& env) const
 {
-    if (isIDAC(value_.issue()))
+    if (isDAC(value_.issue()))
     {
         auto const sle = env.le(account_);
         if (none_)

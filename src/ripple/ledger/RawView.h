@@ -79,13 +79,13 @@ public:
     void
     rawReplace (std::shared_ptr<SLE> const& sle) = 0;
 
-    /** Destroy IDAC.
+    /** Destroy DAC.
 
         This is used to pay for transaction fees.
     */
     virtual
     void
-    rawDestroyIDAC (IDACAmount const& fee) = 0;
+    rawDestroyDAC (DACAmount const& fee) = 0;
 };
 
 //------------------------------------------------------------------------------

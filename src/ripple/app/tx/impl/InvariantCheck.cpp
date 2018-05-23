@@ -23,7 +23,7 @@
 namespace ripple {
 
 void
-IDACNotCreated::visitEntry(
+DACNotCreated::visitEntry(
     uint256 const&,
     bool isDelete,
     std::shared_ptr <SLE const> const& before,
@@ -34,13 +34,13 @@ IDACNotCreated::visitEntry(
         switch (before->getType())
         {
         case ltACCOUNT_ROOT:
-            drops_ -= (*before)[sfBalance].idac().drops();
+            drops_ -= (*before)[sfBalance].dac().drops();
             break;
         case ltPAYCHAN:
-            drops_ -= ((*before)[sfAmount] - (*before)[sfBalance]).idac().drops();
+            drops_ -= ((*before)[sfAmount] - (*before)[sfBalance]).dac().drops();
             break;
         case ltESCROW:
-            drops_ -= (*before)[sfAmount].idac().drops();
+            drops_ -= (*before)[sfAmount].dac().drops();
             break;
         default:
             break;
@@ -52,15 +52,15 @@ IDACNotCreated::visitEntry(
         switch (after->getType())
         {
         case ltACCOUNT_ROOT:
-            drops_ += (*after)[sfBalance].idac().drops();
+            drops_ += (*after)[sfBalance].dac().drops();
             break;
         case ltPAYCHAN:
             if (! isDelete)
-                drops_ += ((*after)[sfAmount] - (*after)[sfBalance]).idac().drops();
+                drops_ += ((*after)[sfAmount] - (*after)[sfBalance]).dac().drops();
             break;
         case ltESCROW:
             if (! isDelete)
-                drops_ += (*after)[sfAmount].idac().drops();
+                drops_ += (*after)[sfAmount].dac().drops();
             break;
         default:
             break;
@@ -69,13 +69,13 @@ IDACNotCreated::visitEntry(
 }
 
 bool
-IDACNotCreated::finalize(STTx const& tx, TER /*tec*/, beast::Journal const& j)
+DACNotCreated::finalize(STTx const& tx, TER /*tec*/, beast::Journal const& j)
 {
-    auto fee = tx.getFieldAmount(sfFee).idac().drops();
+    auto fee = tx.getFieldAmount(sfFee).dac().drops();
     if(-1*fee <= drops_ && drops_ <= 0)
         return true;
 
-    JLOG(j.fatal()) << "Invariant failed: IDAC net change was " << drops_ <<
+    JLOG(j.fatal()) << "Invariant failed: DAC net change was " << drops_ <<
         " on a fee of " << fee;
     return false;
 }
@@ -83,7 +83,7 @@ IDACNotCreated::finalize(STTx const& tx, TER /*tec*/, beast::Journal const& j)
 //------------------------------------------------------------------------------
 
 void
-IDACBalanceChecks::visitEntry(
+DACBalanceChecks::visitEntry(
     uint256 const&,
     bool,
     std::shared_ptr <SLE const> const& before,
@@ -94,7 +94,7 @@ IDACBalanceChecks::visitEntry(
         if (!balance.native())
             return true;
 
-        auto const drops = balance.idac().drops();
+        auto const drops = balance.dac().drops();
 
         // Can't have more than the number of drops instantiated
         // in the genesis ledger.
@@ -116,11 +116,11 @@ IDACBalanceChecks::visitEntry(
 }
 
 bool
-IDACBalanceChecks::finalize(STTx const&, TER, beast::Journal const& j)
+DACBalanceChecks::finalize(STTx const&, TER, beast::Journal const& j)
 {
     if (bad_)
     {
-        JLOG(j.fatal()) << "Invariant failed: incorrect account IDAC balance";
+        JLOG(j.fatal()) << "Invariant failed: incorrect account DAC balance";
         return false;
     }
 
@@ -145,7 +145,7 @@ NoBadOffers::visitEntry(
         if (gets < beast::zero)
             return true;
 
-        // Can't have an IDAC to IDAC offer:
+        // Can't have an DAC to DAC offer:
         return pays.native() && gets.native();
     };
 
@@ -182,10 +182,10 @@ NoZeroEscrow::visitEntry(
         if (!amount.native())
             return true;
 
-        if (amount.idac().drops() <= 0)
+        if (amount.dac().drops() <= 0)
             return true;
 
-        if (amount.idac().drops() >= SYSTEM_CURRENCY_START)
+        if (amount.dac().drops() >= SYSTEM_CURRENCY_START)
             return true;
 
         return false;
@@ -293,7 +293,7 @@ LedgerEntryTypesMatch::finalize(STTx const&, TER, beast::Journal const& j)
 //------------------------------------------------------------------------------
 
 void
-NoIDACTrustLines::visitEntry(
+NoDACTrustLines::visitEntry(
     uint256 const&,
     bool,
     std::shared_ptr <SLE const> const&,
@@ -304,19 +304,19 @@ NoIDACTrustLines::visitEntry(
         // checking the issue directly here instead of
         // relying on .native() just in case native somehow
         // were systematically incorrect
-        idacTrustLine_ =
-            after->getFieldAmount (sfLowLimit).issue() == idacIssue() ||
-            after->getFieldAmount (sfHighLimit).issue() == idacIssue();
+        dacTrustLine_ =
+            after->getFieldAmount (sfLowLimit).issue() == dacIssue() ||
+            after->getFieldAmount (sfHighLimit).issue() == dacIssue();
     }
 }
 
 bool
-NoIDACTrustLines::finalize(STTx const&, TER, beast::Journal const& j)
+NoDACTrustLines::finalize(STTx const&, TER, beast::Journal const& j)
 {
-    if (! idacTrustLine_)
+    if (! dacTrustLine_)
         return true;
 
-    JLOG(j.fatal()) << "Invariant failed: an IDAC trust line was created";
+    JLOG(j.fatal()) << "Invariant failed: an DAC trust line was created";
     return false;
 }
 

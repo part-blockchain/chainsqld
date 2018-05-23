@@ -36,14 +36,14 @@ public:
 
         Account const alice {"alice"};
         Account const bob {"bob"};
-        env.fund (IDAC (10000), alice, bob);
+        env.fund (DAC (10000), alice, bob);
 
         std::unique_ptr<AbstractClient> client = useWS ?
               makeWSClient(env.app().config())
             : makeJSONRPCClient(env.app().config());
 
         Json::Value tx = Json::objectValue;
-        tx[jss::tx_json] = pay(alice, bob, IDAC(1));
+        tx[jss::tx_json] = pay(alice, bob, DAC(1));
         tx[jss::secret] = toBase58(generateSeed("alice"));
 
         // Ask the server to repeatedly sign this transaction

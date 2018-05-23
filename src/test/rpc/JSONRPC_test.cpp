@@ -391,7 +391,7 @@ R"({
 "Missing field 'tx_json.Sequence'.",
 "Missing field 'tx_json.Sequence'."}},
 
-{ "Cannot create IDAC to IDAC paths.",
+{ "Cannot create DAC to DAC paths.",
 R"({
     "command": "doesnt_matter",
     "account": "rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh",
@@ -405,8 +405,8 @@ R"({
     }
 })",
 {
-"Cannot build IDAC to IDAC paths.",
-"Cannot build IDAC to IDAC paths.",
+"Cannot build DAC to DAC paths.",
+"Cannot build DAC to DAC paths.",
 "Missing field 'tx_json.Sequence'.",
 "Missing field 'tx_json.Sequence'."}},
 
@@ -485,7 +485,7 @@ R"({
 "Missing field 'tx_json.Sequence'.",
 "Missing field 'tx_json.Sequence'."}},
 
-{ "Even though 'Amount' may not be IDAC for pathfinding, 'SendMax' may be IDAC.",
+{ "Even though 'Amount' may not be DAC for pathfinding, 'SendMax' may be DAC.",
 R"({
     "command": "doesnt_matter",
     "account": "rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh",
@@ -2255,7 +2255,7 @@ public:
         // "c" (phantom signer) is rPcNzota6B8YBokhYtcTNqQVCngtbnWfux.
 
         test::jtx::Env env(*this, test::jtx::with_features(featureMultiSign));
-        env.fund(test::jtx::IDAC(100000), a, ed, g);
+        env.fund(test::jtx::DAC(100000), a, ed, g);
         env.close();
 
         env(trust(a, USD(1000)));

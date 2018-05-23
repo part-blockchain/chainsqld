@@ -25,13 +25,13 @@ namespace ripple {
 hash_set<Currency> accountSourceCurrencies (
     AccountID const& account,
     std::shared_ptr<RippleLineCache> const& lrCache,
-    bool includeIDAC)
+    bool includeDAC)
 {
     hash_set<Currency> currencies;
 
     // YYY Only bother if they are above reserve
-    if (includeIDAC)
-        currencies.insert (idacCurrency());
+    if (includeDAC)
+        currencies.insert (dacCurrency());
 
     // List of ripple lines.
     auto& rippleLines = lrCache->getRippleLines (account);
@@ -63,12 +63,12 @@ hash_set<Currency> accountSourceCurrencies (
 hash_set<Currency> accountDestCurrencies (
     AccountID const& account,
     std::shared_ptr<RippleLineCache> const& lrCache,
-    bool includeIDAC)
+    bool includeDAC)
 {
     hash_set<Currency> currencies;
 
-    if (includeIDAC)
-        currencies.insert (idacCurrency());
+    if (includeDAC)
+        currencies.insert (dacCurrency());
     // Even if account doesn't exist
 
     // List of ripple lines.

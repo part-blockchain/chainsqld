@@ -132,7 +132,7 @@ Json::Value doAccountInfo (RPC::Context& context)
                 jvQueueTx = Json::arrayValue;
 
                 boost::optional<bool> anyAuthChanged(false);
-                boost::optional<IDACAmount> totalSpend(0);
+                boost::optional<DACAmount> totalSpend(0);
 
                 for (auto const& tx : txs)
                 {

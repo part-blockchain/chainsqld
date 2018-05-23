@@ -68,7 +68,7 @@ public:
         Keylet const& k) const;
 
     void
-    destroyIDAC (IDACAmount const& fee);
+    destroyDAC (DACAmount const& fee);
 
     std::unique_ptr<ReadView::sles_type::iter_base>
     slesBegin (ReadView const& base) const;
@@ -95,7 +95,7 @@ private:
         std::pair<Action, std::shared_ptr<SLE>>>, false>>;
 
     items_t items_;
-    IDACAmount dropsDestroyed_ = 0;
+    DACAmount dropsDestroyed_ = 0;
 };
 
 } // detail

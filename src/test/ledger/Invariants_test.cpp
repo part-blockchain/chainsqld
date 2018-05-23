@@ -75,7 +75,7 @@ class Invariants_test : public beast::unit_test::suite
 
         Account A1 {"A1"};
         Account A2 {"A2"};
-        env.fund (IDAC (1000), A1, A2);
+        env.fund (DAC (1000), A1, A2);
         env.close();
 
         // dummy/empty tx to setup the AccountContext
@@ -138,16 +138,16 @@ class Invariants_test : public beast::unit_test::suite
     }
 
     void
-    testIDACNotCreated (bool enabled)
+    testDACNotCreated (bool enabled)
     {
         using namespace test::jtx;
         testcase << "checks " << (enabled ? "enabled" : "disabled") <<
-            " - IDAC created";
+            " - DAC created";
         doInvariantCheck (enabled,
-            {{ "IDAC net change was 500 on a fee of 0" }},
+            {{ "DAC net change was 500 on a fee of 0" }},
             [](Account const& A1, Account const&, ApplyContext& ac)
             {
-                // put a single account in the view and "manufacture" some IDAC
+                // put a single account in the view and "manufacture" some DAC
                 auto const sle = ac.view().peek (keylet::account(A1.id()));
                 if(! sle)
                     return false;
@@ -185,7 +185,7 @@ class Invariants_test : public beast::unit_test::suite
             " - LE types don't match";
         doInvariantCheck (enabled,
             {{ "ledger entry type mismatch" },
-             { "IDAC net change was -1000000000 on a fee of 0" }},
+             { "DAC net change was -1000000000 on a fee of 0" }},
             [](Account const& A1, Account const&, ApplyContext& ac)
             {
                 // replace an entry in the table with an SLE of a different type
@@ -217,17 +217,17 @@ class Invariants_test : public beast::unit_test::suite
     }
 
     void
-    testNoIDACTrustLine(bool enabled)
+    testNoDACTrustLine(bool enabled)
     {
         using namespace test::jtx;
         testcase << "checks " << (enabled ? "enabled" : "disabled") <<
-            " - trust lines with IDAC not allowed";
+            " - trust lines with DAC not allowed";
         doInvariantCheck (enabled,
-            {{ "an IDAC trust line was created" }},
+            {{ "an DAC trust line was created" }},
             [](Account const& A1, Account const& A2, ApplyContext& ac)
             {
-                // create simple trust SLE with idac currency
-                auto index = getRippleStateIndex (A1, A2, idacIssue().currency);
+                // create simple trust SLE with dac currency
+                auto index = getRippleStateIndex (A1, A2, dacIssue().currency);
                 auto const sleNew = std::make_shared<SLE>(
                     ltRIPPLE_STATE, index);
                 ac.view().insert (sleNew);
@@ -236,14 +236,14 @@ class Invariants_test : public beast::unit_test::suite
     }
 
     void
-    testIDACBalanceCheck(bool enabled)
+    testDACBalanceCheck(bool enabled)
     {
         using namespace test::jtx;
         testcase << "checks " << (enabled ? "enabled" : "disabled") <<
-            " - IDAC balance checks";
+            " - DAC balance checks";
 
         doInvariantCheck (enabled,
-            {{ "Cannot return non-native STAmount as IDACAmount" }},
+            {{ "Cannot return non-native STAmount as DACAmount" }},
             [](Account const& A1, Account const& A2, ApplyContext& ac)
             {
                 //non-native balance
@@ -257,8 +257,8 @@ class Invariants_test : public beast::unit_test::suite
             });
 
         doInvariantCheck (enabled,
-            {{ "incorrect account IDAC balance" },
-             {  "IDAC net change was 99999999000000001 on a fee of 0" }},
+            {{ "incorrect account DAC balance" },
+             {  "DAC net change was 99999999000000001 on a fee of 0" }},
             [](Account const& A1, Account const&, ApplyContext& ac)
             {
                 // balance exceeds genesis amount
@@ -271,8 +271,8 @@ class Invariants_test : public beast::unit_test::suite
             });
 
         doInvariantCheck (enabled,
-            {{ "incorrect account IDAC balance" },
-             { "IDAC net change was -1000000001 on a fee of 0" }},
+            {{ "incorrect account DAC balance" },
+             { "DAC net change was -1000000001 on a fee of 0" }},
             [](Account const& A1, Account const&, ApplyContext& ac)
             {
                 // balance is negative
@@ -305,7 +305,7 @@ class Invariants_test : public beast::unit_test::suite
                 auto sleNew = std::make_shared<SLE> (ltOFFER, offer_index);
                 sleNew->setAccountID (sfAccount, A1.id());
                 sleNew->setFieldU32 (sfSequence, (*sle)[sfSequence]);
-                sleNew->setFieldAmount (sfTakerPays, IDAC(-1));
+                sleNew->setFieldAmount (sfTakerPays, DAC(-1));
                 ac.view().insert (sleNew);
                 return true;
             });
@@ -324,7 +324,7 @@ class Invariants_test : public beast::unit_test::suite
                 sleNew->setAccountID (sfAccount, A1.id());
                 sleNew->setFieldU32 (sfSequence, (*sle)[sfSequence]);
                 sleNew->setFieldAmount (sfTakerPays, A1["USD"](10));
-                sleNew->setFieldAmount (sfTakerGets, IDAC(-1));
+                sleNew->setFieldAmount (sfTakerGets, DAC(-1));
                 ac.view().insert (sleNew);
                 return true;
             });
@@ -333,7 +333,7 @@ class Invariants_test : public beast::unit_test::suite
             {{ "offer with a bad amount" }},
             [](Account const& A1, Account const&, ApplyContext& ac)
             {
-                // offer IDAC to IDAC
+                // offer DAC to DAC
                 auto const sle = ac.view().peek (keylet::account(A1.id()));
                 if(! sle)
                     return false;
@@ -342,8 +342,8 @@ class Invariants_test : public beast::unit_test::suite
                 auto sleNew = std::make_shared<SLE> (ltOFFER, offer_index);
                 sleNew->setAccountID (sfAccount, A1.id());
                 sleNew->setFieldU32 (sfSequence, (*sle)[sfSequence]);
-                sleNew->setFieldAmount (sfTakerPays, IDAC(10));
-                sleNew->setFieldAmount (sfTakerGets, IDAC(11));
+                sleNew->setFieldAmount (sfTakerPays, DAC(10));
+                sleNew->setFieldAmount (sfTakerGets, DAC(11));
                 ac.view().insert (sleNew);
                 return true;
             });
@@ -357,7 +357,7 @@ class Invariants_test : public beast::unit_test::suite
             " - no zero escrow";
 
         doInvariantCheck (enabled,
-            {{ "Cannot return non-native STAmount as IDACAmount" }},
+            {{ "Cannot return non-native STAmount as DACAmount" }},
             [](Account const& A1, Account const& A2, ApplyContext& ac)
             {
                 // escrow with nonnative amount
@@ -373,7 +373,7 @@ class Invariants_test : public beast::unit_test::suite
             });
 
         doInvariantCheck (enabled,
-            {{ "IDAC net change was -1000000 on a fee of 0"},
+            {{ "DAC net change was -1000000 on a fee of 0"},
              {  "escrow specifies invalid amount" }},
             [](Account const& A1, Account const&, ApplyContext& ac)
             {
@@ -383,13 +383,13 @@ class Invariants_test : public beast::unit_test::suite
                     return false;
                 auto sleNew = std::make_shared<SLE> (
                     keylet::escrow(A1, (*sle)[sfSequence] + 2));
-                sleNew->setFieldAmount (sfAmount, IDAC(-1));
+                sleNew->setFieldAmount (sfAmount, DAC(-1));
                 ac.view().insert (sleNew);
                 return true;
             });
 
         doInvariantCheck (enabled,
-            {{ "IDAC net change was 100000000000000001 on a fee of 0" },
+            {{ "DAC net change was 100000000000000001 on a fee of 0" },
              {  "escrow specifies invalid amount" }},
             [](Account const& A1, Account const&, ApplyContext& ac)
             {
@@ -414,11 +414,11 @@ public:
         // the feature enabled and disabled
         for(auto const& b : {false, true})
         {
-            testIDACNotCreated (b);
+            testDACNotCreated (b);
             testAccountsNotRemoved (b);
             testTypesMatch (b);
-            testNoIDACTrustLine (b);
-            testIDACBalanceCheck (b);
+            testNoDACTrustLine (b);
+            testDACBalanceCheck (b);
             testNoBadOffers (b);
             testNoZeroEscrow (b);
         }

@@ -205,7 +205,7 @@ int run (int argc, char** argv)
 
     using namespace std;
 
-    beast::setCurrentThreadName ("idacd: main");
+    beast::setCurrentThreadName ("dacd: main");
 
     po::variables_map vm;
 
@@ -266,7 +266,7 @@ int run (int argc, char** argv)
     }
     catch (std::exception const&)
     {
-        std::cerr << "idacd: Incorrect command line syntax." << std::endl;
+        std::cerr << "dacd: Incorrect command line syntax." << std::endl;
         std::cerr << "Use '--help' for a list of options." << std::endl;
         return 1;
     }
@@ -279,7 +279,7 @@ int run (int argc, char** argv)
 
     if (vm.count ("version"))
     {
-        std::cout << "idacd version " <<
+        std::cout << "dacd version " <<
             BuildInfo::getVersionString () << std::endl;
         return 0;
     }
@@ -493,7 +493,7 @@ int run (int argc, char** argv)
     }
 
     // We have an RPC command to process:
-    beast::setCurrentThreadName ("idacd: rpc");
+    beast::setCurrentThreadName ("dacd: rpc");
     return RPCCall::fromCommandLine (
         *config,
         vm["parameters"].as<std::vector<std::string>>(),
@@ -520,11 +520,11 @@ int main (int argc, char** argv)
                             __GNUC_PATCHLEVEL__;
 
     static_assert (gccver >= 50100,
-        "GCC version 5.1.0 or later is required to compile idacd.");
+        "GCC version 5.1.0 or later is required to compile dacd.");
 #endif
 
     static_assert (BOOST_VERSION >= 105700,
-        "Boost version 1.57 or later is required to compile idacd");
+        "Boost version 1.57 or later is required to compile dacd");
 
     //
     // These debug heap calls do nothing in release or non Visual Studio builds.

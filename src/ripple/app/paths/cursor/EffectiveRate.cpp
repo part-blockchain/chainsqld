@@ -31,8 +31,8 @@ effectiveRate(
     AccountID const& account2,
     boost::optional<Rate> const& rate)
 {
-    // 1:1 transfer rate for IDAC
-    if (isIDAC (issue))
+    // 1:1 transfer rate for DAC
+    if (isDAC (issue))
         return parityRate;
 
     if (!rate)

@@ -48,7 +48,7 @@ public:
         currencyID. */
     int getBookSize(Issue const&);
 
-    bool isBookToIDAC (Issue const&);
+    bool isBookToDAC (Issue const&);
 
     BookListeners::pointer getBookListeners (Book const&);
     BookListeners::pointer makeBookListeners (Book const&);
@@ -71,8 +71,8 @@ private:
     // by co/io
     IssueToOrderBook mDestMap;
 
-    // does an order book to IDAC exist
-    hash_set <Issue> mIDACBooks;
+    // does an order book to DAC exist
+    hash_set <Issue> mDACBooks;
 
     std::recursive_mutex mLock;
 

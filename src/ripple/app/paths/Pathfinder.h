@@ -75,7 +75,7 @@ public:
         nt_SOURCE,     // The source account: with an issuer account, if needed.
         nt_ACCOUNTS,   // Accounts that connect from this source/currency.
         nt_BOOKS,      // Order books that connect to this currency.
-        nt_IDAC_BOOK,   // The order book from this currency to IDAC.
+        nt_DAC_BOOK,   // The order book from this currency to DAC.
         nt_DEST_BOOK,  // The order book to the destination currency/issuer.
         nt_DESTINATION // The destination account only.
     };
@@ -87,11 +87,11 @@ public:
     // in a path request.
     enum PaymentType
     {
-        pt_IDAC_to_IDAC,
-        pt_IDAC_to_nonIDAC,
-        pt_nonIDAC_to_IDAC,
-        pt_nonIDAC_to_same,   // Destination currency is the same as source.
-        pt_nonIDAC_to_nonIDAC  // Destination currency is NOT the same as source.
+        pt_DAC_to_DAC,
+        pt_DAC_to_nonDAC,
+        pt_nonDAC_to_DAC,
+        pt_nonDAC_to_same,   // Destination currency is the same as source.
+        pt_nonDAC_to_nonDAC  // Destination currency is NOT the same as source.
     };
 
     struct PathRank
@@ -202,8 +202,8 @@ private:
     // Add order books
     static std::uint32_t const afADD_BOOKS = 0x002;
 
-    // Add order book to IDAC only
-    static std::uint32_t const afOB_IDAC = 0x010;
+    // Add order book to DAC only
+    static std::uint32_t const afOB_DAC = 0x010;
 
     // Must link to destination currency
     static std::uint32_t const afOB_LAST = 0x040;

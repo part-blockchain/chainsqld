@@ -475,7 +475,7 @@ public:
     lookup (std::string const& base58ID) const;
     /** @} */
 
-    /** Returns the IDAC balance on an account.
+    /** Returns the DAC balance on an account.
         Returns 0 if the account does not exist.
     */
     PrettyAmount
@@ -658,11 +658,11 @@ private:
     }
 public:
 
-    /** Create a new account with some IDAC.
+    /** Create a new account with some DAC.
 
         These convenience functions are for easy set-up
         of the environment, they bypass fee, seq, and sig
-        settings. The IDAC is transferred from the master
+        settings. The DAC is transferred from the master
         account.
 
         Preconditions:
@@ -673,11 +673,11 @@ public:
             and the sequence number is incremented, unless
             the account is wrapped with a call to noripple.
 
-            The account's IDAC balance is set to amount.
+            The account's DAC balance is set to amount.
 
             Generates a test that the balance is set.
 
-        @param amount The amount of IDAC to transfer to
+        @param amount The amount of DAC to transfer to
                       each account.
 
         @param args A heterogeneous list of accounts to fund

@@ -157,7 +157,7 @@ private:
 void
 RawStateTable::apply (RawView& to) const
 {
-    to.rawDestroyIDAC(dropsDestroyed_);
+    to.rawDestroyDAC(dropsDestroyed_);
     for (auto const& elem : items_)
     {
         auto const& item = elem.second;
@@ -333,7 +333,7 @@ RawStateTable::read (ReadView const& base,
 }
 
 void
-RawStateTable::destroyIDAC(IDACAmount const& fee)
+RawStateTable::destroyDAC(DACAmount const& fee)
 {
     dropsDestroyed_ += fee;
 }

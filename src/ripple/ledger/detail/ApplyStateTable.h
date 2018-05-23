@@ -25,7 +25,7 @@
 #include <ripple/ledger/ReadView.h>
 #include <ripple/ledger/TxMeta.h>
 #include <ripple/protocol/TER.h>
-#include <ripple/protocol/IDACAmount.h>
+#include <ripple/protocol/DACAmount.h>
 #include <ripple/beast/utility/Journal.h>
 #include <memory>
 
@@ -51,7 +51,7 @@ private:
         std::pair<Action, std::shared_ptr<SLE>>>;
 
     items_t items_;
-    IDACAmount dropsDestroyed_ = 0;
+    DACAmount dropsDestroyed_ = 0;
 
 public:
     ApplyStateTable() = default;
@@ -119,10 +119,10 @@ public:
         std::shared_ptr<SLE> const& sle);
 
     void
-    destroyIDAC (IDACAmount const& fee);
+    destroyDAC (DACAmount const& fee);
 
     // For debugging
-    IDACAmount const& dropsDestroyed () const
+    DACAmount const& dropsDestroyed () const
     {
         return dropsDestroyed_;
     }

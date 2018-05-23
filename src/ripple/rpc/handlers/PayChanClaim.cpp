@@ -65,7 +65,7 @@ Json::Value doChannelAuthorize (RPC::Context& context)
     }
 
     Serializer msg;
-    serializePayChanAuthorization (msg, channelId, IDACAmount (drops));
+    serializePayChanAuthorization (msg, channelId, DACAmount (drops));
 
     try
     {
@@ -119,7 +119,7 @@ Json::Value doChannelVerify (RPC::Context& context)
         return rpcError (rpcINVALID_PARAMS);
 
     Serializer msg;
-    serializePayChanAuthorization (msg, channelId, IDACAmount (drops));
+    serializePayChanAuthorization (msg, channelId, DACAmount (drops));
 
     Json::Value result;
     result[jss::signature_verified] =

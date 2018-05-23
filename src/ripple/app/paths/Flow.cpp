@@ -25,7 +25,7 @@
 #include <ripple/app/paths/impl/Steps.h>
 #include <ripple/basics/Log.h>
 #include <ripple/protocol/IOUAmount.h>
-#include <ripple/protocol/IDACAmount.h>
+#include <ripple/protocol/DACAmount.h>
 
 #include <boost/container/flat_set.hpp>
 
@@ -72,9 +72,9 @@ flow (
     Issue const srcIssue = [&] {
         if (sendMax)
             return sendMax->issue ();
-        if (!isIDAC (deliver.issue ().currency))
+        if (!isDAC (deliver.issue ().currency))
             return Issue (deliver.issue ().currency, src);
-        return idacIssue ();
+        return dacIssue ();
     }();
 
     Issue const dstIssue = deliver.issue ();
@@ -112,39 +112,39 @@ flow (
         }
     }
 
-    const bool srcIsIDAC = isIDAC (srcIssue.currency);
-    const bool dstIsIDAC = isIDAC (dstIssue.currency);
+    const bool srcIsDAC = isDAC (srcIssue.currency);
+    const bool dstIsDAC = isDAC (dstIssue.currency);
 
     auto const asDeliver = toAmountSpec (deliver);
 
-    // The src account may send either idac or iou. The dst account may receive
-    // either idac or iou. Since IDAC and IOU amounts are represented by different
+    // The src account may send either dac or iou. The dst account may receive
+    // either dac or iou. Since DAC and IOU amounts are represented by different
     // types, use templates to tell `flow` about the amount types.
-    if (srcIsIDAC && dstIsIDAC)
+    if (srcIsDAC && dstIsDAC)
     {
         return finishFlow (sb, srcIssue, dstIssue,
-            flow<IDACAmount, IDACAmount> (
-                sb, strands, asDeliver.idac, partialPayment, offerCrossing,
+            flow<DACAmount, DACAmount> (
+                sb, strands, asDeliver.dac, partialPayment, offerCrossing,
                 limitQuality, sendMax, j, flowDebugInfo));
     }
 
-    if (srcIsIDAC && !dstIsIDAC)
+    if (srcIsDAC && !dstIsDAC)
     {
         return finishFlow (sb, srcIssue, dstIssue,
-            flow<IDACAmount, IOUAmount> (
+            flow<DACAmount, IOUAmount> (
                 sb, strands, asDeliver.iou, partialPayment, offerCrossing,
                 limitQuality, sendMax, j, flowDebugInfo));
     }
 
-    if (!srcIsIDAC && dstIsIDAC)
+    if (!srcIsDAC && dstIsDAC)
     {
         return finishFlow (sb, srcIssue, dstIssue,
-            flow<IOUAmount, IDACAmount> (
-                sb, strands, asDeliver.idac, partialPayment, offerCrossing,
+            flow<IOUAmount, DACAmount> (
+                sb, strands, asDeliver.dac, partialPayment, offerCrossing,
                 limitQuality, sendMax, j, flowDebugInfo));
     }
 
-    assert (!srcIsIDAC && !dstIsIDAC);
+    assert (!srcIsDAC && !dstIsDAC);
     return finishFlow (sb, srcIssue, dstIssue,
         flow<IOUAmount, IOUAmount> (
             sb, strands, asDeliver.iou, partialPayment, offerCrossing,

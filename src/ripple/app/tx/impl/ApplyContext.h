@@ -24,7 +24,7 @@
 #include <ripple/ledger/ApplyViewImpl.h>
 #include <ripple/core/Config.h>
 #include <ripple/protocol/STTx.h>
-#include <ripple/protocol/IDACAmount.h>
+#include <ripple/protocol/DACAmount.h>
 #include <ripple/beast/utility/Journal.h>
 #include <boost/optional.hpp>
 #include <utility>
@@ -96,9 +96,9 @@ public:
         std::shared_ptr <SLE const> const& after)> const& func);
 
     void
-    destroyIDAC (IDACAmount const& fee)
+    destroyDAC (DACAmount const& fee)
     {
-        view_->rawDestroyIDAC(fee);
+        view_->rawDestroyDAC(fee);
     }
 
     TER

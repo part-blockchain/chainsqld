@@ -39,7 +39,7 @@ public:
             jv["streams"] = Json::arrayValue;
             jv["streams"].append("ledger");
         }
-        env.fund(IDAC(10000), "alice");
+        env.fund(DAC(10000), "alice");
         env.close();
         auto jv = wsc->getMsg(std::chrono::seconds(1));
         pass();

@@ -102,12 +102,12 @@ SetAccount::preflight (PreflightContext const& ctx)
     }
 
     //
-    // DisallowIDAC
+    // DisallowDAC
     //
-    bool bSetDisallowIDAC   = (uTxFlags & tfDisallowIDAC) || (uSetFlag == asfDisallowIDAC);
-    bool bClearDisallowIDAC = (uTxFlags & tfAllowIDAC) || (uClearFlag == asfDisallowIDAC);
+    bool bSetDisallowDAC   = (uTxFlags & tfDisallowDAC) || (uSetFlag == asfDisallowDAC);
+    bool bClearDisallowDAC = (uTxFlags & tfAllowDAC) || (uClearFlag == asfDisallowDAC);
 
-    if (bSetDisallowIDAC && bClearDisallowIDAC)
+    if (bSetDisallowDAC && bClearDisallowDAC)
     {
         JLOG(j.trace()) << "Malformed transaction: Contradictory flags set.";
         return temINVALID_FLAG;
@@ -236,8 +236,8 @@ SetAccount::doApply ()
     bool bClearRequireDest = (uTxFlags & tfOptionalDestTag) || (uClearFlag == asfRequireDest);
     bool bSetRequireAuth   = (uTxFlags & tfRequireAuth) || (uSetFlag == asfRequireAuth);
     bool bClearRequireAuth = (uTxFlags & tfOptionalAuth) || (uClearFlag == asfRequireAuth);
-    bool bSetDisallowIDAC   = (uTxFlags & tfDisallowIDAC) || (uSetFlag == asfDisallowIDAC);
-    bool bClearDisallowIDAC = (uTxFlags & tfAllowIDAC) || (uClearFlag == asfDisallowIDAC);
+    bool bSetDisallowDAC   = (uTxFlags & tfDisallowDAC) || (uSetFlag == asfDisallowDAC);
+    bool bClearDisallowDAC = (uTxFlags & tfAllowDAC) || (uClearFlag == asfDisallowDAC);
 
     bool sigWithMaster = false;
 
@@ -284,18 +284,18 @@ SetAccount::doApply ()
     }
 
     //
-    // DisallowIDAC
+    // DisallowDAC
     //
-    if (bSetDisallowIDAC && !(uFlagsIn & lsfDisallowIDAC))
+    if (bSetDisallowDAC && !(uFlagsIn & lsfDisallowDAC))
     {
-        JLOG(j_.trace()) << "Set lsfDisallowIDAC.";
-        uFlagsOut |= lsfDisallowIDAC;
+        JLOG(j_.trace()) << "Set lsfDisallowDAC.";
+        uFlagsOut |= lsfDisallowDAC;
     }
 
-    if (bClearDisallowIDAC && (uFlagsIn & lsfDisallowIDAC))
+    if (bClearDisallowDAC && (uFlagsIn & lsfDisallowDAC))
     {
-        JLOG(j_.trace()) << "Clear lsfDisallowIDAC.";
-        uFlagsOut &= ~lsfDisallowIDAC;
+        JLOG(j_.trace()) << "Clear lsfDisallowDAC.";
+        uFlagsOut &= ~lsfDisallowDAC;
     }
 
     //

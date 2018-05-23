@@ -254,10 +254,10 @@ OpenView::rawReplace(
 }
 
 void
-OpenView::rawDestroyIDAC(
-    IDACAmount const& fee)
+OpenView::rawDestroyDAC(
+    DACAmount const& fee)
 {
-    items_.destroyIDAC(fee);
+    items_.destroyDAC(fee);
     // VFALCO Deduct from info_.totalDrops ?
     //        What about child views?
 }

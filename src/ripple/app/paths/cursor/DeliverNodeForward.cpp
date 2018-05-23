@@ -177,11 +177,11 @@ TER PathCursor::deliverNodeForward (
                 continue;
             }
 
-            if (!isIDAC(nextNode().account_))
+            if (!isDAC(nextNode().account_))
             {
                 // ? --> OFFER --> account
                 // Input fees: vary based upon the consumed offer's owner.
-                // Output fees: none as IDAC or the destination account is the
+                // Output fees: none as DAC or the destination account is the
                 // issuer.
 
                 saOutPassAct = saOutPassMax;
@@ -196,7 +196,7 @@ TER PathCursor::deliverNodeForward (
                     << " saOutPassAct=" << saOutPassAct
                     << " saOutFunded=" << saOutFunded;
 
-                // Output: Debit offer owner, send IDAC or non-XPR to next
+                // Output: Debit offer owner, send DAC or non-XPR to next
                 // account.
                 resultCode = accountSend(view(),
                     node().offerOwnerAccount_,
@@ -253,8 +253,8 @@ TER PathCursor::deliverNodeForward (
                 // Do outbound debiting.
                 // Send to issuer/limbo total amount including fees (issuer gets
                 // fees).
-                auto const& id = isIDAC(node().issue_) ?
-                        idacAccount() : node().issue_.account;
+                auto const& id = isDAC(node().issue_) ?
+                        dacAccount() : node().issue_.account;
                 auto outPassTotal = saOutPassAct + saOutPassFees;
                 accountSend(view(),
                     node().offerOwnerAccount_,
@@ -286,11 +286,11 @@ TER PathCursor::deliverNodeForward (
             // Credit offer owner from in issuer/limbo (input transfer fees left
             // with owner).  Don't attempt to have someone credit themselves, it
             // is redundant.
-            if (isIDAC (previousNode().issue_.currency)
+            if (isDAC (previousNode().issue_.currency)
                 || uInAccountID != node().offerOwnerAccount_)
             {
-                auto id = !isIDAC(previousNode().issue_.currency) ?
-                        uInAccountID : idacAccount();
+                auto id = !isDAC(previousNode().issue_.currency) ?
+                        uInAccountID : dacAccount();
                 resultCode = accountSend(view(),
                     id,
                     node().offerOwnerAccount_,

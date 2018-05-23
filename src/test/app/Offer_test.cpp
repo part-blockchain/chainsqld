@@ -38,7 +38,7 @@ class Offer_test : public beast::unit_test::suite
         return false;
     }
 
-    IDACAmount reserve(jtx::Env& env, std::uint32_t count)
+    DACAmount reserve(jtx::Env& env, std::uint32_t count)
     {
         return env.current()->fees().accountReserve (count);
     }
@@ -49,12 +49,12 @@ class Offer_test : public beast::unit_test::suite
     }
 
     static auto
-    idacMinusFee (jtx::Env const& env, std::int64_t idacAmount)
+    dacMinusFee (jtx::Env const& env, std::int64_t dacAmount)
         -> jtx::PrettyAmount
     {
         using namespace jtx;
         auto feeDrops = env.current()->fees().base;
-        return drops (dropsPerIDAC<std::int64_t>::value * idacAmount - feeDrops);
+        return drops (dropsPerDAC<std::int64_t>::value * dacAmount - feeDrops);
     };
 
     static auto
@@ -115,8 +115,8 @@ public:
         // Each offer book should have two offers at the same quality, the
         // offers should be completely consumed, and the payment should
         // should require both offers to be satisfied. The first offer must
-        // be "taker gets" IDAC. Old, broken would remove the first
-        // "taker gets" idac offer, even though the offer is still funded and
+        // be "taker gets" DAC. Old, broken would remove the first
+        // "taker gets" dac offer, even though the offer is still funded and
         // not used for the payment.
 
         using namespace jtx;
@@ -133,7 +133,7 @@ public:
         Account const bob {"bob"};
         Account const carol {"carol"};
 
-        env.fund (IDAC (10000), alice, bob, carol, gw);
+        env.fund (DAC (10000), alice, bob, carol, gw);
         env.trust (USD (1000), alice, bob, carol);
         env.trust (BTC (1000), alice, bob, carol);
 
@@ -143,27 +143,27 @@ public:
         env (pay (gw, carol, BTC (1000)));
 
         // Must be two offers at the same quality
-        // "taker gets" must be IDAC
+        // "taker gets" must be DAC
         // (Different amounts so I can distinguish the offers)
-        env (offer (carol, BTC (49), IDAC (49)));
-        env (offer (carol, BTC (51), IDAC (51)));
+        env (offer (carol, BTC (49), DAC (49)));
+        env (offer (carol, BTC (51), DAC (51)));
 
         // Offers for the poor quality path
         // Must be two offers at the same quality
-        env (offer (carol, IDAC (50), USD (50)));
-        env (offer (carol, IDAC (50), USD (50)));
+        env (offer (carol, DAC (50), USD (50)));
+        env (offer (carol, DAC (50), USD (50)));
 
         // Offers for the good quality path
         env (offer (carol, BTC (1), USD (100)));
 
-        PathSet paths (Path (IDAC, USD), Path (USD));
+        PathSet paths (Path (DAC, USD), Path (USD));
 
         env (pay (alice, bob, USD (100)), json (paths.json ()),
             sendmax (BTC (1000)), txflags (tfPartialPayment));
 
         env.require (balance (bob, USD (100)));
         BEAST_EXPECT(!isOffer (env, carol, BTC (1), USD (100)) &&
-            isOffer (env, carol, BTC (49), IDAC (49)));
+            isOffer (env, carol, BTC (49), DAC (49)));
     }
 
     void testCanceledOffer (std::initializer_list<uint256> fs)
@@ -181,40 +181,40 @@ public:
         auto const alice = Account {"alice"};
         auto const USD = gw["USD"];
 
-        env.fund (IDAC (10000), alice, gw);
+        env.fund (DAC (10000), alice, gw);
         env.trust (USD (100), alice);
 
         env (pay (gw, alice, USD (50)));
 
         auto const firstOfferSeq = env.seq (alice);
 
-        env (offer (alice, IDAC (500), USD (100)),
+        env (offer (alice, DAC (500), USD (100)),
             require (offers (alice, 1)));
 
-        BEAST_EXPECT(isOffer (env, alice, IDAC (500), USD (100)));
+        BEAST_EXPECT(isOffer (env, alice, DAC (500), USD (100)));
 
         // cancel the offer above and replace it with a new offer
-        env (offer (alice, IDAC (300), USD (100)),
+        env (offer (alice, DAC (300), USD (100)),
              json (jss::OfferSequence, firstOfferSeq),
              require (offers (alice, 1)));
 
-        BEAST_EXPECT(isOffer (env, alice, IDAC (300), USD (100)) &&
-            !isOffer (env, alice, IDAC (500), USD (100)));
+        BEAST_EXPECT(isOffer (env, alice, DAC (300), USD (100)) &&
+            !isOffer (env, alice, DAC (500), USD (100)));
 
         // Test canceling non-existent offer.
-        env (offer (alice, IDAC (400), USD (200)),
+        env (offer (alice, DAC (400), USD (200)),
              json (jss::OfferSequence, firstOfferSeq),
              require (offers (alice, 2)));
 
-        BEAST_EXPECT(isOffer (env, alice, IDAC (300), USD (100)) &&
-            isOffer (env, alice, IDAC (400), USD (200)));
+        BEAST_EXPECT(isOffer (env, alice, DAC (300), USD (100)) &&
+            isOffer (env, alice, DAC (400), USD (200)));
 
         // Test cancellation now with OfferCancel tx
         auto const nextOfferSeq = env.seq (alice);
-        env (offer (alice, IDAC (222), USD (111)),
+        env (offer (alice, DAC (222), USD (111)),
             require (offers (alice, 3)));
 
-        BEAST_EXPECT(isOffer (env, alice, IDAC (222), USD (111)));
+        BEAST_EXPECT(isOffer (env, alice, DAC (222), USD (111)));
 
         Json::Value cancelOffer;
         cancelOffer[jss::Account] = alice.human();
@@ -223,7 +223,7 @@ public:
         env (cancelOffer);
         BEAST_EXPECT(env.seq(alice) == nextOfferSeq + 2);
 
-        BEAST_EXPECT(!isOffer (env, alice, IDAC (222), USD (111)));
+        BEAST_EXPECT(!isOffer (env, alice, DAC (222), USD (111)));
     }
 
     void testTinyPayment (std::initializer_list<uint256> fs)
@@ -243,7 +243,7 @@ public:
 
         Env env {*this, with_features(fs)};
 
-        env.fund (IDAC (10000), alice, bob, carol, gw);
+        env.fund (DAC (10000), alice, bob, carol, gw);
         env.trust (USD (1000), alice, bob, carol);
         env.trust (EUR (1000), alice, bob, carol);
         env (pay (gw, alice, USD (100)));
@@ -267,20 +267,20 @@ public:
         }
     }
 
-    void testIDACTinyPayment (std::initializer_list<uint256> fs)
+    void testDACTinyPayment (std::initializer_list<uint256> fs)
     {
-        testcase ("IDAC Tiny payments");
+        testcase ("DAC Tiny payments");
 
-        // Regression test for tiny idac payments
+        // Regression test for tiny dac payments
         // In some cases, when the payment code calculates
-        // the amount of idac needed as input to an idac->iou offer
+        // the amount of dac needed as input to an dac->iou offer
         // it would incorrectly round the amount to zero (even when
         // round-up was set to true).
         // The bug would cause funded offers to be incorrectly removed
         // because the code thought they were unfunded.
         // The conditions to trigger the bug are:
-        // 1) When we calculate the amount of input idac needed for an offer
-        //    from idac->iou, the amount is less than 1 drop (after rounding
+        // 1) When we calculate the amount of input dac needed for an offer
+        //    from dac->iou, the amount is less than 1 drop (after rounding
         //    up the float representation).
         // 2) There is another offer in the same book with a quality
         //    sufficiently bad that when calculating the input amount
@@ -314,7 +314,7 @@ public:
                     return STAmountSO::soTime2 - delta;
             }();
 
-            env.fund (IDAC (10000), alice, bob, carol, dan, erin, gw);
+            env.fund (DAC (10000), alice, bob, carol, dan, erin, gw);
             env.trust (USD (1000), alice, bob, carol, dan, erin);
             env (pay (gw, carol, USD (0.99999)));
             env (pay (gw, dan, USD (1)));
@@ -326,14 +326,14 @@ public:
             // (at a good quality) is considered. (when the
             // stAmountCalcSwitchover2 patch is inactive)
             env (offer (carol, drops (1), USD (1)));
-            // Offer at a quality poor enough so when the input idac is
+            // Offer at a quality poor enough so when the input dac is
             // calculated  in the reverse pass, the amount is not zero.
-            env (offer (dan, IDAC (100), USD (1)));
+            env (offer (dan, DAC (100), USD (1)));
 
             env.close (closeTime);
             // This is the funded offer that will be incorrectly removed.
             // It is considered after the offer from carol, which leaves a
-            // tiny amount left to pay. When calculating the amount of idac
+            // tiny amount left to pay. When calculating the amount of dac
             // needed for this offer, it will incorrectly compute zero in both
             // the forward and reverse passes (when the stAmountCalcSwitchover2
             // is inactive.)
@@ -341,7 +341,7 @@ public:
 
             {
                 env (pay (alice, bob, USD (1)), path (~USD),
-                    sendmax (IDAC (102)),
+                    sendmax (DAC (102)),
                     txflags (tfNoRippleDirect | tfPartialPayment));
 
                 env.require (
@@ -394,7 +394,7 @@ public:
             auto const gw2 = Account {"gw2"};
             auto const USD2 = gw2["USD"];
 
-            env.fund (IDAC (10000), alice, noripple (bob), carol, dan, gw1, gw2);
+            env.fund (DAC (10000), alice, noripple (bob), carol, dan, gw1, gw2);
             env.trust (USD1 (1000), alice, carol, dan);
             env(trust (bob, USD1 (1000), tfSetNoRipple));
             env.trust (USD2 (1000), alice, carol, dan);
@@ -404,10 +404,10 @@ public:
             env (pay (gw1, bob, USD1 (50)));
             env (pay (gw2, bob, USD2 (50)));
 
-            env (offer (dan, IDAC (50), USD1 (50)));
+            env (offer (dan, DAC (50), USD1 (50)));
 
             env (pay (alice, carol, USD2 (50)), path (~USD1, bob),
-                sendmax (IDAC (50)), txflags (tfNoRippleDirect),
+                sendmax (DAC (50)), txflags (tfNoRippleDirect),
                 ter(tecPATH_DRY));
         }
         {
@@ -423,7 +423,7 @@ public:
             auto const gw2 = Account {"gw2"};
             auto const USD2 = gw2["USD"];
 
-            env.fund (IDAC (10000), alice, bob, carol, dan, gw1, gw2);
+            env.fund (DAC (10000), alice, bob, carol, dan, gw1, gw2);
             env.trust (USD1 (1000), alice, bob, carol, dan);
             env.trust (USD2 (1000), alice, bob, carol, dan);
 
@@ -431,12 +431,12 @@ public:
             env (pay (gw1, bob, USD1 (50)));
             env (pay (gw2, bob, USD2 (50)));
 
-            env (offer (dan, IDAC (50), USD1 (50)));
+            env (offer (dan, DAC (50), USD1 (50)));
 
             env (pay (alice, carol, USD2 (50)), path (~USD1, bob),
-                sendmax (IDAC (50)), txflags (tfNoRippleDirect));
+                sendmax (DAC (50)), txflags (tfNoRippleDirect));
 
-            env.require (balance (alice, idacMinusFee (env, 10000 - 50)));
+            env.require (balance (alice, dacMinusFee (env, 10000 - 50)));
             env.require (balance (bob, USD1 (100)));
             env.require (balance (bob, USD2 (0)));
             env.require (balance (carol, USD2 (50)));
@@ -463,7 +463,7 @@ public:
         auto const USD = gw["USD"];
 
         auto const usdOffer = USD (1000);
-        auto const idacOffer = IDAC (1000);
+        auto const dacOffer = DAC (1000);
 
         // No crossing:
         {
@@ -473,7 +473,7 @@ public:
                     100 * env.closed ()->info ().closeTimeResolution;
             env.close (closeTime);
 
-            env.fund (IDAC (1000000), gw);
+            env.fund (DAC (1000000), gw);
 
             auto const f = env.current ()->fees ().base;
             auto const r = reserve (env, 0);
@@ -482,7 +482,7 @@ public:
 
             env (trust (alice, usdOffer),           ter(tesSUCCESS));
             env (pay (gw, alice, usdOffer),         ter(tesSUCCESS));
-            env (offer (alice, idacOffer, usdOffer),
+            env (offer (alice, dacOffer, usdOffer),
                 ter(tecINSUF_RESERVE_OFFER));
 
             env.require (
@@ -498,33 +498,33 @@ public:
                     100 * env.closed ()->info ().closeTimeResolution;
             env.close (closeTime);
 
-            env.fund (IDAC (1000000), gw);
+            env.fund (DAC (1000000), gw);
 
             auto const f = env.current ()->fees ().base;
             auto const r = reserve (env, 0);
 
             auto const usdOffer2 = USD (500);
-            auto const idacOffer2 = IDAC (500);
+            auto const dacOffer2 = DAC (500);
 
-            env.fund (r + f + idacOffer, bob);
-            env (offer (bob, usdOffer2, idacOffer2),   ter(tesSUCCESS));
+            env.fund (r + f + dacOffer, bob);
+            env (offer (bob, usdOffer2, dacOffer2),   ter(tesSUCCESS));
             env.fund (r + f, alice);
             env (trust (alice, usdOffer),             ter(tesSUCCESS));
             env (pay (gw, alice, usdOffer),           ter(tesSUCCESS));
-            env (offer (alice, idacOffer, usdOffer),   ter(tesSUCCESS));
+            env (offer (alice, dacOffer, usdOffer),   ter(tesSUCCESS));
 
             env.require (
-                balance (alice, r - f + idacOffer2),
+                balance (alice, r - f + dacOffer2),
                 balance (alice, usdOffer2),
                 owners (alice, 1),
-                balance (bob, r + idacOffer2),
+                balance (bob, r + dacOffer2),
                 balance (bob, usdOffer2),
                 owners (bob, 1));
         }
 
         // Account has enough reserve as is, but not enough
         // if an offer were added. Attempt to sell IOUs to
-        // buy IDAC. If it fully crosses, we succeed.
+        // buy DAC. If it fully crosses, we succeed.
         {
             Env env {*this, with_features (fs)};
             auto const closeTime =
@@ -532,31 +532,31 @@ public:
                     100 * env.closed ()->info ().closeTimeResolution;
             env.close (closeTime);
 
-            env.fund (IDAC (1000000), gw);
+            env.fund (DAC (1000000), gw);
 
             auto const f = env.current ()->fees ().base;
             auto const r = reserve (env, 0);
 
             auto const usdOffer2 = USD (500);
-            auto const idacOffer2 = IDAC (500);
+            auto const dacOffer2 = DAC (500);
 
-            env.fund (r + f + idacOffer, bob, carol);
-            env (offer (bob, usdOffer2, idacOffer2),    ter(tesSUCCESS));
-            env (offer (carol, usdOffer, idacOffer),    ter(tesSUCCESS));
+            env.fund (r + f + dacOffer, bob, carol);
+            env (offer (bob, usdOffer2, dacOffer2),    ter(tesSUCCESS));
+            env (offer (carol, usdOffer, dacOffer),    ter(tesSUCCESS));
 
             env.fund (r + f, alice);
             env (trust (alice, usdOffer),              ter(tesSUCCESS));
             env (pay (gw, alice, usdOffer),            ter(tesSUCCESS));
-            env (offer (alice, idacOffer, usdOffer),    ter(tesSUCCESS));
+            env (offer (alice, dacOffer, usdOffer),    ter(tesSUCCESS));
 
             env.require (
-                balance (alice, r - f + idacOffer),
+                balance (alice, r - f + dacOffer),
                 balance (alice, USD(0)),
                 owners (alice, 1),
-                balance (bob, r + idacOffer2),
+                balance (bob, r + dacOffer2),
                 balance (bob, usdOffer2),
                 owners (bob, 1),
-                balance (carol, r + idacOffer2),
+                balance (carol, r + dacOffer2),
                 balance (carol, usdOffer2),
                 owners (carol, 2));
         }
@@ -583,7 +583,7 @@ public:
 
         using namespace jtx;
 
-        auto const startBalance = IDAC (1000000);
+        auto const startBalance = DAC (1000000);
         auto const gw = Account {"gateway"};
         auto const alice = Account {"alice"};
         auto const bob = Account {"bob"};
@@ -601,12 +601,12 @@ public:
             auto const f = env.current ()->fees ().base;
 
             env.fund (startBalance, gw, alice, bob);
-            env (offer (bob, USD (500), IDAC (500)), ter(tesSUCCESS));
+            env (offer (bob, USD (500), DAC (500)), ter(tesSUCCESS));
             env (trust (alice, USD (1000)),         ter(tesSUCCESS));
             env (pay (gw, alice, USD (1000)),       ter(tesSUCCESS));
 
             // Order that can't be filled:
-            env (offer (alice, IDAC (1000), USD (1000)),
+            env (offer (alice, DAC (1000), USD (1000)),
                 txflags (tfFillOrKill),              ter(tesSUCCESS));
 
             env.require (
@@ -620,15 +620,15 @@ public:
                 offers (bob, 1));
 
             // Order that can be filled
-            env (offer (alice, IDAC (500), USD (500)),
+            env (offer (alice, DAC (500), USD (500)),
                 txflags (tfFillOrKill),              ter(tesSUCCESS));
 
             env.require (
-                balance (alice, startBalance - f - f - f + IDAC (500)),
+                balance (alice, startBalance - f - f - f + DAC (500)),
                 balance (alice, USD (500)),
                 owners (alice, 1),
                 offers (alice, 0),
-                balance (bob, startBalance - f - IDAC (500)),
+                balance (bob, startBalance - f - DAC (500)),
                 balance (bob, USD (500)),
                 owners (bob, 1),
                 offers (bob, 0));
@@ -651,7 +651,7 @@ public:
             env (pay (gw, alice, USD (1000)),               ter(tesSUCCESS));
 
             // No cross:
-            env (offer (alice, IDAC (1000), USD (1000)),
+            env (offer (alice, DAC (1000), USD (1000)),
                 txflags (tfImmediateOrCancel),               ter(tesSUCCESS));
 
             env.require (
@@ -661,31 +661,31 @@ public:
                 offers (alice, 0));
 
             // Partially cross:
-            env (offer (bob, USD (50), IDAC (50)),            ter(tesSUCCESS));
-            env (offer (alice, IDAC (1000), USD (1000)),
+            env (offer (bob, USD (50), DAC (50)),            ter(tesSUCCESS));
+            env (offer (alice, DAC (1000), USD (1000)),
                 txflags (tfImmediateOrCancel),               ter(tesSUCCESS));
 
             env.require (
-                balance (alice, startBalance - f - f - f + IDAC (50)),
+                balance (alice, startBalance - f - f - f + DAC (50)),
                 balance (alice, USD (950)),
                 owners (alice, 1),
                 offers (alice, 0),
-                balance (bob, startBalance - f - IDAC (50)),
+                balance (bob, startBalance - f - DAC (50)),
                 balance (bob, USD (50)),
                 owners (bob, 1),
                 offers (bob, 0));
 
             // Fully cross:
-            env (offer (bob, USD (50), IDAC (50)),            ter(tesSUCCESS));
-            env (offer (alice, IDAC (50), USD (50)),
+            env (offer (bob, USD (50), DAC (50)),            ter(tesSUCCESS));
+            env (offer (alice, DAC (50), USD (50)),
                 txflags (tfImmediateOrCancel),               ter(tesSUCCESS));
 
             env.require (
-                balance (alice, startBalance - f - f - f - f + IDAC (100)),
+                balance (alice, startBalance - f - f - f - f + DAC (100)),
                 balance (alice, USD (900)),
                 owners (alice, 1),
                 offers (alice, 0),
-                balance (bob, startBalance - f - f - IDAC (100)),
+                balance (bob, startBalance - f - f - DAC (100)),
                 balance (bob, USD (100)),
                 owners (bob, 1),
                 offers (bob, 0));
@@ -708,7 +708,7 @@ public:
             env (pay (gw, bob, USD(1000)));
             env.close();
 
-            env (offer (alice, USD(1000), IDAC(2000)));
+            env (offer (alice, USD(1000), DAC(2000)));
             env.close();
 
             auto const aliceOffers = offersOnAccount (env, alice);
@@ -716,13 +716,13 @@ public:
             for (auto offerPtr : aliceOffers)
             {
                 auto const& offer = *offerPtr;
-                BEAST_EXPECT (offer[sfTakerGets] == IDAC (2000));
+                BEAST_EXPECT (offer[sfTakerGets] == DAC (2000));
                 BEAST_EXPECT (offer[sfTakerPays] == USD (1000));
             }
 
             // bob creates a passive offer that could cross alice's.
             // bob's offer should stay in the ledger.
-            env (offer (bob, IDAC(2000), USD(1000), tfPassive));
+            env (offer (bob, DAC(2000), USD(1000), tfPassive));
             env.close();
             env.require (offers (alice, 1));
 
@@ -732,17 +732,17 @@ public:
             {
                 auto const& offer = *offerPtr;
                 BEAST_EXPECT (offer[sfTakerGets] == USD (1000));
-                BEAST_EXPECT (offer[sfTakerPays] == IDAC (2000));
+                BEAST_EXPECT (offer[sfTakerPays] == DAC (2000));
             }
 
             // It should be possible for gw to cross both of those offers.
-            env (offer (gw, IDAC(2000), USD(1000)));
+            env (offer (gw, DAC(2000), USD(1000)));
             env.close();
             env.require (offers (alice, 0));
             env.require (offers (gw, 0));
             env.require (offers (bob, 1));
 
-            env (offer (gw, USD(1000), IDAC(2000)));
+            env (offer (gw, USD(1000), DAC(2000)));
             env.close();
             env.require (offers (bob, 0));
             env.require (offers (gw, 0));
@@ -763,10 +763,10 @@ public:
             env.close();
 
             env (pay (gw, "bob", USD(1000)));
-            env (offer ("alice", USD(500), IDAC(1001)));
+            env (offer ("alice", USD(500), DAC(1001)));
             env.close();
 
-            env (offer ("alice", USD(500), IDAC(1000)));
+            env (offer ("alice", USD(500), DAC(1000)));
             env.close();
 
             auto const aliceOffers = offersOnAccount (env, "alice");
@@ -775,7 +775,7 @@ public:
             // bob creates a passive offer.  That offer should cross one
             // of alice's (the one with better quality) and leave alice's
             // other offer untouched.
-            env (offer ("bob", IDAC(2000), USD(1000), tfPassive));
+            env (offer ("bob", DAC(2000), USD(1000), tfPassive));
             env.close();
             env.require (offers ("alice", 1));
 
@@ -785,7 +785,7 @@ public:
             {
                 auto const& offer = *offerPtr;
                 BEAST_EXPECT (offer[sfTakerGets] == USD (499.5));
-                BEAST_EXPECT (offer[sfTakerPays] == IDAC (999));
+                BEAST_EXPECT (offer[sfTakerPays] == DAC (999));
             }
         }
     }
@@ -797,7 +797,7 @@ public:
 
         using namespace jtx;
 
-        auto const startBalance = IDAC(1000000);
+        auto const startBalance = DAC(1000000);
         auto const gw = Account {"gateway"};
         auto const alice = Account {"alice"};
         auto const USD = gw["USD"];
@@ -811,7 +811,7 @@ public:
         env.fund (startBalance, gw, alice);
 
         // Order that has invalid flags
-        env (offer (alice, USD (1000), IDAC (1000)),
+        env (offer (alice, USD (1000), DAC (1000)),
             txflags (tfImmediateOrCancel + 1),            ter(temINVALID_FLAG));
         env.require (
             balance (alice, startBalance),
@@ -819,7 +819,7 @@ public:
             offers (alice, 0));
 
         // Order with incompatible flags
-        env (offer (alice, USD (1000), IDAC (1000)),
+        env (offer (alice, USD (1000), DAC (1000)),
             txflags (tfImmediateOrCancel | tfFillOrKill), ter(temINVALID_FLAG));
         env.require (
             balance (alice, startBalance),
@@ -828,8 +828,8 @@ public:
 
         // Sell and buy the same asset
         {
-            // Alice tries an IDAC to IDAC order:
-            env (offer (alice, IDAC (1000), IDAC (1000)),   ter(temBAD_OFFER));
+            // Alice tries an DAC to DAC order:
+            env (offer (alice, DAC (1000), DAC (1000)),   ter(temBAD_OFFER));
             env.require (
                 owners (alice, 0),
                 offers (alice, 0));
@@ -845,12 +845,12 @@ public:
 
         // Offers with negative amounts
         {
-            env (offer (alice, -USD (1000), IDAC (1000)),  ter(temBAD_OFFER));
+            env (offer (alice, -USD (1000), DAC (1000)),  ter(temBAD_OFFER));
             env.require (
                 owners (alice, 1),
                 offers (alice, 0));
 
-            env (offer (alice, USD (1000), -IDAC (1000)),  ter(temBAD_OFFER));
+            env (offer (alice, USD (1000), -DAC (1000)),  ter(temBAD_OFFER));
             env.require (
                 owners (alice, 1),
                 offers (alice, 0));
@@ -860,7 +860,7 @@ public:
         {
             Json::StaticString const key {"Expiration"};
 
-            env (offer (alice, USD (1000), IDAC (1000)),
+            env (offer (alice, USD (1000), DAC (1000)),
                 json (key, std::uint32_t (0)), ter(temBAD_EXPIRATION));
             env.require (
                 owners (alice, 1),
@@ -869,7 +869,7 @@ public:
 
         // Offer with a bad offer sequence
         {
-            env (offer (alice, USD (1000), IDAC (1000)),
+            env (offer (alice, USD (1000), DAC (1000)),
                 json (jss::OfferSequence, std::uint32_t (0)),
                 ter(temBAD_SEQUENCE));
             env.require (
@@ -877,11 +877,11 @@ public:
                 offers (alice, 0));
         }
 
-        // Use IDAC as a currency code
+        // Use DAC as a currency code
         {
             auto const BAD = IOU(gw, badCurrency());
 
-            env (offer (alice, IDAC (1000), BAD (1000)),   ter(temBAD_CURRENCY));
+            env (offer (alice, DAC (1000), BAD (1000)),   ter(temBAD_CURRENCY));
             env.require (
                 owners (alice, 1),
                 offers (alice, 0));
@@ -900,9 +900,9 @@ public:
         auto const bob = Account {"bob"};
         auto const USD = gw["USD"];
 
-        auto const startBalance = IDAC (1000000);
+        auto const startBalance = DAC (1000000);
         auto const usdOffer = USD (1000);
-        auto const idacOffer = IDAC (1000);
+        auto const dacOffer = DAC (1000);
 
         Json::StaticString const key ("Expiration");
 
@@ -927,7 +927,7 @@ public:
             offers (alice, 0),
             owners (alice, 1));
 
-        env (offer (alice, idacOffer, usdOffer),
+        env (offer (alice, dacOffer, usdOffer),
             json (key, lastClose(env)),             ter(tesSUCCESS));
         env.require (
             balance (alice, startBalance - f - f),
@@ -937,7 +937,7 @@ public:
         env.close();
 
         // Add an offer that's expires before the next ledger close
-        env (offer (alice, idacOffer, usdOffer),
+        env (offer (alice, dacOffer, usdOffer),
             json (key, lastClose(env) + 1),         ter(tesSUCCESS));
         env.require (
             balance (alice, startBalance - f - f - f),
@@ -954,7 +954,7 @@ public:
             owners (alice, 2));
 
         // Add offer - the expired offer is removed
-        env (offer (bob, usdOffer, idacOffer),     ter(tesSUCCESS));
+        env (offer (bob, usdOffer, dacOffer),     ter(tesSUCCESS));
         env.require (
             balance (alice, startBalance - f - f - f),
             balance (alice, usdOffer),
@@ -977,7 +977,7 @@ public:
         auto const USD = gw["USD"];
 
         auto const usdOffer = USD (1000);
-        auto const idacOffer = IDAC (1000);
+        auto const dacOffer = DAC (1000);
 
         Env env {*this, with_features (fs)};
         auto const closeTime =
@@ -985,7 +985,7 @@ public:
                 100 * env.closed ()->info ().closeTimeResolution;
         env.close (closeTime);
 
-        env.fund (IDAC(1000000), gw);
+        env.fund (DAC(1000000), gw);
 
         // The fee that's charged for transactions
         auto const f = env.current ()->fees ().base;
@@ -993,7 +993,7 @@ public:
         // Account is at the reserve, and will dip below once
         // fees are subtracted.
         env.fund (reserve (env, 0), "alice");
-        env (offer ("alice", usdOffer, idacOffer),     ter(tecUNFUNDED_OFFER));
+        env (offer ("alice", usdOffer, dacOffer),     ter(tecUNFUNDED_OFFER));
         env.require (
             balance ("alice", reserve (env, 0) - f),
             owners ("alice", 0));
@@ -1001,7 +1001,7 @@ public:
         // Account has just enough for the reserve and the
         // fee.
         env.fund (reserve (env, 0) + f, "bob");
-        env (offer ("bob", usdOffer, idacOffer),       ter(tecUNFUNDED_OFFER));
+        env (offer ("bob", usdOffer, dacOffer),       ter(tecUNFUNDED_OFFER));
         env.require (
             balance ("bob", reserve (env, 0)),
             owners ("bob", 0));
@@ -1009,26 +1009,26 @@ public:
         // Account has enough for the reserve, the fee and
         // the offer, and a bit more, but not enough for the
         // reserve after the offer is placed.
-        env.fund (reserve (env, 0) + f + IDAC(1), "carol");
-        env (offer ("carol", usdOffer, idacOffer), ter(tecINSUF_RESERVE_OFFER));
+        env.fund (reserve (env, 0) + f + DAC(1), "carol");
+        env (offer ("carol", usdOffer, dacOffer), ter(tecINSUF_RESERVE_OFFER));
         env.require (
-            balance ("carol", reserve (env, 0) + IDAC(1)),
+            balance ("carol", reserve (env, 0) + DAC(1)),
             owners ("carol", 0));
 
         // Account has enough for the reserve plus one
         // offer, and the fee.
         env.fund (reserve (env, 1) + f, "dan");
-        env (offer ("dan", usdOffer, idacOffer),       ter(tesSUCCESS));
+        env (offer ("dan", usdOffer, dacOffer),       ter(tesSUCCESS));
         env.require (
             balance ("dan", reserve (env, 1)),
             owners ("dan", 1));
 
         // Account has enough for the reserve plus one
         // offer, the fee and the entire offer amount.
-        env.fund (reserve (env, 1) + f + idacOffer, "eve");
-        env (offer ("eve", usdOffer, idacOffer),       ter(tesSUCCESS));
+        env.fund (reserve (env, 1) + f + dacOffer, "eve");
+        env (offer ("eve", usdOffer, dacOffer),       ter(tesSUCCESS));
         env.require (
-            balance ("eve", reserve (env, 1) + idacOffer),
+            balance ("eve", reserve (env, 1) + dacOffer),
             owners ("eve", 1));
     }
 
@@ -1051,10 +1051,10 @@ public:
                 100 * env.closed ()->info ().closeTimeResolution;
         env.close (closeTime);
 
-        env.fund (IDAC (10000), gw);
+        env.fund (DAC (10000), gw);
         if (use_partner)
         {
-            env.fund (IDAC (10000), partner);
+            env.fund (DAC (10000), partner);
             env (trust (partner, USD (100)));
             env (trust (partner, BTC (500)));
             env (pay (gw, partner, USD(100)));
@@ -1067,19 +1067,19 @@ public:
 
         // PART 1:
         // we will make two offers that can be used to bridge BTC to USD
-        // through IDAC
-        env (offer (account_to_test, BTC (250), IDAC (1000)),
+        // through DAC
+        env (offer (account_to_test, BTC (250), DAC (1000)),
                  offers (account_to_test, 1));
 
-        // validate that the book now shows a BTC for IDAC offer
-        BEAST_EXPECT(isOffer(env, account_to_test, BTC(250), IDAC(1000)));
+        // validate that the book now shows a BTC for DAC offer
+        BEAST_EXPECT(isOffer(env, account_to_test, BTC(250), DAC(1000)));
 
         auto const secondLegSeq = env.seq(account_to_test);
-        env (offer (account_to_test, IDAC(1000), USD (50)),
+        env (offer (account_to_test, DAC(1000), USD (50)),
                  offers (account_to_test, 2));
 
-        // validate that the book also shows a IDAC for USD offer
-        BEAST_EXPECT(isOffer(env, account_to_test, IDAC(1000), USD(50)));
+        // validate that the book also shows a DAC for USD offer
+        BEAST_EXPECT(isOffer(env, account_to_test, DAC(1000), USD(50)));
 
         // now make an offer that will cross and auto-bridge, meaning
         // the outstanding offers will be taken leaving us with none
@@ -1089,7 +1089,7 @@ public:
         BEAST_EXPECT(jrr[jss::offers].isArray());
         BEAST_EXPECT(jrr[jss::offers].size() == 0);
 
-        jrr = getBookOffers(env, BTC, IDAC);
+        jrr = getBookOffers(env, BTC, DAC);
         BEAST_EXPECT(jrr[jss::offers].isArray());
         BEAST_EXPECT(jrr[jss::offers].size() == 0);
 
@@ -1109,7 +1109,7 @@ public:
                 auto const& offer = *offerPtr;
                 BEAST_EXPECT (offer[sfLedgerEntryType] == ltOFFER);
                 BEAST_EXPECT (offer[sfTakerGets] == USD (0));
-                BEAST_EXPECT (offer[sfTakerPays] == IDAC (0));
+                BEAST_EXPECT (offer[sfTakerPays] == DAC (0));
             }
         }
 
@@ -1193,7 +1193,7 @@ public:
         env (pay (gw, alice, alice["USD"] (50)));
         env (pay (gw, bob, small_amount));
 
-        env (offer (alice, USD (50), IDAC (150000)));
+        env (offer (alice, USD (50), DAC (150000)));
 
         // unfund the offer
         env (pay (alice, gw, USD (100)));
@@ -1211,37 +1211,37 @@ public:
                 "-2710505431213761e-33");
 
         // create crossing offer
-        env (offer (bob, IDAC (2000), USD (1)));
+        env (offer (bob, DAC (2000), USD (1)));
 
         // verify balances again.
         //
         // NOTE :
         // Here a difference in the rounding modes of our two offer crossing
         // algorithms becomes apparent.  The old offer crossing would consume
-        // small_amount and transfer no IDAC.  The new offer crossing transfers
+        // small_amount and transfer no DAC.  The new offer crossing transfers
         // a single drop, rather than no drops.
         auto const crossingDelta =
             (hasFeature (featureFlowCross, fs) ? drops (1) : drops (0));
 
         jrr = ledgerEntryState (env, alice, gw, "USD");
         BEAST_EXPECT(jrr[jss::node][sfBalance.fieldName][jss::value] == "50");
-        BEAST_EXPECT(env.balance (alice, idacIssue()) ==
+        BEAST_EXPECT(env.balance (alice, dacIssue()) ==
             alice_initial_balance -
                 env.current ()->fees ().base * 3 - crossingDelta
         );
 
         jrr = ledgerEntryState (env, bob, gw, "USD");
         BEAST_EXPECT( jrr[jss::node][sfBalance.fieldName][jss::value] == "0");
-        BEAST_EXPECT(env.balance (bob, idacIssue()) ==
+        BEAST_EXPECT(env.balance (bob, dacIssue()) ==
             bob_initial_balance -
                 env.current ()->fees ().base * 2 + crossingDelta
         );
     }
 
     void
-    testOfferCrossWithIDAC(bool reverse_order, std::initializer_list<uint256> fs)
+    testOfferCrossWithDAC(bool reverse_order, std::initializer_list<uint256> fs)
     {
-        testcase (std::string("Offer Crossing with IDAC, ") +
+        testcase (std::string("Offer Crossing with DAC, ") +
                 (reverse_order ? "Reverse" : "Normal") +
                 " order");
 
@@ -1258,7 +1258,7 @@ public:
         auto const bob = Account {"bob"};
         auto const USD = gw["USD"];
 
-        env.fund (IDAC (10000), gw, alice, bob);
+        env.fund (DAC (10000), gw, alice, bob);
 
         env (trust (alice, USD (1000)));
         env (trust (bob, USD (1000)));
@@ -1266,16 +1266,16 @@ public:
         env (pay (gw, alice, alice["USD"] (500)));
 
         if (reverse_order)
-            env (offer (bob, USD (1), IDAC (4000)));
+            env (offer (bob, USD (1), DAC (4000)));
 
-        env (offer (alice, IDAC (150000), USD (50)));
+        env (offer (alice, DAC (150000), USD (50)));
 
         if (! reverse_order)
-            env (offer (bob, USD (1), IDAC (4000)));
+            env (offer (bob, USD (1), DAC (4000)));
 
         // Existing offer pays better than this wants.
         // Fully consume existing offer.
-        // Pay 1 USD, get 4000 IDAC.
+        // Pay 1 USD, get 4000 DAC.
 
         auto jrr = ledgerEntryState (env, bob, gw, "USD");
         BEAST_EXPECT(jrr[jss::node][sfBalance.fieldName][jss::value] == "-1");
@@ -1283,8 +1283,8 @@ public:
         BEAST_EXPECT(
             jrr[jss::node][sfBalance.fieldName] ==
             std::to_string(
-                IDAC (10000).value ().mantissa () -
-                IDAC (reverse_order ? 4000 : 3000).value ().mantissa () -
+                DAC (10000).value ().mantissa () -
+                DAC (reverse_order ? 4000 : 3000).value ().mantissa () -
                 env.current ()->fees ().base * 2)
         );
 
@@ -1294,8 +1294,8 @@ public:
         BEAST_EXPECT(
             jrr[jss::node][sfBalance.fieldName] ==
             std::to_string(
-                IDAC (10000).value ().mantissa( ) +
-                IDAC(reverse_order ? 4000 : 3000).value ().mantissa () -
+                DAC (10000).value ().mantissa( ) +
+                DAC(reverse_order ? 4000 : 3000).value ().mantissa () -
                 env.current ()->fees ().base * 2)
         );
     }
@@ -1318,14 +1318,14 @@ public:
         auto const bob = Account {"bob"};
         auto const USD = gw["USD"];
 
-        env.fund (IDAC (100000), gw, alice, bob);
+        env.fund (DAC (100000), gw, alice, bob);
 
         env (trust (alice, USD (1000)));
 
         env (pay (gw, alice, alice["USD"] (500)));
 
-        env (offer (alice, IDAC (150000), USD (50)));
-        env (offer (bob, USD (1), IDAC (3000)));
+        env (offer (alice, DAC (150000), USD (50)));
+        env (offer (bob, USD (1), DAC (3000)));
 
         auto jrr = ledgerEntryState (env, bob, gw, "USD");
         BEAST_EXPECT(jrr[jss::node][sfBalance.fieldName][jss::value] == "-1");
@@ -1333,8 +1333,8 @@ public:
         BEAST_EXPECT(
             jrr[jss::node][sfBalance.fieldName] ==
             std::to_string(
-                IDAC (100000).value ().mantissa () -
-                IDAC (3000).value ().mantissa () -
+                DAC (100000).value ().mantissa () -
+                DAC (3000).value ().mantissa () -
                 env.current ()->fees ().base * 1)
         );
 
@@ -1344,8 +1344,8 @@ public:
         BEAST_EXPECT(
             jrr[jss::node][sfBalance.fieldName] ==
             std::to_string(
-                IDAC (100000).value ().mantissa () +
-                IDAC (3000).value ().mantissa () -
+                DAC (100000).value ().mantissa () +
+                DAC (3000).value ().mantissa () -
                 env.current ()->fees ().base * 2)
         );
     }
@@ -1366,7 +1366,7 @@ public:
         auto const USD = env.master["USD"];
 
         auto const nextOfferSeq = env.seq (env.master);
-        env (offer (env.master, IDAC (500), USD (100)));
+        env (offer (env.master, DAC (500), USD (100)));
         env.close ();
 
         Json::Value cancelOffer;
@@ -1399,7 +1399,7 @@ public:
         auto const alice = Account {"alice"};
 
         auto const nextOfferSeq = env.seq (env.master);
-        env.fund (IDAC (10000), alice);
+        env.fund (DAC (10000), alice);
 
         Json::Value cancelOffer;
         cancelOffer[jss::Account] = env.master.human();
@@ -1435,7 +1435,7 @@ public:
         auto const bob = Account {"bob"};
         auto const USD = gw["USD"];
 
-        env.fund (IDAC (10000), gw, alice, bob);
+        env.fund (DAC (10000), gw, alice, bob);
         env.require (owners (bob, 0));
 
         env (trust (alice, USD (100)));
@@ -1447,18 +1447,18 @@ public:
 
         env (pay (gw, alice, alice["USD"] (100)));
         auto const bobOfferSeq = env.seq (bob);
-        env (offer (bob, USD (100), IDAC (500)));
+        env (offer (bob, USD (100), DAC (500)));
 
         env.require (
             owners (alice, 1),
             owners (bob, 2));
         auto jro = ledgerEntryOffer (env, bob, bobOfferSeq);
         BEAST_EXPECT(
-            jro[jss::node][jss::TakerGets] == IDAC (500).value ().getText ());
+            jro[jss::node][jss::TakerGets] == DAC (500).value ().getText ());
         BEAST_EXPECT(
             jro[jss::node][jss::TakerPays] == USD (100).value ().getJson (0));
 
-        env (pay (alice, alice, IDAC (500)), sendmax (USD (100)));
+        env (pay (alice, alice, DAC (500)), sendmax (USD (100)));
 
         auto jrr = ledgerEntryState (env, alice, gw, "USD");
         BEAST_EXPECT(jrr[jss::node][sfBalance.fieldName][jss::value] == "0");
@@ -1466,8 +1466,8 @@ public:
         BEAST_EXPECT(
             jrr[jss::node][sfBalance.fieldName] ==
             std::to_string(
-                IDAC (10000).value ().mantissa () +
-                IDAC (500).value ().mantissa () -
+                DAC (10000).value ().mantissa () +
+                DAC (500).value ().mantissa () -
                 env.current ()->fees ().base * 2)
         );
 
@@ -1499,7 +1499,7 @@ public:
         auto const bob = Account {"bob"};
         auto const carol = Account {"carol"};
 
-        env.fund (IDAC (10000), alice, bob, carol);
+        env.fund (DAC (10000), alice, bob, carol);
 
         env (trust (alice, carol["EUR"] (2000)));
         env (trust (bob, alice["USD"] (100)));
@@ -1533,7 +1533,7 @@ public:
         auto const bob = Account {"bob"};
         auto const USD = gw["USD"];
 
-        env.fund (IDAC (10000), gw, alice, bob);
+        env.fund (DAC (10000), gw, alice, bob);
 
         env (trust (alice, USD (200)));
         env (trust (bob, USD (1000)));
@@ -1541,14 +1541,14 @@ public:
         env (pay (gw, alice, alice["USD"] (200)));
 
         auto const bobOfferSeq = env.seq (bob);
-        env (offer (bob, USD (100), IDAC (500)));
+        env (offer (bob, USD (100), DAC (500)));
 
-        env (pay (alice, alice, IDAC (200)), sendmax (USD (100)));
+        env (pay (alice, alice, DAC (200)), sendmax (USD (100)));
 
-        // The previous payment reduced the remaining offer amount by 200 IDAC
+        // The previous payment reduced the remaining offer amount by 200 DAC
         auto jro = ledgerEntryOffer (env, bob, bobOfferSeq);
         BEAST_EXPECT(
-            jro[jss::node][jss::TakerGets] == IDAC (300).value ().getText ());
+            jro[jss::node][jss::TakerGets] == DAC (300).value ().getText ());
         BEAST_EXPECT(
             jro[jss::node][jss::TakerPays] == USD (60).value ().getJson (0));
 
@@ -1556,13 +1556,13 @@ public:
         // by the offer
         auto jrr = ledgerEntryState (env, alice, gw, "USD");
         BEAST_EXPECT(jrr[jss::node][sfBalance.fieldName][jss::value] == "-160");
-        // alice now has 200 more IDAC from the payment
+        // alice now has 200 more DAC from the payment
         jrr = ledgerEntryRoot (env, alice);
         BEAST_EXPECT(
             jrr[jss::node][sfBalance.fieldName] ==
             std::to_string(
-                IDAC (10000).value ().mantissa () +
-                IDAC (200).value ().mantissa () -
+                DAC (10000).value ().mantissa () +
+                DAC (200).value ().mantissa () -
                 env.current ()->fees ().base * 2)
         );
 
@@ -1570,14 +1570,14 @@ public:
         jrr = ledgerEntryState (env, bob, gw, "USD");
         BEAST_EXPECT(jrr[jss::node][sfBalance.fieldName][jss::value] == "-40");
 
-        // Alice converts USD to IDAC which should fail
+        // Alice converts USD to DAC which should fail
         // due to PartialPayment.
-        env (pay (alice, alice, IDAC (600)), sendmax (USD (100)),
+        env (pay (alice, alice, DAC (600)), sendmax (USD (100)),
             ter(tecPATH_PARTIAL));
 
-        // Alice converts USD to IDAC, should succeed because
+        // Alice converts USD to DAC, should succeed because
         // we permit partial payment
-        env (pay (alice, alice, IDAC (600)), sendmax (USD (100)),
+        env (pay (alice, alice, DAC (600)), sendmax (USD (100)),
             txflags (tfPartialPayment));
 
         // Verify the offer was consumed
@@ -1585,7 +1585,7 @@ public:
         BEAST_EXPECT(jro[jss::error] == "entryNotFound");
 
         // verify balances look right after the partial payment
-        // only 300 IDAC should be have been payed since that's all
+        // only 300 DAC should be have been payed since that's all
         // that remained in the offer from bob. The alice balance is now
         // 100 USD because another 60 USD were transferred to bob in the second
         // payment
@@ -1595,9 +1595,9 @@ public:
         BEAST_EXPECT(
             jrr[jss::node][sfBalance.fieldName] ==
             std::to_string(
-                IDAC (10000).value ().mantissa () +
-                IDAC (200).value ().mantissa () +
-                IDAC (300).value ().mantissa () -
+                DAC (10000).value ().mantissa () +
+                DAC (200).value ().mantissa () +
+                DAC (300).value ().mantissa () -
                 env.current ()->fees ().base * 4)
         );
 
@@ -1608,9 +1608,9 @@ public:
     }
 
     void
-    testCrossCurrencyStartIDAC(std::initializer_list<uint256> fs)
+    testCrossCurrencyStartDAC(std::initializer_list<uint256> fs)
     {
-        testcase ("Cross Currency Payment: Start with IDAC");
+        testcase ("Cross Currency Payment: Start with DAC");
 
         using namespace jtx;
 
@@ -1626,7 +1626,7 @@ public:
         auto const carol = Account {"carol"};
         auto const USD = gw["USD"];
 
-        env.fund (IDAC (10000), gw, alice, bob, carol);
+        env.fund (DAC (10000), gw, alice, bob, carol);
 
         env (trust (carol, USD (1000)));
         env (trust (bob, USD (2000)));
@@ -1634,9 +1634,9 @@ public:
         env (pay (gw, carol, carol["USD"] (500)));
 
         auto const carolOfferSeq = env.seq (carol);
-        env (offer (carol, IDAC (500), USD (50)));
+        env (offer (carol, DAC (500), USD (50)));
 
-        env (pay (alice, bob, USD (25)), sendmax (IDAC (333)));
+        env (pay (alice, bob, USD (25)), sendmax (DAC (333)));
 
         auto jrr = ledgerEntryState (env, bob, gw, "USD");
         BEAST_EXPECT(jrr[jss::node][sfBalance.fieldName][jss::value] == "-25");
@@ -1648,13 +1648,13 @@ public:
         BEAST_EXPECT(
             jro[jss::node][jss::TakerGets] == USD (25).value ().getJson (0));
         BEAST_EXPECT(
-            jro[jss::node][jss::TakerPays] == IDAC (250).value ().getText ());
+            jro[jss::node][jss::TakerPays] == DAC (250).value ().getText ());
     }
 
     void
-    testCrossCurrencyEndIDAC(std::initializer_list<uint256> fs)
+    testCrossCurrencyEndDAC(std::initializer_list<uint256> fs)
     {
-        testcase ("Cross Currency Payment: End with IDAC");
+        testcase ("Cross Currency Payment: End with DAC");
 
         using namespace jtx;
 
@@ -1670,7 +1670,7 @@ public:
         auto const carol = Account {"carol"};
         auto const USD = gw["USD"];
 
-        env.fund (IDAC (10000), gw, alice, bob, carol);
+        env.fund (DAC (10000), gw, alice, bob, carol);
 
         env (trust (alice, USD (1000)));
         env (trust (carol, USD (2000)));
@@ -1678,9 +1678,9 @@ public:
         env (pay (gw, alice, alice["USD"] (500)));
 
         auto const carolOfferSeq = env.seq (carol);
-        env (offer (carol, USD (50), IDAC (500)));
+        env (offer (carol, USD (50), DAC (500)));
 
-        env (pay (alice, bob, IDAC (250)), sendmax (USD (333)));
+        env (pay (alice, bob, DAC (250)), sendmax (USD (333)));
 
         auto jrr = ledgerEntryState (env, alice, gw, "USD");
         BEAST_EXPECT(jrr[jss::node][sfBalance.fieldName][jss::value] == "-475");
@@ -1692,13 +1692,13 @@ public:
         BEAST_EXPECT(
             jrr[jss::node][sfBalance.fieldName] ==
             std::to_string(
-                IDAC (10000).value ().mantissa () +
-                IDAC (250).value ().mantissa ())
+                DAC (10000).value ().mantissa () +
+                DAC (250).value ().mantissa ())
         );
 
         auto jro = ledgerEntryOffer (env, carol, carolOfferSeq);
         BEAST_EXPECT(
-            jro[jss::node][jss::TakerGets] == IDAC (250).value ().getText ());
+            jro[jss::node][jss::TakerGets] == DAC (250).value ().getText ());
         BEAST_EXPECT(
             jro[jss::node][jss::TakerPays] == USD (25).value ().getJson (0));
     }
@@ -1725,7 +1725,7 @@ public:
         auto const USD = gw1["USD"];
         auto const EUR = gw2["EUR"];
 
-        env.fund (IDAC (10000), gw1, gw2, alice, bob, carol, dan);
+        env.fund (DAC (10000), gw1, gw2, alice, bob, carol, dan);
 
         env (trust (alice, USD (1000)));
         env (trust (bob, EUR (1000)));
@@ -1736,13 +1736,13 @@ public:
         env (pay (gw2, dan, dan["EUR"] (400)));
 
         auto const carolOfferSeq = env.seq (carol);
-        env (offer (carol, USD (50), IDAC (500)));
+        env (offer (carol, USD (50), DAC (500)));
 
         auto const danOfferSeq = env.seq (dan);
-        env (offer (dan, IDAC (500), EUR (50)));
+        env (offer (dan, DAC (500), EUR (50)));
 
         Json::Value jtp {Json::arrayValue};
-        jtp[0u][0u][jss::currency] = "IDAC";
+        jtp[0u][0u][jss::currency] = "DAC";
         env (pay (alice, bob, EUR (30)),
             json (jss::Paths, jtp),
             sendmax (USD (333)));
@@ -1761,7 +1761,7 @@ public:
 
         auto jro = ledgerEntryOffer (env, carol, carolOfferSeq);
         BEAST_EXPECT(
-            jro[jss::node][jss::TakerGets] == IDAC (200).value ().getText ());
+            jro[jss::node][jss::TakerGets] == DAC (200).value ().getText ());
         BEAST_EXPECT(
             jro[jss::node][jss::TakerPays] == USD (20).value ().getJson (0));
 
@@ -1770,7 +1770,7 @@ public:
             jro[jss::node][jss::TakerGets] ==
             gw2["EUR"] (20).value ().getJson (0));
         BEAST_EXPECT(
-            jro[jss::node][jss::TakerPays] == IDAC (200).value ().getText ());
+            jro[jss::node][jss::TakerPays] == DAC (200).value ().getText ());
     }
 
     void
@@ -1801,11 +1801,11 @@ public:
         // fees:
         //  1 for each trust limit == 3 (alice < mtgox/amazon/bitstamp) +
         //  1 for payment          == 4
-        auto const starting_idac = IDAC (100) +
+        auto const starting_dac = DAC (100) +
             env.current ()->fees ().accountReserve (3) +
             env.current ()->fees ().base * 4;
 
-        env.fund (starting_idac, gw1, gw2, gw3, alice, bob);
+        env.fund (starting_dac, gw1, gw2, gw3, alice, bob);
 
         env (trust (alice, USD1 (1000)));
         env (trust (alice, USD2 (1000)));
@@ -1815,16 +1815,16 @@ public:
 
         env (pay (gw1, bob, bob["USD"] (500)));
 
-        env (offer (bob, IDAC (200), USD1 (200)));
+        env (offer (bob, DAC (200), USD1 (200)));
         // Alice has 350 fees - a reserve of 50 = 250 reserve = 100 available.
         // Ask for more than available to prove reserve works.
-        env (offer (alice, USD1 (200), IDAC (200)));
+        env (offer (alice, USD1 (200), DAC (200)));
 
         auto jrr = ledgerEntryState (env, alice, gw1, "USD");
         BEAST_EXPECT(jrr[jss::node][sfBalance.fieldName][jss::value] == "100");
         jrr = ledgerEntryRoot (env, alice);
         BEAST_EXPECT(
-            jrr[jss::node][sfBalance.fieldName] == IDAC (350).value ().getText ()
+            jrr[jss::node][sfBalance.fieldName] == DAC (350).value ().getText ()
         );
 
         jrr = ledgerEntryState (env, bob, gw1, "USD");
@@ -1849,7 +1849,7 @@ public:
         auto const bob = Account {"bob"};
         auto const USD = gw["USD"];
 
-        env.fund (IDAC (10000), gw, alice, bob);
+        env.fund (DAC (10000), gw, alice, bob);
 
         env (rate (gw, 1.005));
 
@@ -1862,8 +1862,8 @@ public:
 
         env (trust (gw, alice["USD"] (0)));
 
-        env (offer (alice, USD (50), IDAC (150000)));
-        env (offer (bob, IDAC (100), USD (0.1)));
+        env (offer (alice, USD (50), DAC (150000)));
+        env (offer (bob, DAC (100), USD (0.1)));
 
         auto jrr = ledgerEntryState (env, alice, gw, "USD");
         BEAST_EXPECT(jrr[jss::node][sfBalance.fieldName][jss::value] == "49.96666666666667");
@@ -1889,28 +1889,28 @@ public:
         auto const bob = Account {"bob"};
         auto const USD = gw["USD"];
 
-        auto const starting_idac = IDAC (100) +
+        auto const starting_dac = DAC (100) +
             env.current ()->fees ().accountReserve (1) +
             env.current ()->fees ().base * 2;
 
-        env.fund (starting_idac, gw, alice, bob);
+        env.fund (starting_dac, gw, alice, bob);
 
         env (trust (alice, USD (1000)));
         env (trust (bob, USD (1000)));
 
         env (pay (gw, bob, bob["USD"] (500)));
 
-        env (offer (bob, IDAC (200), USD (200)), json(jss::Flags, tfSell));
+        env (offer (bob, DAC (200), USD (200)), json(jss::Flags, tfSell));
         // Alice has 350 + fees - a reserve of 50 = 250 reserve = 100 available.
         // Alice has 350 + fees - a reserve of 50 = 250 reserve = 100 available.
         // Ask for more than available to prove reserve works.
-        env (offer (alice, USD (200), IDAC (200)), json(jss::Flags, tfSell));
+        env (offer (alice, USD (200), DAC (200)), json(jss::Flags, tfSell));
 
         auto jrr = ledgerEntryState (env, alice, gw, "USD");
         BEAST_EXPECT(jrr[jss::node][sfBalance.fieldName][jss::value] == "-100");
         jrr = ledgerEntryRoot (env, alice);
         BEAST_EXPECT(
-            jrr[jss::node][sfBalance.fieldName] == IDAC (250).value ().getText ()
+            jrr[jss::node][sfBalance.fieldName] == DAC (250).value ().getText ()
         );
 
         jrr = ledgerEntryState (env, bob, gw, "USD");
@@ -1935,30 +1935,30 @@ public:
         auto const bob = Account {"bob"};
         auto const USD = gw["USD"];
 
-        auto const starting_idac = IDAC (100) +
+        auto const starting_dac = DAC (100) +
             env.current ()->fees ().accountReserve (1) +
             env.current ()->fees ().base * 2;
 
-        env.fund (starting_idac, gw, alice, bob);
+        env.fund (starting_dac, gw, alice, bob);
 
         env (trust (alice, USD (150)));
         env (trust (bob, USD (1000)));
 
         env (pay (gw, bob, bob["USD"] (500)));
 
-        env (offer (bob, IDAC (100), USD (200)));
+        env (offer (bob, DAC (100), USD (200)));
         // Alice has 350 fees - a reserve of 50 = 250 reserve = 100 available.
         // Ask for more than available to prove reserve works.
-        // Taker pays 100 USD for 100 IDAC.
-        // Selling IDAC.
-        // Will sell all 100 IDAC and get more USD than asked for.
-        env (offer (alice, USD (100), IDAC (100)), json(jss::Flags, tfSell));
+        // Taker pays 100 USD for 100 DAC.
+        // Selling DAC.
+        // Will sell all 100 DAC and get more USD than asked for.
+        env (offer (alice, USD (100), DAC (100)), json(jss::Flags, tfSell));
 
         auto jrr = ledgerEntryState (env, alice, gw, "USD");
         BEAST_EXPECT(jrr[jss::node][sfBalance.fieldName][jss::value] == "-200");
         jrr = ledgerEntryRoot (env, alice);
         BEAST_EXPECT(
-            jrr[jss::node][sfBalance.fieldName] == IDAC (250).value ().getText ()
+            jrr[jss::node][sfBalance.fieldName] == DAC (250).value ().getText ()
         );
 
         jrr = ledgerEntryState (env, bob, gw, "USD");
@@ -1984,11 +1984,11 @@ public:
         auto const XTS = gw["XTS"];
         auto const XXX = gw["XXX"];
 
-        auto const starting_idac = IDAC (100.1) +
+        auto const starting_dac = DAC (100.1) +
             env.current ()->fees ().accountReserve (1) +
             env.current ()->fees ().base * 2;
 
-        env.fund (starting_idac, gw, alice, bob);
+        env.fund (starting_dac, gw, alice, bob);
 
         env (trust (alice, XTS (1000)));
         env (trust (alice, XXX (1000)));
@@ -2087,22 +2087,22 @@ public:
                 100 * env.closed ()->info ().closeTimeResolution;
         env.close (closeTime);
 
-        env.fund (IDAC(10000000), gw);
+        env.fund (DAC(10000000), gw);
 
         // The fee that's charged for transactions
         auto const f = env.current ()->fees ().base;
 
-        // To keep things simple all offers are 1 : 1 for IDAC : USD.
+        // To keep things simple all offers are 1 : 1 for DAC : USD.
         enum preTrustType {noPreTrust, gwPreTrust, acctPreTrust};
         struct TestData
         {
             std::string account;       // Account operated on
-            STAmount fundIdac;          // Account funded with
-            int bookAmount;            // USD -> IDAC offer on the books
+            STAmount fundDac;          // Account funded with
+            int bookAmount;            // USD -> DAC offer on the books
             preTrustType preTrust;     // If true, pre-establish trust line
-            int offerAmount;           // Account offers this much IDAC -> USD
+            int offerAmount;           // Account offers this much DAC -> USD
             TER tec;                   // Returned tec code
-            STAmount spentIdac;         // Amount removed from fundIdac
+            STAmount spentDac;         // Amount removed from fundDac
             PrettyAmount balanceUsd;   // Balance on account end
             int offers;                // Offers on account
             int owners;                // Owners on account
@@ -2110,35 +2110,35 @@ public:
 
         TestData const tests[]
         {
-//acct                             fundIdac  bookAmt      preTrust  offerAmt                     tec       spentIdac    balanceUSD  offers  owners
+//acct                             fundDac  bookAmt      preTrust  offerAmt                     tec       spentDac    balanceUSD  offers  owners
 {"ann",             reserve (env, 0) + 0*f,       1,   noPreTrust,     1000,      tecUNFUNDED_OFFER,             f, USD(      0),      0,     0}, // Account is at the reserve, and will dip below once fees are subtracted.
 {"bev",             reserve (env, 0) + 1*f,       1,   noPreTrust,     1000,      tecUNFUNDED_OFFER,             f, USD(      0),      0,     0}, // Account has just enough for the reserve and the fee.
 {"cam",             reserve (env, 0) + 2*f,       0,   noPreTrust,     1000, tecINSUF_RESERVE_OFFER,             f, USD(      0),      0,     0}, // Account has enough for the reserve, the fee and the offer, and a bit more, but not enough for the reserve after the offer is placed.
 {"deb",             reserve (env, 0) + 2*f,       1,   noPreTrust,     1000,             tesSUCCESS,           2*f, USD(0.00001),      0,     1}, // Account has enough to buy a little USD then the offer runs dry.
 {"eve",             reserve (env, 1) + 0*f,       0,   noPreTrust,     1000,             tesSUCCESS,             f, USD(      0),      1,     1}, // No offer to cross
-{"flo",             reserve (env, 1) + 0*f,       1,   noPreTrust,     1000,             tesSUCCESS, IDAC(   1) + f, USD(      1),      0,     1},
-{"gay",             reserve (env, 1) + 1*f,    1000,   noPreTrust,     1000,             tesSUCCESS, IDAC(  50) + f, USD(     50),      0,     1},
-{"hye", IDAC(1000)                    + 1*f,    1000,   noPreTrust,     1000,             tesSUCCESS, IDAC( 800) + f, USD(    800),      0,     1},
-{"ivy", IDAC(   1) + reserve (env, 1) + 1*f,       1,   noPreTrust,     1000,             tesSUCCESS, IDAC(   1) + f, USD(      1),      0,     1},
-{"joy", IDAC(   1) + reserve (env, 2) + 1*f,       1,   noPreTrust,     1000,             tesSUCCESS, IDAC(   1) + f, USD(      1),      1,     2},
-{"kim", IDAC( 900) + reserve (env, 2) + 1*f,     999,   noPreTrust,     1000,             tesSUCCESS, IDAC( 999) + f, USD(    999),      0,     1},
-{"liz", IDAC( 998) + reserve (env, 0) + 1*f,     999,   noPreTrust,     1000,             tesSUCCESS, IDAC( 998) + f, USD(    998),      0,     1},
-{"meg", IDAC( 998) + reserve (env, 1) + 1*f,     999,   noPreTrust,     1000,             tesSUCCESS, IDAC( 999) + f, USD(    999),      0,     1},
-{"nia", IDAC( 998) + reserve (env, 2) + 1*f,     999,   noPreTrust,     1000,             tesSUCCESS, IDAC( 999) + f, USD(    999),      1,     2},
-{"ova", IDAC( 999) + reserve (env, 0) + 1*f,    1000,   noPreTrust,     1000,             tesSUCCESS, IDAC( 999) + f, USD(    999),      0,     1},
-{"pam", IDAC( 999) + reserve (env, 1) + 1*f,    1000,   noPreTrust,     1000,             tesSUCCESS, IDAC(1000) + f, USD(   1000),      0,     1},
-{"rae", IDAC( 999) + reserve (env, 2) + 1*f,    1000,   noPreTrust,     1000,             tesSUCCESS, IDAC(1000) + f, USD(   1000),      0,     1},
-{"sue", IDAC(1000) + reserve (env, 2) + 1*f,       0,   noPreTrust,     1000,             tesSUCCESS,             f, USD(      0),      1,     1},
+{"flo",             reserve (env, 1) + 0*f,       1,   noPreTrust,     1000,             tesSUCCESS, DAC(   1) + f, USD(      1),      0,     1},
+{"gay",             reserve (env, 1) + 1*f,    1000,   noPreTrust,     1000,             tesSUCCESS, DAC(  50) + f, USD(     50),      0,     1},
+{"hye", DAC(1000)                    + 1*f,    1000,   noPreTrust,     1000,             tesSUCCESS, DAC( 800) + f, USD(    800),      0,     1},
+{"ivy", DAC(   1) + reserve (env, 1) + 1*f,       1,   noPreTrust,     1000,             tesSUCCESS, DAC(   1) + f, USD(      1),      0,     1},
+{"joy", DAC(   1) + reserve (env, 2) + 1*f,       1,   noPreTrust,     1000,             tesSUCCESS, DAC(   1) + f, USD(      1),      1,     2},
+{"kim", DAC( 900) + reserve (env, 2) + 1*f,     999,   noPreTrust,     1000,             tesSUCCESS, DAC( 999) + f, USD(    999),      0,     1},
+{"liz", DAC( 998) + reserve (env, 0) + 1*f,     999,   noPreTrust,     1000,             tesSUCCESS, DAC( 998) + f, USD(    998),      0,     1},
+{"meg", DAC( 998) + reserve (env, 1) + 1*f,     999,   noPreTrust,     1000,             tesSUCCESS, DAC( 999) + f, USD(    999),      0,     1},
+{"nia", DAC( 998) + reserve (env, 2) + 1*f,     999,   noPreTrust,     1000,             tesSUCCESS, DAC( 999) + f, USD(    999),      1,     2},
+{"ova", DAC( 999) + reserve (env, 0) + 1*f,    1000,   noPreTrust,     1000,             tesSUCCESS, DAC( 999) + f, USD(    999),      0,     1},
+{"pam", DAC( 999) + reserve (env, 1) + 1*f,    1000,   noPreTrust,     1000,             tesSUCCESS, DAC(1000) + f, USD(   1000),      0,     1},
+{"rae", DAC( 999) + reserve (env, 2) + 1*f,    1000,   noPreTrust,     1000,             tesSUCCESS, DAC(1000) + f, USD(   1000),      0,     1},
+{"sue", DAC(1000) + reserve (env, 2) + 1*f,       0,   noPreTrust,     1000,             tesSUCCESS,             f, USD(      0),      1,     1},
 
 //---------------------Pre-established trust lines -----------------------------
 {"abe",             reserve (env, 0) + 0*f,       1,   gwPreTrust,     1000,      tecUNFUNDED_OFFER,             f, USD(      0),      0,     0},
 {"bud",             reserve (env, 0) + 1*f,       1,   gwPreTrust,     1000,      tecUNFUNDED_OFFER,             f, USD(      0),      0,     0},
 {"che",             reserve (env, 0) + 2*f,       0,   gwPreTrust,     1000, tecINSUF_RESERVE_OFFER,             f, USD(      0),      0,     0},
 {"dan",             reserve (env, 0) + 2*f,       1,   gwPreTrust,     1000,             tesSUCCESS,           2*f, USD(0.00001),      0,     0},
-{"eli", IDAC(  20) + reserve (env, 0) + 1*f,    1000,   gwPreTrust,     1000,             tesSUCCESS, IDAC(20) + 1*f, USD(     20),      0,     0},
+{"eli", DAC(  20) + reserve (env, 0) + 1*f,    1000,   gwPreTrust,     1000,             tesSUCCESS, DAC(20) + 1*f, USD(     20),      0,     0},
 {"fyn",             reserve (env, 1) + 0*f,       0,   gwPreTrust,     1000,             tesSUCCESS,             f, USD(      0),      1,     1},
-{"gar",             reserve (env, 1) + 0*f,       1,   gwPreTrust,     1000,             tesSUCCESS, IDAC(   1) + f, USD(      1),      1,     1},
-{"hal",             reserve (env, 1) + 1*f,       1,   gwPreTrust,     1000,             tesSUCCESS, IDAC(   1) + f, USD(      1),      1,     1},
+{"gar",             reserve (env, 1) + 0*f,       1,   gwPreTrust,     1000,             tesSUCCESS, DAC(   1) + f, USD(      1),      1,     1},
+{"hal",             reserve (env, 1) + 1*f,       1,   gwPreTrust,     1000,             tesSUCCESS, DAC(   1) + f, USD(      1),      1,     1},
 
 {"ned",             reserve (env, 1) + 0*f,       1, acctPreTrust,     1000,      tecUNFUNDED_OFFER,           2*f, USD(      0),      0,     1},
 {"ole",             reserve (env, 1) + 1*f,       1, acctPreTrust,     1000,      tecUNFUNDED_OFFER,           2*f, USD(      0),      0,     1},
@@ -2146,17 +2146,17 @@ public:
 {"quy",             reserve (env, 1) + 2*f,       1, acctPreTrust,     1000,      tecUNFUNDED_OFFER,           2*f, USD(      0),      0,     1},
 {"ron",             reserve (env, 1) + 3*f,       0, acctPreTrust,     1000, tecINSUF_RESERVE_OFFER,           2*f, USD(      0),      0,     1},
 {"syd",             reserve (env, 1) + 3*f,       1, acctPreTrust,     1000,             tesSUCCESS,           3*f, USD(0.00001),      0,     1},
-{"ted", IDAC(  20) + reserve (env, 1) + 2*f,    1000, acctPreTrust,     1000,             tesSUCCESS, IDAC(20) + 2*f, USD(     20),      0,     1},
+{"ted", DAC(  20) + reserve (env, 1) + 2*f,    1000, acctPreTrust,     1000,             tesSUCCESS, DAC(20) + 2*f, USD(     20),      0,     1},
 {"uli",             reserve (env, 2) + 0*f,       0, acctPreTrust,     1000, tecINSUF_RESERVE_OFFER,           2*f, USD(      0),      0,     1},
-{"vic",             reserve (env, 2) + 0*f,       1, acctPreTrust,     1000,             tesSUCCESS, IDAC( 1) + 2*f, USD(      1),      0,     1},
+{"vic",             reserve (env, 2) + 0*f,       1, acctPreTrust,     1000,             tesSUCCESS, DAC( 1) + 2*f, USD(      1),      0,     1},
 {"wes",             reserve (env, 2) + 1*f,       0, acctPreTrust,     1000,             tesSUCCESS,           2*f, USD(      0),      1,     2},
-{"xan",             reserve (env, 2) + 1*f,       1, acctPreTrust,     1000,             tesSUCCESS, IDAC( 1) + 2*f, USD(      1),      1,     2},
+{"xan",             reserve (env, 2) + 1*f,       1, acctPreTrust,     1000,             tesSUCCESS, DAC( 1) + 2*f, USD(      1),      1,     2},
 };
 
         for (auto const& t : tests)
         {
             auto const acct = Account(t.account);
-            env.fund (t.fundIdac, acct);
+            env.fund (t.fundDac, acct);
             env.close();
 
             // Make sure gateway has no current offers.
@@ -2165,7 +2165,7 @@ public:
             // The gateway optionally creates an offer that would be crossed.
             auto const book = t.bookAmount;
             if (book)
-                env (offer (gw, IDAC (book), USD (book)));
+                env (offer (gw, DAC (book), USD (book)));
             env.close();
             std::uint32_t const gwOfferSeq = env.seq (gw) - 1;
 
@@ -2175,7 +2175,7 @@ public:
 
             // Optionally pre-establish a trustline between acct and gw.
             // Note this is not really part of the test, so we expect there
-            // to be enough IDAC reserve for acct to create the trust line.
+            // to be enough DAC reserve for acct to create the trust line.
             if (t.preTrust == acctPreTrust)
                 env (trust (acct, USD (1)));
 
@@ -2183,13 +2183,13 @@ public:
 
             // Acct creates an offer.  This is the heart of the test.
             auto const acctOffer = t.offerAmount;
-            env (offer (acct, USD (acctOffer), IDAC (acctOffer)), ter (t.tec));
+            env (offer (acct, USD (acctOffer), DAC (acctOffer)), ter (t.tec));
             env.close();
             std::uint32_t const acctOfferSeq = env.seq (acct) - 1;
 
             BEAST_EXPECT (env.balance (acct, USD.issue()) == t.balanceUsd);
             BEAST_EXPECT (
-                env.balance (acct, idacIssue()) == t.fundIdac - t.spentIdac);
+                env.balance (acct, dacIssue()) == t.fundDac - t.spentDac);
             env.require (offers (acct, t.offers));
             env.require (owners (acct, t.owners));
 
@@ -2200,7 +2200,7 @@ public:
                 auto const& acctOffer = *(acctOffers.front());
 
                 auto const leftover = t.offerAmount - t.bookAmount;
-                BEAST_EXPECT (acctOffer[sfTakerGets] == IDAC (leftover));
+                BEAST_EXPECT (acctOffer[sfTakerGets] == DAC (leftover));
                 BEAST_EXPECT (acctOffer[sfTakerPays] == USD (leftover));
             }
 
@@ -2229,9 +2229,9 @@ public:
     }
 
     void
-    testIDACDirectCross (std::initializer_list<uint256> fs)
+    testDACDirectCross (std::initializer_list<uint256> fs)
     {
-        testcase ("IDAC Direct Crossing");
+        testcase ("DAC Direct Crossing");
 
         using namespace jtx;
 
@@ -2241,7 +2241,7 @@ public:
         auto const USD = gw["USD"];
 
         auto const usdOffer = USD(1000);
-        auto const idacOffer = IDAC(1000);
+        auto const dacOffer = DAC(1000);
 
         Env env {*this, with_features (fs)};
         auto const closeTime =
@@ -2249,7 +2249,7 @@ public:
                 100 * env.closed ()->info ().closeTimeResolution;
         env.close (closeTime);
 
-        env.fund (IDAC(1000000), gw, bob);
+        env.fund (DAC(1000000), gw, bob);
         env.close();
 
         // The fee that's charged for transactions.
@@ -2272,29 +2272,29 @@ public:
             offers (bob, 0));
 
         // The scenario:
-        //   o alice has USD but wants IDAC.
-        //   o bob has IDAC but wants USD.
-        auto const alicesIDAC = env.balance (alice);
-        auto const bobsIDAC = env.balance (bob);
+        //   o alice has USD but wants DAC.
+        //   o bob has DAC but wants USD.
+        auto const alicesDAC = env.balance (alice);
+        auto const bobsDAC = env.balance (bob);
 
-        env (offer (alice, idacOffer, usdOffer));
+        env (offer (alice, dacOffer, usdOffer));
         env.close();
-        env (offer (bob, usdOffer, idacOffer));
+        env (offer (bob, usdOffer, dacOffer));
 
         env.close();
         env.require (
             balance (alice, USD(0)),
             balance (bob, usdOffer),
-            balance (alice, alicesIDAC + idacOffer - fee),
-            balance (bob,   bobsIDAC   - idacOffer - fee),
+            balance (alice, alicesDAC + dacOffer - fee),
+            balance (bob,   bobsDAC   - dacOffer - fee),
             offers (alice, 0),
             offers (bob, 0));
 
         verifyDefaultTrustline (env, bob, usdOffer);
 
         // Make two more offers that leave one of the offers non-dry.
-        env (offer (alice, USD(999), IDAC(999)));
-        env (offer (bob, idacOffer, usdOffer));
+        env (offer (alice, USD(999), DAC(999)));
+        env (offer (bob, dacOffer, usdOffer));
 
         env.close();
         env.require (balance (alice, USD(999)));
@@ -2308,7 +2308,7 @@ public:
 
             BEAST_EXPECT (bobsOffer[sfLedgerEntryType] == ltOFFER);
             BEAST_EXPECT (bobsOffer[sfTakerGets] == USD (1));
-            BEAST_EXPECT (bobsOffer[sfTakerPays] == IDAC (1));
+            BEAST_EXPECT (bobsOffer[sfTakerPays] == DAC (1));
         }
    }
 
@@ -2334,7 +2334,7 @@ public:
                 100 * env.closed ()->info ().closeTimeResolution;
         env.close (closeTime);
 
-        env.fund (IDAC(1000000), gw);
+        env.fund (DAC(1000000), gw);
         env.close();
 
         // The fee that's charged for transactions.
@@ -2431,7 +2431,7 @@ public:
                 100 * env.closed ()->info ().closeTimeResolution;
         env.close (closeTime);
 
-        env.fund (IDAC(1000000), gw, alice, bob, carol);
+        env.fund (DAC(1000000), gw, alice, bob, carol);
         env.close();
 
         env (trust(alice, usdOffer));
@@ -2443,13 +2443,13 @@ public:
 
         // The scenario:
         //   o alice has USD but wants XPR.
-        //   o bob has IDAC but wants EUR.
+        //   o bob has DAC but wants EUR.
         //   o carol has EUR but wants USD.
         // Note that carol's offer must come last.  If carol's offer is placed
         // before bob's or alice's, then autobridging will not occur.
-        env (offer (alice, IDAC(1000), usdOffer));
-        env (offer (bob, eurOffer, IDAC(1000)));
-        auto const bobIdacBalance = env.balance (bob);
+        env (offer (alice, DAC(1000), usdOffer));
+        env (offer (bob, eurOffer, DAC(1000)));
+        auto const bobDacBalance = env.balance (bob);
         env.close();
 
         // carol makes an offer that partially consumes alice and bob's offers.
@@ -2460,7 +2460,7 @@ public:
             balance (alice, USD(600)),
             balance (bob,   EUR(400)),
             balance (carol, USD(400)),
-            balance (bob, bobIdacBalance - IDAC(400)),
+            balance (bob, bobDacBalance - DAC(400)),
             offers (carol, 0));
         verifyDefaultTrustline (env, bob, EUR(400));
         verifyDefaultTrustline (env, carol, USD(400));
@@ -2471,7 +2471,7 @@ public:
 
             BEAST_EXPECT (alicesOffer[sfLedgerEntryType] == ltOFFER);
             BEAST_EXPECT (alicesOffer[sfTakerGets] == USD (600));
-            BEAST_EXPECT (alicesOffer[sfTakerPays] == IDAC (600));
+            BEAST_EXPECT (alicesOffer[sfTakerPays] == DAC (600));
         }
         {
             auto const bobsOffers = offersOnAccount (env, bob);
@@ -2479,7 +2479,7 @@ public:
             auto const& bobsOffer = *(bobsOffers.front());
 
             BEAST_EXPECT (bobsOffer[sfLedgerEntryType] == ltOFFER);
-            BEAST_EXPECT (bobsOffer[sfTakerGets] == IDAC (600));
+            BEAST_EXPECT (bobsOffer[sfTakerGets] == DAC (600));
             BEAST_EXPECT (bobsOffer[sfTakerPays] == EUR (600));
         }
 
@@ -2491,7 +2491,7 @@ public:
             balance (alice, USD(0)),
             balance (bob, eurOffer),
             balance (carol, usdOffer),
-            balance (bob, bobIdacBalance - IDAC(1000)),
+            balance (bob, bobDacBalance - DAC(1000)),
             offers (bob, 0),
             offers (carol, 0));
         verifyDefaultTrustline (env, bob, EUR(1000));
@@ -2506,7 +2506,7 @@ public:
 
             BEAST_EXPECT (alicesOffer[sfLedgerEntryType] == ltOFFER);
             BEAST_EXPECT (alicesOffer[sfTakerGets] == USD (0));
-            BEAST_EXPECT (alicesOffer[sfTakerPays] == IDAC (0));
+            BEAST_EXPECT (alicesOffer[sfTakerPays] == DAC (0));
         }
     }
 
@@ -2529,24 +2529,24 @@ public:
                 100 * env.closed ()->info ().closeTimeResolution;
         env.close (closeTime);
 
-        env.fund (IDAC(10000000), gw);
+        env.fund (DAC(10000000), gw);
 
         // The fee that's charged for transactions
         auto const f = env.current ()->fees ().base;
 
-        // To keep things simple all offers are 1 : 1 for IDAC : USD.
+        // To keep things simple all offers are 1 : 1 for DAC : USD.
         enum preTrustType {noPreTrust, gwPreTrust, acctPreTrust};
         struct TestData
         {
             std::string account;       // Account operated on
-            STAmount fundIdac;          // IDAC acct funded with
+            STAmount fundDac;          // DAC acct funded with
             STAmount fundUSD;          // USD acct funded with
             STAmount gwGets;           // gw's offer
             STAmount gwPays;           //
             STAmount acctGets;         // acct's offer
             STAmount acctPays;         //
             TER tec;                   // Returned tec code
-            STAmount spentIdac;         // Amount removed from fundIdac
+            STAmount spentDac;         // Amount removed from fundDac
             STAmount finalUsd;         // Final USD balance on acct
             int offers;                // Offers on acct
             int owners;                // Owners on acct
@@ -2556,28 +2556,28 @@ public:
             // Constructor with takerGets/takerPays
             TestData (
                 std::string&& account_,         // Account operated on
-                STAmount const& fundIdac_,       // IDAC acct funded with
+                STAmount const& fundDac_,       // DAC acct funded with
                 STAmount const& fundUSD_,       // USD acct funded with
                 STAmount const& gwGets_,        // gw's offer
                 STAmount const& gwPays_,        //
                 STAmount const& acctGets_,      // acct's offer
                 STAmount const& acctPays_,      //
                 TER tec_,                       // Returned tec code
-                STAmount const& spentIdac_,      // Amount removed from fundIdac
+                STAmount const& spentDac_,      // Amount removed from fundDac
                 STAmount const& finalUsd_,      // Final USD balance on acct
                 int offers_,                    // Offers on acct
                 int owners_,                    // Owners on acct
                 STAmount const& takerGets_,     // Remainder of acct's offer
                 STAmount const& takerPays_)     //
                 : account (std::move(account_))
-                , fundIdac (fundIdac_)
+                , fundDac (fundDac_)
                 , fundUSD (fundUSD_)
                 , gwGets (gwGets_)
                 , gwPays (gwPays_)
                 , acctGets (acctGets_)
                 , acctPays (acctPays_)
                 , tec (tec_)
-                , spentIdac (spentIdac_)
+                , spentDac (spentDac_)
                 , finalUsd (finalUsd_)
                 , offers (offers_)
                 , owners (owners_)
@@ -2588,43 +2588,43 @@ public:
             // Constructor without takerGets/takerPays
             TestData (
                 std::string&& account_,         // Account operated on
-                STAmount const& fundIdac_,       // IDAC acct funded with
+                STAmount const& fundDac_,       // DAC acct funded with
                 STAmount const& fundUSD_,       // USD acct funded with
                 STAmount const& gwGets_,        // gw's offer
                 STAmount const& gwPays_,        //
                 STAmount const& acctGets_,      // acct's offer
                 STAmount const& acctPays_,      //
                 TER tec_,                       // Returned tec code
-                STAmount const& spentIdac_,      // Amount removed from fundIdac
+                STAmount const& spentDac_,      // Amount removed from fundDac
                 STAmount const& finalUsd_,      // Final USD balance on acct
                 int offers_,                    // Offers on acct
                 int owners_)                    // Owners on acct
-                : TestData (std::move(account_), fundIdac_, fundUSD_, gwGets_,
-                  gwPays_, acctGets_, acctPays_, tec_, spentIdac_, finalUsd_,
+                : TestData (std::move(account_), fundDac_, fundUSD_, gwGets_,
+                  gwPays_, acctGets_, acctPays_, tec_, spentDac_, finalUsd_,
                   offers_, owners_, STAmount {0}, STAmount {0})
             { }
         };
 
         TestData const tests[]
         {
-// acct pays IDAC
-//acct                           fundIdac  fundUSD   gwGets   gwPays  acctGets  acctPays                      tec         spentIdac  finalUSD  offers  owners  takerGets  takerPays
-{"ann", IDAC(10) + reserve (env, 0) + 1*f, USD( 0), IDAC(10), USD( 5),  USD(10),  IDAC(10), tecINSUF_RESERVE_OFFER, IDAC( 0) + (1*f),  USD( 0),      0,     0},
-{"bev", IDAC(10) + reserve (env, 1) + 1*f, USD( 0), IDAC(10), USD( 5),  USD(10),  IDAC(10),             tesSUCCESS, IDAC( 0) + (1*f),  USD( 0),      1,     1,     IDAC(10),  USD(10)},
-{"cam", IDAC(10) + reserve (env, 0) + 1*f, USD( 0), IDAC(10), USD(10),  USD(10),  IDAC(10),             tesSUCCESS, IDAC(10) + (1*f),  USD(10),      0,     1},
-{"deb", IDAC(10) + reserve (env, 0) + 1*f, USD( 0), IDAC(10), USD(20),  USD(10),  IDAC(10),             tesSUCCESS, IDAC(10) + (1*f),  USD(20),      0,     1},
-{"eve", IDAC(10) + reserve (env, 0) + 1*f, USD( 0), IDAC(10), USD(20),  USD( 5),  IDAC( 5),             tesSUCCESS, IDAC( 5) + (1*f),  USD(10),      0,     1},
-{"flo", IDAC(10) + reserve (env, 0) + 1*f, USD( 0), IDAC(10), USD(20),  USD(20),  IDAC(20),             tesSUCCESS, IDAC(10) + (1*f),  USD(20),      0,     1},
-{"gay", IDAC(20) + reserve (env, 1) + 1*f, USD( 0), IDAC(10), USD(20),  USD(20),  IDAC(20),             tesSUCCESS, IDAC(10) + (1*f),  USD(20),      0,     1},
-{"hye", IDAC(20) + reserve (env, 2) + 1*f, USD( 0), IDAC(10), USD(20),  USD(20),  IDAC(20),             tesSUCCESS, IDAC(10) + (1*f),  USD(20),      1,     2,     IDAC(10),  USD(10)},
+// acct pays DAC
+//acct                           fundDac  fundUSD   gwGets   gwPays  acctGets  acctPays                      tec         spentDac  finalUSD  offers  owners  takerGets  takerPays
+{"ann", DAC(10) + reserve (env, 0) + 1*f, USD( 0), DAC(10), USD( 5),  USD(10),  DAC(10), tecINSUF_RESERVE_OFFER, DAC( 0) + (1*f),  USD( 0),      0,     0},
+{"bev", DAC(10) + reserve (env, 1) + 1*f, USD( 0), DAC(10), USD( 5),  USD(10),  DAC(10),             tesSUCCESS, DAC( 0) + (1*f),  USD( 0),      1,     1,     DAC(10),  USD(10)},
+{"cam", DAC(10) + reserve (env, 0) + 1*f, USD( 0), DAC(10), USD(10),  USD(10),  DAC(10),             tesSUCCESS, DAC(10) + (1*f),  USD(10),      0,     1},
+{"deb", DAC(10) + reserve (env, 0) + 1*f, USD( 0), DAC(10), USD(20),  USD(10),  DAC(10),             tesSUCCESS, DAC(10) + (1*f),  USD(20),      0,     1},
+{"eve", DAC(10) + reserve (env, 0) + 1*f, USD( 0), DAC(10), USD(20),  USD( 5),  DAC( 5),             tesSUCCESS, DAC( 5) + (1*f),  USD(10),      0,     1},
+{"flo", DAC(10) + reserve (env, 0) + 1*f, USD( 0), DAC(10), USD(20),  USD(20),  DAC(20),             tesSUCCESS, DAC(10) + (1*f),  USD(20),      0,     1},
+{"gay", DAC(20) + reserve (env, 1) + 1*f, USD( 0), DAC(10), USD(20),  USD(20),  DAC(20),             tesSUCCESS, DAC(10) + (1*f),  USD(20),      0,     1},
+{"hye", DAC(20) + reserve (env, 2) + 1*f, USD( 0), DAC(10), USD(20),  USD(20),  DAC(20),             tesSUCCESS, DAC(10) + (1*f),  USD(20),      1,     2,     DAC(10),  USD(10)},
 // acct pays USD
-{"meg",           reserve (env, 1) + 2*f, USD(10), USD(10), IDAC( 5),  IDAC(10),  USD(10), tecINSUF_RESERVE_OFFER, IDAC(  0) + (2*f),  USD(10),      0,     1},
-{"nia",           reserve (env, 2) + 2*f, USD(10), USD(10), IDAC( 5),  IDAC(10),  USD(10),             tesSUCCESS, IDAC(  0) + (2*f),  USD(10),      1,     2,     USD(10),  IDAC(10)},
-{"ova",           reserve (env, 1) + 2*f, USD(10), USD(10), IDAC(10),  IDAC(10),  USD(10),             tesSUCCESS, IDAC(-10) + (2*f),  USD( 0),      0,     1},
-{"pam",           reserve (env, 1) + 2*f, USD(10), USD(10), IDAC(20),  IDAC(10),  USD(10),             tesSUCCESS, IDAC(-20) + (2*f),  USD( 0),      0,     1},
-{"qui",           reserve (env, 1) + 2*f, USD(10), USD(20), IDAC(40),  IDAC(10),  USD(10),             tesSUCCESS, IDAC(-20) + (2*f),  USD( 0),      0,     1},
-{"rae",           reserve (env, 2) + 2*f, USD(10), USD( 5), IDAC( 5),  IDAC(10),  USD(10),             tesSUCCESS, IDAC( -5) + (2*f),  USD( 5),      1,     2,     USD( 5),  IDAC( 5)},
-{"sue",           reserve (env, 2) + 2*f, USD(10), USD( 5), IDAC(10),  IDAC(10),  USD(10),             tesSUCCESS, IDAC(-10) + (2*f),  USD( 5),      1,     2,     USD( 5),  IDAC( 5)},
+{"meg",           reserve (env, 1) + 2*f, USD(10), USD(10), DAC( 5),  DAC(10),  USD(10), tecINSUF_RESERVE_OFFER, DAC(  0) + (2*f),  USD(10),      0,     1},
+{"nia",           reserve (env, 2) + 2*f, USD(10), USD(10), DAC( 5),  DAC(10),  USD(10),             tesSUCCESS, DAC(  0) + (2*f),  USD(10),      1,     2,     USD(10),  DAC(10)},
+{"ova",           reserve (env, 1) + 2*f, USD(10), USD(10), DAC(10),  DAC(10),  USD(10),             tesSUCCESS, DAC(-10) + (2*f),  USD( 0),      0,     1},
+{"pam",           reserve (env, 1) + 2*f, USD(10), USD(10), DAC(20),  DAC(10),  USD(10),             tesSUCCESS, DAC(-20) + (2*f),  USD( 0),      0,     1},
+{"qui",           reserve (env, 1) + 2*f, USD(10), USD(20), DAC(40),  DAC(10),  USD(10),             tesSUCCESS, DAC(-20) + (2*f),  USD( 0),      0,     1},
+{"rae",           reserve (env, 2) + 2*f, USD(10), USD( 5), DAC( 5),  DAC(10),  USD(10),             tesSUCCESS, DAC( -5) + (2*f),  USD( 5),      1,     2,     USD( 5),  DAC( 5)},
+{"sue",           reserve (env, 2) + 2*f, USD(10), USD( 5), DAC(10),  DAC(10),  USD(10),             tesSUCCESS, DAC(-10) + (2*f),  USD( 5),      1,     2,     USD( 5),  DAC( 5)},
 };
         auto const zeroUsd = USD(0);
         for (auto const& t : tests)
@@ -2634,7 +2634,7 @@ public:
 
             auto const acct = Account(t.account);
 
-            env.fund (t.fundIdac, acct);
+            env.fund (t.fundDac, acct);
             env.close();
 
             // Optionally give acct some USD.  This is not part of the test,
@@ -2660,7 +2660,7 @@ public:
             // Check results
             BEAST_EXPECT (env.balance (acct, USD.issue()) == t.finalUsd);
             BEAST_EXPECT (
-                env.balance (acct, idacIssue()) == t.fundIdac - t.spentIdac);
+                env.balance (acct, dacIssue()) == t.fundDac - t.spentDac);
             env.require (offers (acct, t.offers));
             env.require (owners (acct, t.owners));
 
@@ -2706,19 +2706,19 @@ public:
                 100 * env.closed ()->info ().closeTimeResolution;
         env.close (closeTime);
 
-        env.fund (IDAC(10000000), gw, alice, bob);
+        env.fund (DAC(10000000), gw, alice, bob);
 
-        // bob offers IDAC for USD.
+        // bob offers DAC for USD.
         env (trust(bob, USD(200)));
         env.close();
         env (pay(gw, bob, USD(100)));
         env.close();
-        env (offer(bob, IDAC(2000), USD(20)));
+        env (offer(bob, DAC(2000), USD(20)));
         env.close();
         {
             // alice submits a tfSell | tfFillOrKill offer that does not cross.
             // It's still a tesSUCCESS, since the offer was successfully killed.
-            env (offer(alice, USD(21), IDAC(2100), tfSell | tfFillOrKill));
+            env (offer(alice, USD(21), DAC(2100), tfSell | tfFillOrKill));
             env.close();
             env.require (balance (alice, USD(none)));
             env.require (offers (alice, 0));
@@ -2727,7 +2727,7 @@ public:
         {
             // alice submits a tfSell | tfFillOrKill offer that crosses.
             // Even though tfSell is present it doesn't matter this time.
-            env (offer(alice, USD(20), IDAC(2000), tfSell | tfFillOrKill));
+            env (offer(alice, USD(20), DAC(2000), tfSell | tfFillOrKill));
             env.close();
             env.require (balance (alice, USD(20)));
             env.require (offers (alice, 0));
@@ -2736,9 +2736,9 @@ public:
         {
             // alice submits a tfSell | tfFillOrKill offer that crosses and
             // returns more than was asked for (because of the tfSell flag).
-            env (offer(bob, IDAC(2000), USD(20)));
+            env (offer(bob, DAC(2000), USD(20)));
             env.close();
-            env (offer(alice, USD(10), IDAC(1500), tfSell | tfFillOrKill));
+            env (offer(alice, USD(10), DAC(1500), tfSell | tfFillOrKill));
             env.close();
             env.require (balance (alice, USD(35)));
             env.require (offers (alice, 0));
@@ -2750,8 +2750,8 @@ public:
             // fillOrKill prevents the transaction from crossing since not
             // all of the offer is consumed.
 
-            // We're using bob's left-over offer for IDAC(500), USD(5)
-            env (offer(alice, USD(1), IDAC(501), tfSell | tfFillOrKill));
+            // We're using bob's left-over offer for DAC(500), USD(5)
+            env (offer(alice, USD(1), DAC(501), tfSell | tfFillOrKill));
             env.close();
             env.require (balance (alice, USD(35)));
             env.require (offers (alice, 0));
@@ -2761,8 +2761,8 @@ public:
             // Alice submits a tfSell | tfFillOrKill offer that finishes
             // off the remainder of bob's offer.
 
-            // We're using bob's left-over offer for IDAC(500), USD(5)
-            env (offer(alice, USD(1), IDAC(500), tfSell | tfFillOrKill));
+            // We're using bob's left-over offer for DAC(500), USD(5)
+            env (offer(alice, USD(1), DAC(500), tfSell | tfFillOrKill));
             env.close();
             env.require (balance (alice, USD(40)));
             env.require (offers (alice, 0));
@@ -2789,14 +2789,14 @@ public:
         // The fee that's charged for transactions.
         auto const fee = env.current ()->fees ().base;
 
-        env.fund (IDAC(100000), gw1);
+        env.fund (DAC(100000), gw1);
         env.close();
 
         env(rate(gw1, 1.25));
         {
             auto const ann = Account("ann");
             auto const bob = Account("bob");
-            env.fund (IDAC(100) + reserve(env, 2) + (fee*2), ann, bob);
+            env.fund (DAC(100) + reserve(env, 2) + (fee*2), ann, bob);
             env.close();
 
             env (trust(ann, USD(200)));
@@ -2806,32 +2806,32 @@ public:
             env (pay (gw1, bob, USD(125)));
             env.close();
 
-            // bob offers to sell USD(100) for IDAC.  alice takes bob's offer.
+            // bob offers to sell USD(100) for DAC.  alice takes bob's offer.
             // Notice that although bob only offered USD(100), USD(125) was
             // removed from his account due to the gateway fee.
             //
             // A comparable payment would look like this:
             //   env (pay (bob, alice, USD(100)), sendmax(USD(125)))
-            env (offer (bob, IDAC(1), USD(100)));
+            env (offer (bob, DAC(1), USD(100)));
             env.close();
 
-            env (offer (ann, USD(100), IDAC(1)));
+            env (offer (ann, USD(100), DAC(1)));
             env.close();
 
             env.require (balance (ann, USD(100)));
-            env.require (balance (ann, IDAC( 99) + reserve(env, 2)));
+            env.require (balance (ann, DAC( 99) + reserve(env, 2)));
             env.require (offers (ann, 0));
 
             env.require (balance (bob, USD(  0)));
-            env.require (balance (bob, IDAC(101) + reserve(env, 2)));
+            env.require (balance (bob, DAC(101) + reserve(env, 2)));
             env.require (offers (bob, 0));
         }
         {
-            // Reverse the order, so the offer in the books is to sell IDAC
+            // Reverse the order, so the offer in the books is to sell DAC
             // in return for USD.  Gateway rate should still apply identically.
             auto const che = Account("che");
             auto const deb = Account("deb");
-            env.fund (IDAC(100) + reserve(env, 2) + (fee*2), che, deb);
+            env.fund (DAC(100) + reserve(env, 2) + (fee*2), che, deb);
             env.close();
 
             env (trust(che, USD(200)));
@@ -2841,25 +2841,25 @@ public:
             env (pay (gw1, deb, USD(125)));
             env.close();
 
-            env (offer (che, USD(100), IDAC(1)));
+            env (offer (che, USD(100), DAC(1)));
             env.close();
 
-            env (offer (deb, IDAC(1), USD(100)));
+            env (offer (deb, DAC(1), USD(100)));
             env.close();
 
             env.require (balance (che, USD(100)));
-            env.require (balance (che, IDAC( 99) + reserve(env, 2)));
+            env.require (balance (che, DAC( 99) + reserve(env, 2)));
             env.require (offers (che, 0));
 
             env.require (balance (deb, USD(  0)));
-            env.require (balance (deb, IDAC(101) + reserve(env, 2)));
+            env.require (balance (deb, DAC(101) + reserve(env, 2)));
             env.require (offers (deb, 0));
         }
         {
             auto const eve = Account("eve");
             auto const fyn = Account("fyn");
 
-            env.fund (IDAC(20000) + fee*2, eve, fyn);
+            env.fund (DAC(20000) + fee*2, eve, fyn);
             env.close();
 
             env (trust (eve, USD(1000)));
@@ -2873,40 +2873,40 @@ public:
             // This test verifies that the amount removed from an offer
             // accounts for the transfer fee that is removed from the
             // account but not from the remaining offer.
-            env (offer (eve, USD(10), IDAC(4000)));
+            env (offer (eve, USD(10), DAC(4000)));
             env.close();
             std::uint32_t const eveOfferSeq = env.seq (eve) - 1;
 
-            env (offer (fyn, IDAC(2000), USD(5)));
+            env (offer (fyn, DAC(2000), USD(5)));
             env.close();
 
             env.require (balance (eve, USD(105)));
-            env.require (balance (eve, IDAC(18000)));
+            env.require (balance (eve, DAC(18000)));
             auto const evesOffers = offersOnAccount (env, eve);
             BEAST_EXPECT (evesOffers.size() == 1);
             if (evesOffers.size() != 0)
             {
                 auto const& evesOffer = *(evesOffers.front());
                 BEAST_EXPECT (evesOffer[sfLedgerEntryType] == ltOFFER);
-                BEAST_EXPECT (evesOffer[sfTakerGets] == IDAC (2000));
+                BEAST_EXPECT (evesOffer[sfTakerGets] == DAC (2000));
                 BEAST_EXPECT (evesOffer[sfTakerPays] == USD (5));
             }
             env (offer_cancel (eve, eveOfferSeq)); // For later tests
 
             env.require (balance (fyn, USD(93.75)));
-            env.require (balance (fyn, IDAC(22000)));
+            env.require (balance (fyn, DAC(22000)));
             env.require (offers (fyn, 0));
         }
         // Start messing with two non-native currencies.
         auto const gw2   = Account("gateway2");
         auto const EUR = gw2["EUR"];
 
-        env.fund (IDAC(100000), gw2);
+        env.fund (DAC(100000), gw2);
         env.close();
 
         env(rate(gw2, 1.5));
         {
-            // Remove IDAC from the equation.  Give the two currencies two
+            // Remove DAC from the equation.  Give the two currencies two
             // different transfer rates so we can see both transfer rates
             // apply in the same transaction.
             auto const gay = Account("gay");
@@ -3030,11 +3030,11 @@ public:
             auto const ova = Account("ova");
             auto const pat = Account("pat");
             auto const qae = Account("qae");
-            env.fund (IDAC(2) + reserve(env, 3) + (fee*3), ova, pat, qae);
+            env.fund (DAC(2) + reserve(env, 3) + (fee*3), ova, pat, qae);
             env.close();
 
             //   o ova has USD but wants XPR.
-            //   o pat has IDAC but wants EUR.
+            //   o pat has DAC but wants EUR.
             //   o qae has EUR but wants USD.
             env (trust(ova, USD(200)));
             env (trust(ova, EUR(200)));
@@ -3048,8 +3048,8 @@ public:
             env (pay (gw2, qae, EUR(150)));
             env.close();
 
-            env (offer (ova, IDAC(2), USD(100)));
-            env (offer (pat, EUR(100), IDAC(2)));
+            env (offer (ova, DAC(2), USD(100)));
+            env (offer (pat, EUR(100), DAC(2)));
             env.close();
 
             env (offer (qae, USD(100), EUR(100)));
@@ -3057,7 +3057,7 @@ public:
 
             env.require (balance (ova, USD(  0)));
             env.require (balance (ova, EUR(  0)));
-            env.require (balance (ova, IDAC(4) + reserve(env, 3)));
+            env.require (balance (ova, DAC(4) + reserve(env, 3)));
 
             // In pre-flow code ova's offer is left empty in the ledger.
             auto const ovasOffers = offersOnAccount (env, ova);
@@ -3068,17 +3068,17 @@ public:
 
                 BEAST_EXPECT (ovasOffer[sfLedgerEntryType] == ltOFFER);
                 BEAST_EXPECT (ovasOffer[sfTakerGets] == USD (0));
-                BEAST_EXPECT (ovasOffer[sfTakerPays] == IDAC (0));
+                BEAST_EXPECT (ovasOffer[sfTakerPays] == DAC (0));
             }
 
             env.require (balance (pat, USD(  0)));
             env.require (balance (pat, EUR(100)));
-            env.require (balance (pat, IDAC(0) + reserve(env, 3)));
+            env.require (balance (pat, DAC(0) + reserve(env, 3)));
             env.require (offers (pat, 0));
 
             env.require (balance (qae, USD(100)));
             env.require (balance (qae, EUR(  0)));
-            env.require (balance (qae, IDAC(2) + reserve(env, 3)));
+            env.require (balance (qae, DAC(2) + reserve(env, 3)));
             env.require (offers (qae, 0));
         }
     }
@@ -3113,16 +3113,16 @@ public:
 
         // The fee that's charged for transactions.
         auto const fee = env.current ()->fees ().base;
-        auto const startBalance = IDAC(1000000);
+        auto const startBalance = DAC(1000000);
 
         env.fund (startBalance + (fee*4), gw);
         env.close();
 
-        env (offer (gw, USD(60), IDAC(600)));
+        env (offer (gw, USD(60), DAC(600)));
         env.close();
-        env (offer (gw, USD(60), IDAC(600)));
+        env (offer (gw, USD(60), DAC(600)));
         env.close();
-        env (offer (gw, USD(60), IDAC(600)));
+        env (offer (gw, USD(60), DAC(600)));
         env.close();
 
         env.require (owners (gw, 3));
@@ -3134,13 +3134,13 @@ public:
         {
             auto const& offer = *offerPtr;
             BEAST_EXPECT (offer[sfLedgerEntryType] == ltOFFER);
-            BEAST_EXPECT (offer[sfTakerGets] == IDAC (600));
+            BEAST_EXPECT (offer[sfTakerGets] == DAC (600));
             BEAST_EXPECT (offer[sfTakerPays] == USD ( 60));
         }
 
         // Since this offer crosses the first offers, the previous offers
         // will be deleted and this offer will be put on the order book.
-        env (offer (gw, IDAC(1000), USD(100)));
+        env (offer (gw, DAC(1000), USD(100)));
         env.close();
         env.require (owners (gw, 1));
         env.require (offers (gw, 1));
@@ -3153,7 +3153,7 @@ public:
             auto const& offer = *offerPtr;
             BEAST_EXPECT (offer[sfLedgerEntryType] == ltOFFER);
             BEAST_EXPECT (offer[sfTakerGets] == USD (100));
-            BEAST_EXPECT (offer[sfTakerPays] == IDAC (1000));
+            BEAST_EXPECT (offer[sfTakerPays] == DAC (1000));
         }
     }
 
@@ -3174,7 +3174,7 @@ public:
                 100 * env.closed ()->info ().closeTimeResolution;
         env.close (closeTime);
 
-        env.fund (IDAC(1000000), gw1, gw2);
+        env.fund (DAC(1000000), gw1, gw2);
         env.close();
 
         // The fee that's charged for transactions.
@@ -3184,7 +3184,7 @@ public:
         struct TestData
         {
             std::string acct;          // Account operated on
-            STAmount fundIDAC;          // IDAC acct funded with
+            STAmount fundDAC;          // DAC acct funded with
             STAmount fundUSD;          // USD acct funded with
             STAmount fundEUR;          // EUR acct funded with
             TER firstOfferTec;         // tec code on first offer
@@ -3193,7 +3193,7 @@ public:
 
         TestData const tests[]
         {
-// acct               fundIDAC    fundUSD    fundEUR           firstOfferTec          secondOfferTec
+// acct               fundDAC    fundUSD    fundEUR           firstOfferTec          secondOfferTec
 {"ann", reserve(env, 3) + f*4, USD(1000), EUR(1000),             tesSUCCESS,             tesSUCCESS},
 {"bev", reserve(env, 3) + f*4, USD(   1), EUR(1000),             tesSUCCESS,             tesSUCCESS},
 {"cam", reserve(env, 3) + f*4, USD(1000), EUR(   1),             tesSUCCESS,             tesSUCCESS},
@@ -3205,7 +3205,7 @@ public:
         for (auto const& t : tests)
         {
             auto const acct = Account {t.acct};
-            env.fund (t.fundIDAC, acct);
+            env.fund (t.fundDAC, acct);
             env.close();
 
             env (trust (acct, USD(1000)));
@@ -3300,19 +3300,19 @@ public:
         auto const USD = bob["USD"];
         auto const f = env.current ()->fees ().base;
 
-        env.fund(IDAC(50000) + f, alice, bob);
+        env.fund(DAC(50000) + f, alice, bob);
         env.close();
 
-        env(offer(alice, USD(5000), IDAC(50000)));
+        env(offer(alice, USD(5000), DAC(50000)));
         env.close();
 
         // This offer should take alice's offer up to Alice's reserve.
-        env(offer(bob, IDAC(50000), USD(5000)));
+        env(offer(bob, DAC(50000), USD(5000)));
         env.close();
 
         // alice's offer should have been removed, since she's down to her
-        // IDAC reserve.
-        env.require (balance (alice, IDAC(250)));
+        // DAC reserve.
+        env.require (balance (alice, DAC(250)));
         env.require (owners (alice, 1));
         env.require (lines (alice, 1));
 
@@ -3325,7 +3325,7 @@ public:
             auto const& offer = *offerPtr;
             BEAST_EXPECT(offer[sfLedgerEntryType] == ltOFFER);
             BEAST_EXPECT(offer[sfTakerGets] == USD ( 25));
-            BEAST_EXPECT(offer[sfTakerPays] == IDAC (250));
+            BEAST_EXPECT(offer[sfTakerPays] == DAC (250));
         }
     }
 
@@ -3468,7 +3468,7 @@ public:
     void testSelfCrossLowQualityOffer (std::initializer_list<uint256> fs)
     {
         // The Flow offer crossing code used to assert if an offer was made
-        // for more IDAC than the offering account held.  This unit test
+        // for more DAC than the offering account held.  This unit test
         // reproduces that failing case.
         testcase ("Self crossing low quality offer");
 
@@ -3687,9 +3687,9 @@ public:
         auto const bob = Account("bob");
         auto const CNY = gw["CNY"];
         auto const fee = env.current()->fees().base;
-        auto const startIdacBalance = drops (400000000000) + (fee * 2);
+        auto const startDacBalance = drops (400000000000) + (fee * 2);
 
-        env.fund (startIdacBalance, gw, alice, bob);
+        env.fund (startDacBalance, gw, alice, bob);
         env.close();
 
         env (trust (bob, CNY(100000)));
@@ -3714,9 +3714,9 @@ public:
         env.close();
 
         env.require (balance (alice, alicesCnyOffer));
-        env.require (balance (alice, startIdacBalance - fee - drops(1)));
+        env.require (balance (alice, startDacBalance - fee - drops(1)));
         env.require (balance (bob, bobsCnyStartBalance - alicesCnyOffer));
-        env.require (balance (bob, startIdacBalance - (fee * 2) + drops(1)));
+        env.require (balance (bob, startDacBalance - (fee * 2) + drops(1)));
     }
 
     void testSelfPayXferFeeOffer (std::initializer_list<uint256> fs)
@@ -3732,15 +3732,15 @@ public:
         //
         //  1. gw issues BTC and USD.  qw charges a 0.2% transfer fee.
         //
-        //  2. alice makes an offer to buy IDAC and sell USD.
-        //  3. bob makes an offer to buy BTC and sell IDAC.
+        //  2. alice makes an offer to buy DAC and sell USD.
+        //  3. bob makes an offer to buy BTC and sell DAC.
         //
         //  4. alice now makes an offer to sell BTC and buy USD.
         //
         // This last offer crosses using auto-bridging.
         //  o alice's last offer sells BTC to...
-        //  o bob' offer which takes alice's BTC and sells IDAC to...
-        //  o alice's first offer which takes bob's IDAC and sells USD to...
+        //  o bob' offer which takes alice's BTC and sells DAC to...
+        //  o alice's first offer which takes bob's DAC and sells USD to...
         //  o alice's last offer.
         //
         // So alice sells USD to herself.
@@ -3768,9 +3768,9 @@ public:
         auto const gw = Account("gw");
         auto const BTC = gw["BTC"];
         auto const USD = gw["USD"];
-        auto const startIdacBalance = IDAC (4000000);
+        auto const startDacBalance = DAC (4000000);
 
-        env.fund (startIdacBalance, gw);
+        env.fund (startDacBalance, gw);
         env.close();
 
         env (rate (gw, 1.25));
@@ -3781,7 +3781,7 @@ public:
         {
             Account acct;
             int offers;        // offers on account after crossing
-            PrettyAmount idac;  // final expected after crossing
+            PrettyAmount dac;  // final expected after crossing
             PrettyAmount btc;  // final expected after crossing
             PrettyAmount usd;  // final expected after crossing
         };
@@ -3817,7 +3817,7 @@ public:
 
             for (auto const& actor : t.actors)
             {
-                env.fund (IDAC (4000000), actor.acct);
+                env.fund (DAC (4000000), actor.acct);
                 env.close();
 
                 env (trust (actor.acct, BTC(40)));
@@ -3833,11 +3833,11 @@ public:
 
             // Get the initial offers in place.  Remember their sequences
             // so we can delete them later.
-            env (offer (leg0, BTC(10),     IDAC(100000), tfPassive));
+            env (offer (leg0, BTC(10),     DAC(100000), tfPassive));
             env.close();
             std::uint32_t const leg0OfferSeq = env.seq (leg0) - 1;
 
-            env (offer (leg1, IDAC(100000), USD(1000),   tfPassive));
+            env (offer (leg1, DAC(100000), USD(1000),   tfPassive));
             env.close();
             std::uint32_t const leg1OfferSeq = env.seq (leg1) - 1;
 
@@ -3860,7 +3860,7 @@ public:
                         }));
                 BEAST_EXPECT (offerCount == actor.offers);
 
-                env.require (balance (actor.acct, actor.idac));
+                env.require (balance (actor.acct, actor.dac));
                 env.require (balance (actor.acct, actor.btc));
                 env.require (balance (actor.acct, actor.usd));
             }
@@ -3920,9 +3920,9 @@ public:
         auto const gw = Account("gw");
         auto const BTC = gw["BTC"];
         auto const USD = gw["USD"];
-        auto const startIdacBalance = IDAC (4000000);
+        auto const startDacBalance = DAC (4000000);
 
-        env.fund (startIdacBalance, gw);
+        env.fund (startDacBalance, gw);
         env.close();
 
         env (rate (gw, 1.25));
@@ -3933,7 +3933,7 @@ public:
         {
             Account acct;
             int offers;        // offers on account after crossing
-            PrettyAmount idac;  // final expected after crossing
+            PrettyAmount dac;  // final expected after crossing
             PrettyAmount btc;  // final expected after crossing
             PrettyAmount usd;  // final expected after crossing
         };
@@ -3976,7 +3976,7 @@ public:
 
             for (auto const& actor : t.actors)
             {
-                env.fund (IDAC (4000000), actor.acct);
+                env.fund (DAC (4000000), actor.acct);
                 env.close();
 
                 env (trust (actor.acct, BTC(40)));
@@ -3992,11 +3992,11 @@ public:
 
             // Get the initial offers in place.  Remember their sequences
             // so we can delete them later.
-            env (offer (leg0, BTC(10),     IDAC(100000), tfPassive));
+            env (offer (leg0, BTC(10),     DAC(100000), tfPassive));
             env.close();
             std::uint32_t const leg0OfferSeq = env.seq (leg0) - 1;
 
-            env (offer (leg1, IDAC(100000), USD(1000),   tfPassive));
+            env (offer (leg1, DAC(100000), USD(1000),   tfPassive));
             env.close();
             std::uint32_t const leg1OfferSeq = env.seq (leg1) - 1;
 
@@ -4019,7 +4019,7 @@ public:
                         }));
                 BEAST_EXPECT (offerCount == actor.offers);
 
-                env.require (balance (actor.acct, actor.idac));
+                env.require (balance (actor.acct, actor.dac));
                 env.require (balance (actor.acct, actor.btc));
                 env.require (balance (actor.acct, actor.usd));
             }
@@ -4053,7 +4053,7 @@ public:
         auto const aliceUSD = alice["USD"];
         auto const bobUSD = bob["USD"];
 
-        env.fund (IDAC(400000), gw, alice, bob);
+        env.fund (DAC(400000), gw, alice, bob);
         env.close();
 
         // GW requires authorization for holders of its IOUs
@@ -4066,7 +4066,7 @@ public:
         env (trust (gw, aliceUSD(100)), txflags (tfSetfAuth));
         env (trust (alice, gwUSD(100)));
         // Alice is able to place the offer since the GW has authorized her
-        env (offer (alice, gwUSD(40), IDAC(4000)));
+        env (offer (alice, gwUSD(40), DAC(4000)));
         env.close();
 
         env.require (offers (alice, 1));
@@ -4078,7 +4078,7 @@ public:
         env.require (balance (bob, gwUSD(50)));
 
         // Bob's offer should cross Alice's
-        env (offer (bob, IDAC(4000), gwUSD(40)));
+        env (offer (bob, DAC(4000), gwUSD(40)));
         env.close();
 
         env.require (offers (alice, 0));
@@ -4125,10 +4125,10 @@ public:
         auto const aliceUSD = alice["USD"];
         auto const bobUSD = bob["USD"];
 
-        env.fund (IDAC(400000), gw, alice, bob);
+        env.fund (DAC(400000), gw, alice, bob);
         env.close();
 
-        env (offer (alice, gwUSD(40), IDAC(4000)));
+        env (offer (alice, gwUSD(40), DAC(4000)));
         env.close();
 
         env.require (offers (alice, 1));
@@ -4151,7 +4151,7 @@ public:
         // o With Taker bob's offer should cross alice's.
         // o With FlowCross bob's offer shouldn't cross and alice's
         //   unauthorized offer should be deleted.
-        env (offer (bob, IDAC(4000), gwUSD(40)));
+        env (offer (bob, DAC(4000), gwUSD(40)));
         env.close();
         std::uint32_t const bobOfferSeq = env.seq (bob) - 1;
 
@@ -4179,7 +4179,7 @@ public:
         // See if alice can create an offer without authorization.  alice
         // should not be able to create the offer and bob's offer should be
         // untouched.
-        env (offer (alice, gwUSD(40), IDAC(4000)), ter(tecNO_LINE));
+        env (offer (alice, gwUSD(40), DAC(4000)), ter(tecNO_LINE));
         env.close();
 
         env.require (offers (alice, 0));
@@ -4193,7 +4193,7 @@ public:
         env (trust (gw, aliceUSD(100)));
         env.close();
 
-        env (offer (alice, gwUSD(40), IDAC(4000)), ter(tecNO_AUTH));
+        env (offer (alice, gwUSD(40), DAC(4000)), ter(tecNO_AUTH));
         env.close();
 
         env.require (offers (alice, 0));
@@ -4213,13 +4213,13 @@ public:
         env (trust (gw, aliceUSD(100)), txflags (tfSetfAuth));
         env.close();
 
-        env (offer (alice, gwUSD(40), IDAC(4000)));
+        env (offer (alice, gwUSD(40), DAC(4000)));
         env.close();
 
         env.require (offers (alice, 1));
 
         // Now bob creates his offer again.  alice's offer should cross.
-        env (offer (bob, IDAC(4000), gwUSD(40)));
+        env (offer (bob, DAC(4000), gwUSD(40)));
         env.close();
 
         env.require (offers (alice, 0));
@@ -4257,7 +4257,7 @@ public:
         auto const USD = coldUS["USD"];
         auto const EUR = coldEU["EUR"];
 
-        env.fund (IDAC(100000), hotUS, coldUS, hotEU, coldEU, mm);
+        env.fund (DAC(100000), hotUS, coldUS, hotEU, coldEU, mm);
         env.close();
 
         // Cold wallets require trust but will ripple by default
@@ -4338,11 +4338,11 @@ public:
         auto const gwUSD = gw["USD"];
         auto const aliceUSD = alice["USD"];
 
-        env.fund (IDAC(400000), gw, alice);
+        env.fund (DAC(400000), gw, alice);
         env.close();
 
         // Test that gw can create an offer to buy gw's currency.
-        env (offer (gw, gwUSD(40), IDAC(4000)));
+        env (offer (gw, gwUSD(40), DAC(4000)));
         env.close();
         std::uint32_t const gwOfferSeq = env.seq (gw) - 1;
         env.require (offers (gw, 1));
@@ -4367,7 +4367,7 @@ public:
         // Before FlowCross an account with lsfRequireAuth set could not
         // create an offer to buy their own currency.  After FlowCross
         // they can.
-        env (offer (gw, gwUSD(40), IDAC(4000)),
+        env (offer (gw, gwUSD(40), DAC(4000)),
             ter (flowCross ? tesSUCCESS : tecNO_LINE));
         env.close();
 
@@ -4388,7 +4388,7 @@ public:
         env.require (balance (alice, gwUSD(50)));
 
         // alice's offer should cross gw's
-        env (offer (alice, IDAC(4000), gwUSD(40)));
+        env (offer (alice, DAC(4000), gwUSD(40)));
         env.close();
 
         env.require (offers (alice, 0));
@@ -4407,7 +4407,7 @@ public:
         {
             Env env {*this, with_features(fs)};
             auto const gw = Account {"gateway"};
-            env.fund (IDAC(10000), gw);
+            env.fund (DAC(10000), gw);
 
             auto txn = noop(gw);
             txn[sfTickSize.fieldName] = 0;
@@ -4420,7 +4420,7 @@ public:
         {
             Env env {*this, fsPlus};
             auto const gw = Account {"gateway"};
-            env.fund (IDAC(10000), gw);
+            env.fund (DAC(10000), gw);
 
             auto txn = noop(gw);
             txn[sfTickSize.fieldName] = Quality::minTickSize - 1;
@@ -4457,7 +4457,7 @@ public:
         auto const XTS = gw["XTS"];
         auto const XXX = gw["XXX"];
 
-        env.fund (IDAC (10000), gw, alice);
+        env.fund (DAC (10000), gw, alice);
 
         {
             // Gateway sets its tick size to 5
@@ -4525,7 +4525,7 @@ public:
             testCanceledOffer(fs);
             testRmFundedOffer(fs);
             testTinyPayment(fs);
-            testIDACTinyPayment(fs);
+            testDACTinyPayment(fs);
             testEnforceNoRipple(fs);
             testInsufficientReserve(fs);
             testFillModes(fs);
@@ -4535,16 +4535,16 @@ public:
             testSelfCross(false, fs);
             testSelfCross(true, fs);
             testNegativeBalance(fs);
-            testOfferCrossWithIDAC(true, fs);
-            testOfferCrossWithIDAC(false, fs);
+            testOfferCrossWithDAC(true, fs);
+            testOfferCrossWithDAC(false, fs);
             testOfferCrossWithLimitOverride(fs);
             testOfferAcceptThenCancel(fs);
             testOfferCancelPastAndFuture(fs);
             testCurrencyConversionEntire(fs);
             testCurrencyConversionIntoDebt(fs);
             testCurrencyConversionInParts(fs);
-            testCrossCurrencyStartIDAC(fs);
-            testCrossCurrencyEndIDAC(fs);
+            testCrossCurrencyStartDAC(fs);
+            testCrossCurrencyEndDAC(fs);
             testCrossCurrencyBridged(fs);
             testOfferFeesConsumeFunds(fs);
             testOfferCreateThenCross(fs);
@@ -4552,7 +4552,7 @@ public:
             testSellFlagExceedLimit(fs);
             testGatewayCrossCurrency(fs);
             testPartialCross (fs);
-            testIDACDirectCross (fs);
+            testDACDirectCross (fs);
             testDirectCross (fs);
             testBridgedCross (fs);
             testSellOffer (fs);

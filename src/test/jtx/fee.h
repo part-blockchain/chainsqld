@@ -53,9 +53,9 @@ public:
     fee (STAmount const& amount)
         : amount_(amount)
     {
-        if (! isIDAC(*amount_))
+        if (! isDAC(*amount_))
             Throw<std::runtime_error> (
-                "fee: not IDAC");
+                "fee: not DAC");
     }
 
     void

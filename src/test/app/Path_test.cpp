@@ -183,7 +183,7 @@ auto IPE(Issue const& iss)
 {
     return STPathElement (
         STPathElement::typeCurrency | STPathElement::typeIssuer,
-        idacAccount (), iss.currency, iss.account);
+        dacAccount (), iss.currency, iss.account);
 };
 
 //------------------------------------------------------------------------------
@@ -321,7 +321,7 @@ public:
         using namespace jtx;
         Env env(*this);
         auto const gw = Account("gateway");
-        env.fund(IDAC(10000), "alice", "bob", gw);
+        env.fund(DAC(10000), "alice", "bob", gw);
         env.trust(gw["USD"](100), "alice", "bob");
         env.close();
 
@@ -392,7 +392,7 @@ public:
         testcase("no direct path no intermediary no alternatives");
         using namespace jtx;
         Env env(*this);
-        env.fund(IDAC(10000), "alice", "bob");
+        env.fund(DAC(10000), "alice", "bob");
 
         auto const result = find_paths(env,
             "alice", "bob", Account("bob")["USD"](5));
@@ -405,7 +405,7 @@ public:
         testcase("direct path no intermediary");
         using namespace jtx;
         Env env(*this);
-        env.fund(IDAC(10000), "alice", "bob");
+        env.fund(DAC(10000), "alice", "bob");
         env.trust(Account("alice")["USD"](700), "bob");
 
         STPathSet st;
@@ -424,7 +424,7 @@ public:
         Env env(*this);
         auto const gw = Account("gateway");
         auto const USD = gw["USD"];
-        env.fund(IDAC(10000), "alice", "bob", gw);
+        env.fund(DAC(10000), "alice", "bob", gw);
         env.trust(USD(600), "alice");
         env.trust(USD(700), "bob");
         env(pay(gw, "alice", USD(70)));
@@ -443,7 +443,7 @@ public:
         Env env(*this);
         auto const gw = Account("gateway");
         auto const USD = gw["USD"];
-        env.fund(IDAC(10000), "alice", "bob", gw);
+        env.fund(DAC(10000), "alice", "bob", gw);
         env.trust(USD(600), "alice");
         env.trust(USD(700), "bob");
         env(pay(gw, "alice", USD(70)));
@@ -458,15 +458,15 @@ public:
     }
 
     void
-    idac_to_idac()
+    dac_to_dac()
     {
         using namespace jtx;
-        testcase("IDAC to IDAC");
+        testcase("DAC to DAC");
         Env env(*this);
-        env.fund(IDAC(10000), "alice", "bob");
+        env.fund(DAC(10000), "alice", "bob");
 
         auto const result = find_paths(env,
-                                       "alice", "bob", IDAC(5));
+                                       "alice", "bob", DAC(5));
         BEAST_EXPECT(std::get<0>(result).empty());
     }
 
@@ -478,7 +478,7 @@ public:
 
         {
             Env env(*this);
-            env.fund(IDAC(10000), "alice", "bob", "carol",
+            env.fund(DAC(10000), "alice", "bob", "carol",
                 "dan", "edward");
             env.trust(Account("alice")["USD"](10), "bob");
             env.trust(Account("bob")["USD"](10), "carol");
@@ -500,22 +500,22 @@ public:
             Env env(*this);
             auto const gw = Account("gateway");
             auto const USD = gw["USD"];
-            env.fund(IDAC(10000), "alice", "bob", "carol", gw);
+            env.fund(DAC(10000), "alice", "bob", "carol", gw);
             env.trust(USD(100), "bob", "carol");
             env(pay(gw, "carol", USD(100)));
-            env(offer("carol", IDAC(100), USD(100)));
+            env(offer("carol", DAC(100), USD(100)));
 
             STPathSet st;
             STAmount sa;
             STAmount da;
             std::tie(st, sa, da) = find_paths(env,
                 "alice", "bob", Account("bob")["AUD"](-1),
-                    boost::optional<STAmount>(IDAC(100000000)));
+                    boost::optional<STAmount>(DAC(100000000)));
             BEAST_EXPECT(st.empty());
             std::tie(st, sa, da) = find_paths(env,
                 "alice", "bob", Account("bob")["USD"](-1),
-                    boost::optional<STAmount>(IDAC(100000000)));
-            BEAST_EXPECT(sa == IDAC(100));
+                    boost::optional<STAmount>(DAC(100000000)));
+            BEAST_EXPECT(sa == DAC(100));
             BEAST_EXPECT(equal(da, Account("bob")["USD"](100)));
         }
     }
@@ -530,7 +530,7 @@ public:
         auto const USD = gw["USD"];
         auto const gw2 = Account("gateway2");
         auto const gw2_USD = gw2["USD"];
-        env.fund(IDAC(10000), "alice", "bob", gw, gw2);
+        env.fund(DAC(10000), "alice", "bob", gw, gw2);
         env.trust(USD(600), "alice");
         env.trust(gw2_USD(800), "alice");
         env.trust(USD(700), "bob");
@@ -559,7 +559,7 @@ public:
         auto const USD = gw["USD"];
         auto const gw2 = Account("gateway2");
         auto const gw2_USD = gw2["USD"];
-        env.fund(IDAC(10000), "alice", "bob", gw, gw2);
+        env.fund(DAC(10000), "alice", "bob", gw, gw2);
         env(rate(gw2, 1.1));
         env.trust(USD(600), "alice");
         env.trust(gw2_USD(800), "alice");
@@ -588,7 +588,7 @@ public:
         auto const USD = gw["USD"];
         auto const gw2 = Account("gateway2");
         auto const gw2_USD = gw2["USD"];
-        env.fund(IDAC(10000), "alice", "bob", gw, gw2);
+        env.fund(DAC(10000), "alice", "bob", gw, gw2);
         env(rate(gw2, 1.1));
         env.trust(USD(600), "alice");
         env.trust(gw2_USD(800), "alice");
@@ -619,7 +619,7 @@ public:
         auto const USD = gw["USD"];
         auto const gw2 = Account("gateway2");
         auto const gw2_USD = gw2["USD"];
-        env.fund(IDAC(10000), "alice", "bob", "carol", "dan", gw, gw2);
+        env.fund(DAC(10000), "alice", "bob", "carol", "dan", gw, gw2);
         env(rate("carol", 1.1));
         env.trust(Account("carol")["USD"](800), "alice", "bob");
         env.trust(Account("dan")["USD"](800), "alice", "bob");
@@ -646,7 +646,7 @@ public:
         testcase("path negative: Issue #5");
         using namespace jtx;
         Env env(*this);
-        env.fund(IDAC(10000), "alice", "bob", "carol", "dan");
+        env.fund(DAC(10000), "alice", "bob", "carol", "dan");
         env.trust(Account("bob")["USD"](100), "alice", "carol", "dan");
         env.trust(Account("alice")["USD"](100), "dan");
         env.trust(Account("carol")["USD"](100), "dan");
@@ -686,7 +686,7 @@ public:
         testcase("path negative: ripple-client issue #23: smaller");
         using namespace jtx;
         Env env(*this);
-        env.fund(IDAC(10000), "alice", "bob", "carol", "dan");
+        env.fund(DAC(10000), "alice", "bob", "carol", "dan");
         env.trust(Account("alice")["USD"](40), "bob");
         env.trust(Account("dan")["USD"](20), "bob");
         env.trust(Account("alice")["USD"](20), "carol");
@@ -705,7 +705,7 @@ public:
         testcase("path negative: ripple-client issue #23: larger");
         using namespace jtx;
         Env env(*this);
-        env.fund(IDAC(10000), "alice", "bob", "carol", "dan", "edward");
+        env.fund(DAC(10000), "alice", "bob", "carol", "dan", "edward");
         env.trust(Account("alice")["USD"](120), "edward");
         env.trust(Account("edward")["USD"](25), "bob");
         env.trust(Account("dan")["USD"](100), "bob");
@@ -723,9 +723,9 @@ public:
         env.require(balance("dan", Account("bob")["USD"](-25)));
     }
 
-    // carol holds gateway AUD, sells gateway AUD for IDAC
+    // carol holds gateway AUD, sells gateway AUD for DAC
     // bob will hold gateway AUD
-    // alice pays bob gateway AUD using IDAC
+    // alice pays bob gateway AUD using DAC
     void
     via_offers_via_gateway()
     {
@@ -734,12 +734,12 @@ public:
         Env env(*this);
         auto const gw = Account("gateway");
         auto const AUD = gw["AUD"];
-        env.fund(IDAC(10000), "alice", "bob", "carol", gw);
+        env.fund(DAC(10000), "alice", "bob", "carol", gw);
         env(rate(gw, 1.1));
         env.trust(AUD(100), "bob", "carol");
         env(pay(gw, "carol", AUD(50)));
-        env(offer("carol", IDAC(50), AUD(50)));
-        env(pay("alice", "bob", AUD(10)), sendmax(IDAC(100)), paths(IDAC));
+        env(offer("carol", DAC(50), AUD(50)));
+        env(pay("alice", "bob", AUD(10)), sendmax(DAC(100)), paths(DAC));
         env.require(balance("bob", AUD(10)));
         env.require(balance("carol", AUD(39)));
 
@@ -754,7 +754,7 @@ public:
         testcase("path find");
         using namespace jtx;
         Env env(*this);
-        env.fund(IDAC(10000), "alice", "bob", "carol");
+        env.fund(DAC(10000), "alice", "bob", "carol");
         env.trust(Account("alice")["USD"](1000), "bob");
         env.trust(Account("bob")["USD"](1000), "carol");
 
@@ -772,7 +772,7 @@ public:
         testcase("quality set and test");
         using namespace jtx;
         Env env(*this);
-        env.fund(IDAC(10000), "alice", "bob");
+        env.fund(DAC(10000), "alice", "bob");
         env(trust("bob", Account("alice")["USD"](1000)),
             json("{\"" + sfQualityIn.fieldName + "\": 2000}"),
                 json("{\"" + sfQualityOut.fieldName + "\": 1400000000}"));
@@ -814,7 +814,7 @@ public:
         testcase("trust normal clear");
         using namespace jtx;
         Env env(*this);
-        env.fund(IDAC(10000), "alice", "bob");
+        env.fund(DAC(10000), "alice", "bob");
         env.trust(Account("bob")["USD"](1000), "alice");
         env.trust(Account("alice")["USD"](1000), "bob");
 
@@ -858,7 +858,7 @@ public:
         testcase("trust auto clear");
         using namespace jtx;
         Env env(*this);
-        env.fund(IDAC(10000), "alice", "bob");
+        env.fund(DAC(10000), "alice", "bob");
         env.trust(Account("bob")["USD"](1000), "alice");
         env(pay("bob", "alice", Account("bob")["USD"](50)));
         env.trust(Account("bob")["USD"](0), "alice");
@@ -901,7 +901,7 @@ public:
 
     void path_find_01()
     {
-        testcase("Path Find: IDAC -> IDAC and IDAC -> IOU");
+        testcase("Path Find: DAC -> DAC and DAC -> IOU");
         using namespace jtx;
         Env env(*this);
         Account A1 {"A1"};
@@ -912,9 +912,9 @@ public:
         Account G3 {"G3"};
         Account M1 {"M1"};
 
-        env.fund(IDAC(100000), A1);
-        env.fund(IDAC(10000), A2);
-        env.fund(IDAC(1000), A3, G1, G2, G3, M1);
+        env.fund(DAC(100000), A1);
+        env.fund(DAC(10000), A2);
+        env.fund(DAC(1000), A3, G1, G2, G3, M1);
         env.close();
 
         env.trust(G1["XYZ"](5000), A1);
@@ -934,15 +934,15 @@ public:
         env.close();
 
         env(offer(M1, G1["XYZ"](1000), G2["XYZ"](1000)));
-        env(offer(M1, IDAC(10000), G3["ABC"](1000)));
+        env(offer(M1, DAC(10000), G3["ABC"](1000)));
 
         STPathSet st;
         STAmount sa, da;
 
         {
-            auto const& send_amt = IDAC(10);
+            auto const& send_amt = DAC(10);
             std::tie(st, sa, da) = find_paths(env, A1, A2, send_amt,
-                boost::none, idacCurrency());
+                boost::none, dacCurrency());
             BEAST_EXPECT(equal(da, send_amt));
             BEAST_EXPECT(st.empty());
         }
@@ -950,9 +950,9 @@ public:
         {
             // no path should exist for this since dest account
             // does not exist.
-            auto const& send_amt = IDAC(200);
+            auto const& send_amt = DAC(200);
             std::tie(st, sa, da) = find_paths(env, A1, Account{"A0"}, send_amt,
-                boost::none, idacCurrency());
+                boost::none, dacCurrency());
             BEAST_EXPECT(equal(da, send_amt));
             BEAST_EXPECT(st.empty());
         }
@@ -960,34 +960,34 @@ public:
         {
             auto const& send_amt = G3["ABC"](10);
             std::tie(st, sa, da) = find_paths(env, A2, G3, send_amt,
-                boost::none, idacCurrency());
+                boost::none, dacCurrency());
             BEAST_EXPECT(equal(da, send_amt));
-            BEAST_EXPECT(equal(sa, IDAC(100)));
+            BEAST_EXPECT(equal(sa, DAC(100)));
             BEAST_EXPECT(same(st, stpath(IPE(G3["ABC"]))));
         }
 
         {
             auto const& send_amt = A2["ABC"](1);
             std::tie(st, sa, da) = find_paths(env, A1, A2, send_amt,
-                boost::none, idacCurrency());
+                boost::none, dacCurrency());
             BEAST_EXPECT(equal(da, send_amt));
-            BEAST_EXPECT(equal(sa, IDAC(10)));
+            BEAST_EXPECT(equal(sa, DAC(10)));
             BEAST_EXPECT(same(st, stpath(IPE(G3["ABC"]), G3)));
         }
 
         {
             auto const& send_amt = A3["ABC"](1);
             std::tie(st, sa, da) = find_paths(env, A1, A3, send_amt,
-                boost::none, idacCurrency());
+                boost::none, dacCurrency());
             BEAST_EXPECT(equal(da, send_amt));
-            BEAST_EXPECT(equal(sa, IDAC(10)));
+            BEAST_EXPECT(equal(sa, DAC(10)));
             BEAST_EXPECT(same(st, stpath(IPE(G3["ABC"]), G3, A2)));
         }
     }
 
     void path_find_02()
     {
-        testcase("Path Find: non-IDAC -> IDAC");
+        testcase("Path Find: non-DAC -> DAC");
         using namespace jtx;
         Env env(*this);
         Account A1 {"A1"};
@@ -995,8 +995,8 @@ public:
         Account G3 {"G3"};
         Account M1 {"M1"};
 
-        env.fund(IDAC(1000), A1, A2, G3);
-        env.fund(IDAC(11000), M1);
+        env.fund(DAC(1000), A1, A2, G3);
+        env.fund(DAC(11000), M1);
         env.close();
 
         env.trust(G3["ABC"](1000), A1, A2);
@@ -1008,17 +1008,17 @@ public:
         env(pay(G3, M1, G3["ABC"](1200)));
         env.close();
 
-        env(offer(M1, G3["ABC"](1000), IDAC(10000)));
+        env(offer(M1, G3["ABC"](1000), DAC(10000)));
 
         STPathSet st;
         STAmount sa, da;
 
-        auto const& send_amt = IDAC(10);
+        auto const& send_amt = DAC(10);
         std::tie(st, sa, da) = find_paths(env, A1, A2, send_amt,
             boost::none, A2["ABC"].currency);
         BEAST_EXPECT(equal(da, send_amt));
         BEAST_EXPECT(equal(sa, A1["ABC"](1)));
-        BEAST_EXPECT(same(st, stpath(G3, IPE(idacIssue()))));
+        BEAST_EXPECT(same(st, stpath(G3, IPE(dacIssue()))));
     }
 
     void path_find_03()
@@ -1035,13 +1035,13 @@ public:
         Account MONEY_MAKER_1 {"MONEY_MAKER_1"};
         Account MONEY_MAKER_2 {"MONEY_MAKER_2"};
 
-        env.fund(IDAC(4999.999898), SRC);
-        env.fund(IDAC(10846.168060), GATEWAY_DST);
-        env.fund(IDAC(4291.430036), MONEY_MAKER_1);
-        env.fund(IDAC(106839.375770), MONEY_MAKER_2);
-        env.fund(IDAC(1240.997150), A1);
-        env.fund(IDAC(14115.046893), A2);
-        env.fund(IDAC(512087.883181), A3);
+        env.fund(DAC(4999.999898), SRC);
+        env.fund(DAC(10846.168060), GATEWAY_DST);
+        env.fund(DAC(4291.430036), MONEY_MAKER_1);
+        env.fund(DAC(106839.375770), MONEY_MAKER_2);
+        env.fund(DAC(1240.997150), A1);
+        env.fund(DAC(14115.046893), A2);
+        env.fund(DAC(512087.883181), A3);
         env.close();
 
         env.trust(MONEY_MAKER_1["CNY"](1001), MONEY_MAKER_2);
@@ -1069,27 +1069,27 @@ public:
         env(pay(GATEWAY_DST, A3, GATEWAY_DST["CNY"](70.999614649799)));
         env.close();
 
-        env(offer(MONEY_MAKER_2, IDAC(1), GATEWAY_DST["CNY"](1)));
-        env(offer(MONEY_MAKER_2, GATEWAY_DST["CNY"](1), IDAC(1)));
-        env(offer(MONEY_MAKER_2, GATEWAY_DST["CNY"](318000), IDAC(53000)));
-        env(offer(MONEY_MAKER_2, IDAC(209), MONEY_MAKER_2["CNY"](4.18)));
-        env(offer(MONEY_MAKER_2, MONEY_MAKER_1["CNY"](990000), IDAC(10000)));
-        env(offer(MONEY_MAKER_2, MONEY_MAKER_1["CNY"](9990000), IDAC(10000)));
-        env(offer(MONEY_MAKER_2, GATEWAY_DST["CNY"](8870000), IDAC(10000)));
-        env(offer(MONEY_MAKER_2, IDAC(232), MONEY_MAKER_2["CNY"](5.568)));
-        env(offer(A2, IDAC(2000), MONEY_MAKER_1["CNY"](66.8)));
-        env(offer(A2, IDAC(1200), GATEWAY_DST["CNY"](42)));
-        env(offer(A2, MONEY_MAKER_1["CNY"](43.2), IDAC(900)));
-        env(offer(A3, MONEY_MAKER_1["CNY"](2240), IDAC(50000)));
+        env(offer(MONEY_MAKER_2, DAC(1), GATEWAY_DST["CNY"](1)));
+        env(offer(MONEY_MAKER_2, GATEWAY_DST["CNY"](1), DAC(1)));
+        env(offer(MONEY_MAKER_2, GATEWAY_DST["CNY"](318000), DAC(53000)));
+        env(offer(MONEY_MAKER_2, DAC(209), MONEY_MAKER_2["CNY"](4.18)));
+        env(offer(MONEY_MAKER_2, MONEY_MAKER_1["CNY"](990000), DAC(10000)));
+        env(offer(MONEY_MAKER_2, MONEY_MAKER_1["CNY"](9990000), DAC(10000)));
+        env(offer(MONEY_MAKER_2, GATEWAY_DST["CNY"](8870000), DAC(10000)));
+        env(offer(MONEY_MAKER_2, DAC(232), MONEY_MAKER_2["CNY"](5.568)));
+        env(offer(A2, DAC(2000), MONEY_MAKER_1["CNY"](66.8)));
+        env(offer(A2, DAC(1200), GATEWAY_DST["CNY"](42)));
+        env(offer(A2, MONEY_MAKER_1["CNY"](43.2), DAC(900)));
+        env(offer(A3, MONEY_MAKER_1["CNY"](2240), DAC(50000)));
 
         STPathSet st;
         STAmount sa, da;
 
         auto const& send_amt = GATEWAY_DST["CNY"](10.1);
         std::tie(st, sa, da) = find_paths(env, SRC, GATEWAY_DST, send_amt,
-            boost::none, idacCurrency());
+            boost::none, dacCurrency());
         BEAST_EXPECT(equal(da, send_amt));
-        BEAST_EXPECT(equal(sa, IDAC(288.571429)));
+        BEAST_EXPECT(equal(sa, DAC(288.571429)));
         BEAST_EXPECT(same(st,
             stpath(IPE(MONEY_MAKER_1["CNY"]), MONEY_MAKER_1, A3),
             stpath(IPE(MONEY_MAKER_1["CNY"]), MONEY_MAKER_1, MONEY_MAKER_2),
@@ -1109,8 +1109,8 @@ public:
         Account G2SW {"G2SW"};
         Account M1 {"M1"};
 
-        env.fund(IDAC(1000), G1BS, G2SW, A1, A2);
-        env.fund(IDAC(11000), M1);
+        env.fund(DAC(1000), G1BS, G2SW, A1, A2);
+        env.fund(DAC(11000), M1);
         env.close();
 
         env.trust(G1BS["HKD"](2000), A1);
@@ -1180,7 +1180,7 @@ public:
 
     void path_find_05()
     {
-        testcase("Path Find: non-IDAC -> non-IDAC, same currency");
+        testcase("Path Find: non-DAC -> non-DAC, same currency");
         using namespace jtx;
         Env env(*this);
         Account A1 {"A1"};
@@ -1194,9 +1194,9 @@ public:
         Account M1 {"M1"};
         Account M2 {"M2"};
 
-        env.fund(IDAC(1000), A1, A2, A3, G1, G2, G3, G4);
-        env.fund(IDAC(10000), A4);
-        env.fund(IDAC(11000), M1, M2);
+        env.fund(DAC(1000), A1, A2, A3, G1, G2, G3, G4);
+        env.fund(DAC(10000), A4);
+        env.fund(DAC(11000), M1, M2);
         env.close();
 
         env.trust(G1["HKD"](2000), A1);
@@ -1218,8 +1218,8 @@ public:
         env.close();
 
         env(offer(M1, G1["HKD"](1000), G2["HKD"](1000)));
-        env(offer(M2, IDAC(10000), G2["HKD"](1000)));
-        env(offer(M2, G1["HKD"](1000), IDAC(10000)));
+        env(offer(M2, DAC(10000), G2["HKD"](1000)));
+        env(offer(M2, G1["HKD"](1000), DAC(10000)));
 
         STPathSet st;
         STAmount sa, da;
@@ -1269,7 +1269,7 @@ public:
                 stpath(IPE(G2["HKD"])),
                 stpath(M1),
                 stpath(M2),
-                stpath(IPE(idacIssue()), IPE(G2["HKD"]))
+                stpath(IPE(dacIssue()), IPE(G2["HKD"]))
             ));
         }
 
@@ -1285,13 +1285,13 @@ public:
                 stpath(G1, M1),
                 stpath(G1, M2),
                 stpath(G1, IPE(G2["HKD"])),
-                stpath(G1, IPE(idacIssue()), IPE(G2["HKD"]))
+                stpath(G1, IPE(dacIssue()), IPE(G2["HKD"]))
             ));
         }
 
         {
-            //I4) IDAC bridge" --
-            //  Source -> AC -> OB to IDAC -> OB from IDAC -> AC -> Destination
+            //I4) DAC bridge" --
+            //  Source -> AC -> OB to DAC -> OB from DAC -> AC -> Destination
             auto const& send_amt = A2["HKD"](10);
             std::tie(st, sa, da) = find_paths(env, A1, A2, send_amt,
                 boost::none, G1["HKD"].currency);
@@ -1301,14 +1301,14 @@ public:
                 stpath(G1, M1, G2),
                 stpath(G1, M2, G2),
                 stpath(G1, IPE(G2["HKD"]), G2),
-                stpath(G1, IPE(idacIssue()), IPE(G2["HKD"]), G2)
+                stpath(G1, IPE(dacIssue()), IPE(G2["HKD"]), G2)
             ));
         }
     }
 
     void path_find_06()
     {
-        testcase("Path Find: non-IDAC -> non-IDAC, same currency)");
+        testcase("Path Find: non-DAC -> non-DAC, same currency)");
         using namespace jtx;
         Env env(*this);
         Account A1 {"A1"};
@@ -1318,8 +1318,8 @@ public:
         Account G2 {"G2"};
         Account M1 {"M1"};
 
-        env.fund(IDAC(11000), M1);
-        env.fund(IDAC(1000), A1, A2, A3, G1, G2);
+        env.fund(DAC(11000), M1);
+        env.fund(DAC(1000), A1, A2, A3, G1, G2);
         env.close();
 
         env.trust(G1["HKD"](2000), A1);
@@ -1372,7 +1372,7 @@ public:
         quality_paths_quality_set_and_test();
         trust_auto_clear_trust_normal_clear();
         trust_auto_clear_trust_auto_clear();
-        idac_to_idac();
+        dac_to_dac();
 
         // The following path_find_NN tests are data driven tests
         // that were originally implemented in js/coffee and migrated

@@ -78,7 +78,7 @@ operator<< (std::ostream& os,
     {
         // measure in hundredths
         auto const c =
-            dropsPerIDAC<int>::value / 100;
+            dropsPerDAC<int>::value / 100;
         auto const n = amount.value().mantissa();
         if(n < c)
         {
@@ -89,11 +89,11 @@ operator<< (std::ostream& os,
             return os;
         }
         auto const d = double(n) /
-            dropsPerIDAC<int>::value;
+            dropsPerDAC<int>::value;
         if (amount.value().negative())
             os << "-";
 
-        os << to_places(d, 6) << " IDAC";
+        os << to_places(d, 6) << " DAC";
     }
     else
     {
@@ -107,7 +107,7 @@ operator<< (std::ostream& os,
 
 //------------------------------------------------------------------------------
 
-IDAC_t const IDAC {};
+DAC_t const DAC {};
 
 PrettyAmount
 IOU::operator()(epsilon_t) const

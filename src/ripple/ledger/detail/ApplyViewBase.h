@@ -25,7 +25,7 @@
 #include <ripple/ledger/OpenView.h>
 #include <ripple/ledger/ReadView.h>
 #include <ripple/ledger/detail/ApplyStateTable.h>
-#include <ripple/protocol/IDACAmount.h>
+#include <ripple/protocol/DACAmount.h>
 
 namespace ripple {
 namespace detail {
@@ -125,8 +125,8 @@ public:
         SLE> const& sle) override;
 
     void
-    rawDestroyIDAC (
-        IDACAmount const& feeDrops) override;
+    rawDestroyDAC (
+        DACAmount const& feeDrops) override;
 
     friend
     CashDiff cashFlowDiff (

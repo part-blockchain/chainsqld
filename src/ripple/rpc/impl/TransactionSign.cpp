@@ -40,7 +40,7 @@
 #include <ripple/rpc/impl/LegacyPathFind.h>
 #include <ripple/rpc/impl/RPCHelpers.h>
 #include <ripple/rpc/impl/Tuning.h>
-#include <idac/rpc/TableUtils.h>
+#include <dac/rpc/TableUtils.h>
 #include <algorithm>
 #include <iterator>
 
@@ -197,7 +197,7 @@ static Json::Value checkPayment(
 
         if (sendMax.native () && amount.native ())
             return RPC::make_error (rpcINVALID_PARAMS,
-                "Cannot build IDAC to IDAC paths.");
+                "Cannot build DAC to DAC paths.");
 
         {
             LegacyPathFind lpf (isUnlimited (role), app);
@@ -749,7 +749,7 @@ Json::Value checkFee (
 	std::string txType = tx[jss::TransactionType].asString();
 	if (isChainSqlBaseType(txType))
 	{
-		int idacDrops = 1000000;
+		int dacDrops = 1000000;
 		double multiplier = 0.001;
 		if (tx.isMember(jss::Raw))
 		{
@@ -762,7 +762,7 @@ Json::Value checkFee (
 			auto statements = tx[jss::Statements].asString();
 			multiplier += statements.size() / 1024.0;
 		}
-		int extraAmount = (int)(idacDrops * multiplier);
+		int extraAmount = (int)(dacDrops * multiplier);
 		fee += extraAmount;
 	}
     tx [jss::Fee] = static_cast<unsigned int>(fee);
@@ -1158,14 +1158,14 @@ Json::Value transactionSubmitMultiSigned (
             return RPC::make_error (rpcINVALID_PARAMS, err.str ());
         }
 
-        // The Fee field must be in IDAC and greater than zero.
+        // The Fee field must be in DAC and greater than zero.
         auto const fee = stpTrans->getFieldAmount (sfFee);
 
         if (!isLegalNet (fee))
         {
             std::ostringstream err;
             err << "Invalid " << sfFee.fieldName
-                << " field.  Fees must be specified in IDAC.";
+                << " field.  Fees must be specified in DAC.";
             return RPC::make_error (rpcINVALID_PARAMS, err.str ());
         }
         if (fee <= 0)

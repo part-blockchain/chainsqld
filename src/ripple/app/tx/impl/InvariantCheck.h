@@ -77,13 +77,13 @@ public:
 #endif
 
 /**
- * @brief Invariant: A transaction must not create IDAC and should only destroy
- * IDAC, up to the transaction fee.
+ * @brief Invariant: A transaction must not create DAC and should only destroy
+ * DAC, up to the transaction fee.
  *
  * For this check, we start with a signed 64-bit integer set to zero. As we go
  * through the ledger entries, look only at account roots, escrow payments,
- * and payment channels.  Remove from the total any previous IDAC values and add
- * to the total any new IDAC values. The net balance of a payment channel is
+ * and payment channels.  Remove from the total any previous DAC values and add
+ * to the total any new DAC values. The net balance of a payment channel is
  * computed from two fields (amount and balance) and deletions are ignored
  * for paychan and escrow because the amount fields have not been adjusted for
  * those in the case of deletion.
@@ -92,7 +92,7 @@ public:
  * to the negative of the tx fee.
  *
  */
-class IDACNotCreated
+class DACNotCreated
 {
     std::int64_t drops_ = 0;
 
@@ -132,10 +132,10 @@ public:
 };
 
 /**
- * @brief Invariant: An account IDAC balance must be in IDAC and take a value
+ * @brief Invariant: An account DAC balance must be in DAC and take a value
                      between 0 and SYSTEM_CURRENCY_START drops, inclusive.
  */
-class IDACBalanceChecks
+class DACBalanceChecks
 {
     bool bad_ = false;
 
@@ -174,11 +174,11 @@ public:
 };
 
 /**
- * @brief Invariant: Trust lines using IDAC are not allowed.
+ * @brief Invariant: Trust lines using DAC are not allowed.
  */
-class NoIDACTrustLines
+class NoDACTrustLines
 {
-    bool idacTrustLine_ = false;
+    bool dacTrustLine_ = false;
 
 public:
 
@@ -195,7 +195,7 @@ public:
 
 /**
  * @brief Invariant: offers should be for non-negative amounts and must not
- *                   be IDAC to IDAC.
+ *                   be DAC to DAC.
  */
 class NoBadOffers
 {
@@ -242,9 +242,9 @@ public:
 using InvariantChecks = std::tuple<
     AccountRootsNotDeleted,
     LedgerEntryTypesMatch,
-    IDACBalanceChecks,
-    IDACNotCreated,
-    NoIDACTrustLines,
+    DACBalanceChecks,
+    DACNotCreated,
+    NoDACTrustLines,
     NoBadOffers,
     NoZeroEscrow
 >;

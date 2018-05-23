@@ -39,12 +39,12 @@ public:
 
         {
             Env env(*this, with_features(fs));
-            env.fund(IDAC(10000), "alice", "bob", "carol", gw);
+            env.fund(DAC(10000), "alice", "bob", "carol", gw);
             env.trust(USD(100), "alice", "bob", "carol");
             env(pay("alice", "bob", USD(10)), delivermin(USD(10)),  ter(temBAD_AMOUNT));
             env(pay("alice", "bob", USD(10)), delivermin(USD(-5)),
                 txflags(tfPartialPayment),                          ter(temBAD_AMOUNT));
-            env(pay("alice", "bob", USD(10)), delivermin(IDAC(5)),
+            env(pay("alice", "bob", USD(10)), delivermin(DAC(5)),
                 txflags(tfPartialPayment),                          ter(temBAD_AMOUNT));
             env(pay("alice", "bob", USD(10)),
                 delivermin(Account("carol")["USD"](5)),
@@ -52,56 +52,56 @@ public:
             env(pay("alice", "bob", USD(10)), delivermin(USD(15)),
                 txflags(tfPartialPayment),                          ter(temBAD_AMOUNT));
             env(pay(gw, "carol", USD(50)));
-            env(offer("carol", IDAC(5), USD(5)));
-            env(pay("alice", "bob", USD(10)), paths(IDAC),
+            env(offer("carol", DAC(5), USD(5)));
+            env(pay("alice", "bob", USD(10)), paths(DAC),
                 delivermin(USD(7)), txflags(tfPartialPayment),
-                sendmax(IDAC(5)),                                   ter(tecPATH_PARTIAL));
-            env.require(balance("alice", IDAC(9999.99999)));
-            env.require(balance("bob", IDAC(10000)));
+                sendmax(DAC(5)),                                   ter(tecPATH_PARTIAL));
+            env.require(balance("alice", DAC(9999.99999)));
+            env.require(balance("bob", DAC(10000)));
         }
 
         {
             Env env(*this, with_features(fs));
-            env.fund(IDAC(10000), "alice", "bob", gw);
+            env.fund(DAC(10000), "alice", "bob", gw);
             env.trust(USD(1000), "alice", "bob");
             env(pay(gw, "bob", USD(100)));
-            env(offer("bob", IDAC(100), USD(100)));
-            env(pay("alice", "alice", USD(10000)), paths(IDAC),
+            env(offer("bob", DAC(100), USD(100)));
+            env(pay("alice", "alice", USD(10000)), paths(DAC),
                 delivermin(USD(100)), txflags(tfPartialPayment),
-                sendmax(IDAC(100)));
+                sendmax(DAC(100)));
             env.require(balance("alice", USD(100)));
         }
 
         {
             Env env(*this, with_features(fs));
-            env.fund(IDAC(10000), "alice", "bob", "carol", gw);
+            env.fund(DAC(10000), "alice", "bob", "carol", gw);
             env.trust(USD(1000), "bob", "carol");
             env(pay(gw, "bob", USD(200)));
-            env(offer("bob", IDAC(100), USD(100)));
-            env(offer("bob", IDAC(1000), USD(100)));
-            env(offer("bob", IDAC(10000), USD(100)));
-            env(pay("alice", "carol", USD(10000)), paths(IDAC),
+            env(offer("bob", DAC(100), USD(100)));
+            env(offer("bob", DAC(1000), USD(100)));
+            env(offer("bob", DAC(10000), USD(100)));
+            env(pay("alice", "carol", USD(10000)), paths(DAC),
                 delivermin(USD(200)), txflags(tfPartialPayment),
-                sendmax(IDAC(1000)),                                 ter(tecPATH_PARTIAL));
-            env(pay("alice", "carol", USD(10000)), paths(IDAC),
+                sendmax(DAC(1000)),                                 ter(tecPATH_PARTIAL));
+            env(pay("alice", "carol", USD(10000)), paths(DAC),
                 delivermin(USD(200)), txflags(tfPartialPayment),
-                sendmax(IDAC(1100)));
+                sendmax(DAC(1100)));
             env.require(balance("bob", USD(0)));
             env.require(balance("carol", USD(200)));
         }
 
         {
             Env env(*this, with_features(fs));
-            env.fund(IDAC(10000), "alice", "bob", "carol", "dan", gw);
+            env.fund(DAC(10000), "alice", "bob", "carol", "dan", gw);
             env.trust(USD(1000), "bob", "carol", "dan");
             env(pay(gw, "bob", USD(100)));
             env(pay(gw, "dan", USD(100)));
-            env(offer("bob", IDAC(100), USD(100)));
-            env(offer("bob", IDAC(1000), USD(100)));
-            env(offer("dan", IDAC(100), USD(100)));
-            env(pay("alice", "carol", USD(10000)), paths(IDAC),
+            env(offer("bob", DAC(100), USD(100)));
+            env(offer("bob", DAC(1000), USD(100)));
+            env(offer("dan", DAC(100), USD(100)));
+            env(pay("alice", "carol", USD(10000)), paths(DAC),
                 delivermin(USD(200)), txflags(tfPartialPayment),
-                sendmax(IDAC(200)));
+                sendmax(DAC(200)));
             env.require(balance("bob", USD(0)));
             env.require(balance("carol", USD(200)));
             env.require(balance("dan", USD(0)));

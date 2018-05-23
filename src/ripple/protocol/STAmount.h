@@ -27,7 +27,7 @@
 #include <ripple/protocol/STBase.h>
 #include <ripple/protocol/Issue.h>
 #include <ripple/protocol/IOUAmount.h>
-#include <ripple/protocol/IDACAmount.h>
+#include <ripple/protocol/DACAmount.h>
 #include <memory>
 
 namespace ripple {
@@ -54,7 +54,7 @@ private:
     Issue mIssue;
     mantissa_type mValue;
     exponent_type mOffset;
-    bool mIsNative;      // A shorthand for isIDAC(mIssue).
+    bool mIsNative;      // A shorthand for isDAC(mIssue).
     bool mIsNegative;
 
 public:
@@ -117,7 +117,7 @@ public:
 
     // Legacy support for new-style amounts
     STAmount (IOUAmount const& amount, Issue const& issue);
-    STAmount (IDACAmount const& amount);
+    STAmount (DACAmount const& amount);
 
     STBase*
     copy (std::size_t n, void* buf) const override
@@ -200,7 +200,7 @@ public:
         return *this;
     }
 
-    STAmount& operator= (IDACAmount const& amount)
+    STAmount& operator= (DACAmount const& amount)
     {
         *this = STAmount (amount);
         return *this;
@@ -281,7 +281,7 @@ public:
         return (mValue == 0) && mIsNative;
     }
 
-    IDACAmount idac () const;
+    DACAmount dac () const;
     IOUAmount iou () const;
 };
 
@@ -304,7 +304,7 @@ amountFromJson (SField const& name, Json::Value const& v);
 bool
 amountFromJsonNoThrow (STAmount& result, Json::Value const& jvSource);
 
-// IOUAmount and IDACAmount define toSTAmount, defining this
+// IOUAmount and DACAmount define toSTAmount, defining this
 // trivial conversion here makes writing generic code easier
 inline
 STAmount const&
@@ -397,9 +397,9 @@ getRate (STAmount const& offerOut, STAmount const& offerIn);
 
 //------------------------------------------------------------------------------
 
-inline bool isIDAC(STAmount const& amount)
+inline bool isDAC(STAmount const& amount)
 {
-    return isIDAC (amount.issue().currency);
+    return isDAC (amount.issue().currency);
 }
 
 extern LocalValue<bool> stAmountCalcSwitchover;

@@ -89,14 +89,14 @@ public:
         // apply to ledger.
 
         // Issuer:
-        //      IDAC: idacAccount()
-        //  non-IDAC: uSrcAccountID (for any issuer) or another account with
+        //      DAC: dacAccount()
+        //  non-DAC: uSrcAccountID (for any issuer) or another account with
         //           trust node.
         STAmount const& saMaxAmountReq,             // --> -1 = no limit.
 
         // Issuer:
-        //      IDAC: idacAccount()
-        //  non-IDAC: uDstAccountID (for any issuer) or another account with
+        //      DAC: dacAccount()
+        //  non-DAC: uDstAccountID (for any issuer) or another account with
         //           trust node.
         STAmount const& saDstAmountReq,
 

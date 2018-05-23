@@ -90,8 +90,8 @@ public:
         computed from the string "masterpassphrase" and ordinal
         zero.
 
-        The account has an IDAC balance equal to the total amount
-        of IDAC in the system. No more IDAC than the amount which
+        The account has an DAC balance equal to the total amount
+        of DAC in the system. No more DAC than the amount which
         starts in this account can ever exist, with amounts
         used to pay fees being destroyed.
 
@@ -215,7 +215,7 @@ public:
         SLE> const& sle) override;
 
     void
-    rawDestroyIDAC (IDACAmount const& fee) override
+    rawDestroyDAC (DACAmount const& fee) override
     {
         info_.drops -= fee;
     }

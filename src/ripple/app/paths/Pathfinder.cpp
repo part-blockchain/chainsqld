@@ -35,9 +35,9 @@
 
 Core Pathfinding Engine
 
-The pathfinding request is identified by category, IDAC to IDAC, IDAC to
-non-IDAC, non-IDAC to IDAC, same currency non-IDAC to non-IDAC, cross-currency
-non-IDAC to non-IDAC.  For each category, there is a table of paths that the
+The pathfinding request is identified by category, DAC to DAC, DAC to
+non-DAC, non-DAC to DAC, same currency non-DAC to non-DAC, cross-currency
+non-DAC to non-DAC.  For each category, there is a table of paths that the
 pathfinder searches for.  Complete paths are collected.
 
 Each complete path is then rated and sorted. Paths with no or trivial
@@ -125,7 +125,7 @@ std::string pathTypeToString (Pathfinder::PathType const& type)
             case Pathfinder::nt_BOOKS:
                 ret.append("b");
                 break;
-            case Pathfinder::nt_IDAC_BOOK:
+            case Pathfinder::nt_DAC_BOOK:
                 ret.append("x");
                 break;
             case Pathfinder::nt_DEST_BOOK:
@@ -153,14 +153,14 @@ Pathfinder::Pathfinder (
     Application& app)
     :   mSrcAccount (uSrcAccount),
         mDstAccount (uDstAccount),
-        mEffectiveDst (isIDAC(saDstAmount.getIssuer ()) ?
+        mEffectiveDst (isDAC(saDstAmount.getIssuer ()) ?
             uDstAccount : saDstAmount.getIssuer ()),
         mDstAmount (saDstAmount),
         mSrcCurrency (uSrcCurrency),
         mSrcIssuer (uSrcIssuer),
         mSrcAmount (srcAmount.value_or(STAmount({uSrcCurrency,
-            uSrcIssuer.value_or(isIDAC(uSrcCurrency) ?
-                idacAccount() : uSrcAccount)}, 1u, 0, true))),
+            uSrcIssuer.value_or(isDAC(uSrcCurrency) ?
+                dacAccount() : uSrcAccount)}, 1u, 0, true))),
         convert_all_ (mDstAmount ==
             STAmount(mDstAmount.issue(), STAmount::cMaxValue, STAmount::cMaxOffset)),
         mLedger (cache->getLedger ()),
@@ -168,7 +168,7 @@ Pathfinder::Pathfinder (
         app_ (app),
         j_ (app.journal ("Pathfinder"))
 {
-    assert (! uSrcIssuer || isIDAC(uSrcCurrency) == isIDAC(uSrcIssuer.get()));
+    assert (! uSrcIssuer || isDAC(uSrcCurrency) == isDAC(uSrcIssuer.get()));
 }
 
 bool Pathfinder::findPaths (int searchLevel)
@@ -203,12 +203,12 @@ bool Pathfinder::findPaths (int searchLevel)
 
     m_loadEvent = app_.getJobQueue ().makeLoadEvent (
         jtPATH_FIND, "FindPath");
-    auto currencyIsIDAC = isIDAC (mSrcCurrency);
+    auto currencyIsDAC = isDAC (mSrcCurrency);
 
     bool useIssuerAccount
-            = mSrcIssuer && !currencyIsIDAC && !isIDAC (*mSrcIssuer);
+            = mSrcIssuer && !currencyIsDAC && !isDAC (*mSrcIssuer);
     auto& account = useIssuerAccount ? *mSrcIssuer : mSrcAccount;
-    auto issuer = currencyIsIDAC ? AccountID() : account;
+    auto issuer = currencyIsDAC ? AccountID() : account;
     mSource = STPathElement (account, mSrcCurrency, issuer);
     auto issuerString = mSrcIssuer
             ? to_string (*mSrcIssuer) : std::string ("none");
@@ -226,8 +226,8 @@ bool Pathfinder::findPaths (int searchLevel)
         return false;
     }
 
-    bool bSrcIdac = isIDAC (mSrcCurrency);
-    bool bDstIdac = isIDAC (mDstAmount.getCurrency());
+    bool bSrcDac = isDAC (mSrcCurrency);
+    bool bDstDac = isDAC (mDstAmount.getCurrency());
 
     if (! mLedger->exists (keylet::account(mSrcAccount)))
     {
@@ -248,10 +248,10 @@ bool Pathfinder::findPaths (int searchLevel)
     {
         // Can't find the destination account - we must be funding a new
         // account.
-        if (!bDstIdac)
+        if (!bDstDac)
         {
             JLOG (j_.debug())
-                    << "New account not being funded in IDAC ";
+                    << "New account not being funded in DAC ";
             return false;
         }
 
@@ -268,35 +268,35 @@ bool Pathfinder::findPaths (int searchLevel)
     // Now compute the payment type from the types of the source and destination
     // currencies.
     PaymentType paymentType;
-    if (bSrcIdac && bDstIdac)
+    if (bSrcDac && bDstDac)
     {
-        // IDAC -> IDAC
-        JLOG (j_.debug()) << "IDAC to IDAC payment";
-        paymentType = pt_IDAC_to_IDAC;
+        // DAC -> DAC
+        JLOG (j_.debug()) << "DAC to DAC payment";
+        paymentType = pt_DAC_to_DAC;
     }
-    else if (bSrcIdac)
+    else if (bSrcDac)
     {
-        // IDAC -> non-IDAC
-        JLOG (j_.debug()) << "IDAC to non-IDAC payment";
-        paymentType = pt_IDAC_to_nonIDAC;
+        // DAC -> non-DAC
+        JLOG (j_.debug()) << "DAC to non-DAC payment";
+        paymentType = pt_DAC_to_nonDAC;
     }
-    else if (bDstIdac)
+    else if (bDstDac)
     {
-        // non-IDAC -> IDAC
-        JLOG (j_.debug()) << "non-IDAC to IDAC payment";
-        paymentType = pt_nonIDAC_to_IDAC;
+        // non-DAC -> DAC
+        JLOG (j_.debug()) << "non-DAC to DAC payment";
+        paymentType = pt_nonDAC_to_DAC;
     }
     else if (mSrcCurrency == mDstAmount.getCurrency ())
     {
-        // non-IDAC -> non-IDAC - Same currency
-        JLOG (j_.debug()) << "non-IDAC to non-IDAC - same currency";
-        paymentType = pt_nonIDAC_to_same;
+        // non-DAC -> non-DAC - Same currency
+        JLOG (j_.debug()) << "non-DAC to non-DAC - same currency";
+        paymentType = pt_nonDAC_to_same;
     }
     else
     {
-        // non-IDAC to non-IDAC - Different currency
-        JLOG (j_.debug()) << "non-IDAC to non-IDAC - cross currency";
-        paymentType = pt_nonIDAC_to_nonIDAC;
+        // non-DAC to non-DAC - Different currency
+        JLOG (j_.debug()) << "non-DAC to non-DAC - cross currency";
+        paymentType = pt_nonDAC_to_nonDAC;
     }
 
     // Now iterate over all paths for that paymentType.
@@ -567,7 +567,7 @@ Pathfinder::getBestPaths (
         return mCompletePaths;
 
     assert (fullLiquidityPath.empty ());
-    const bool issuerIsSender = isIDAC (mSrcCurrency) || (srcIssuer == mSrcAccount);
+    const bool issuerIsSender = isDAC (mSrcCurrency) || (srcIssuer == mSrcAccount);
 
     std::vector <PathRank> extraPathRanks;
     rankPaths (maxPaths, extraPaths, extraPathRanks);
@@ -684,7 +684,7 @@ bool Pathfinder::issueMatchesOrigin (Issue const& issue)
 {
     bool matchingCurrency = (issue.currency == mSrcCurrency);
     bool matchingAccount =
-            isIDAC (issue.currency) ||
+            isDAC (issue.currency) ||
             (mSrcIssuer && issue.account == mSrcIssuer) ||
             issue.account == mSrcAccount;
 
@@ -812,8 +812,8 @@ STPathSet& Pathfinder::addPathsForType (PathType const& pathType)
         addLinks (parentPaths, pathsOut, afADD_BOOKS);
         break;
 
-    case nt_IDAC_BOOK:
-        addLinks (parentPaths, pathsOut, afADD_BOOKS | afOB_IDAC);
+    case nt_DAC_BOOK:
+        addLinks (parentPaths, pathsOut, afADD_BOOKS | afOB_DAC);
         break;
 
     case nt_DEST_BOOK:
@@ -898,7 +898,7 @@ void Pathfinder::addLink (
     auto const& uEndCurrency = pathEnd.getCurrency ();
     auto const& uEndIssuer = pathEnd.getIssuerID ();
     auto const& uEndAccount = pathEnd.getAccountID ();
-    bool const bOnIDAC = uEndCurrency.isZero ();
+    bool const bOnDAC = uEndCurrency.isZero ();
 
     // Does pathfinding really need to get this to
     // a gateway (the issuer of the destination amount)
@@ -906,16 +906,16 @@ void Pathfinder::addLink (
     bool const hasEffectiveDestination = mEffectiveDst != mDstAccount;
 
     JLOG (j_.trace()) << "addLink< flags="
-                                   << addFlags << " onIDAC=" << bOnIDAC;
+                                   << addFlags << " onDAC=" << bOnDAC;
     JLOG (j_.trace()) << currentPath.getJson (0);
 
     if (addFlags & afADD_ACCOUNTS)
     {
         // add accounts
-        if (bOnIDAC)
+        if (bOnDAC)
         {
             if (mDstAmount.native () && !currentPath.empty ())
-            { // non-default path to IDAC destination
+            { // non-default path to DAC destination
                 JLOG (j_.trace())
                     << "complete path found ax: " << currentPath.getJson(0);
                 addUniquePath (mCompletePaths, currentPath);
@@ -1061,17 +1061,17 @@ void Pathfinder::addLink (
     if (addFlags & afADD_BOOKS)
     {
         // add order books
-        if (addFlags & afOB_IDAC)
+        if (addFlags & afOB_DAC)
         {
-            // to IDAC only
-            if (!bOnIDAC && app_.getOrderBookDB ().isBookToIDAC (
+            // to DAC only
+            if (!bOnDAC && app_.getOrderBookDB ().isBookToDAC (
                     {uEndCurrency, uEndIssuer}))
             {
                 STPathElement pathElement(
                     STPathElement::typeCurrency,
-                    idacAccount (),
-                    idacCurrency (),
-                    idacAccount ());
+                    dacAccount (),
+                    dacCurrency (),
+                    dacAccount ());
                 incompletePaths.assembleAdd (currentPath, pathElement);
             }
         }
@@ -1086,7 +1086,7 @@ void Pathfinder::addLink (
             for (auto const& book : books)
             {
                 if (!currentPath.hasSeen (
-                        idacAccount(),
+                        dacAccount(),
                         book->getCurrencyOut (),
                         book->getIssuerOut ()) &&
                     !issueMatchesOrigin (book->book ().out) &&
@@ -1096,18 +1096,18 @@ void Pathfinder::addLink (
                     STPath newPath (currentPath);
 
                     if (book->getCurrencyOut().isZero())
-                    { // to IDAC
+                    { // to DAC
 
                         // add the order book itself
                         newPath.emplace_back (
                             STPathElement::typeCurrency,
-                            idacAccount (),
-                            idacCurrency (),
-                            idacAccount ());
+                            dacAccount (),
+                            dacCurrency (),
+                            dacAccount ());
 
                         if (mDstAmount.getCurrency ().isZero ())
                         {
-                            // destination is IDAC, add account and path is
+                            // destination is DAC, add account and path is
                             // complete
                             JLOG (j_.trace())
                                 << "complete path found bx: "
@@ -1131,7 +1131,7 @@ void Pathfinder::addLink (
                             // replace the redundant account with the order book
                             newPath[newPath.size() - 1] = STPathElement (
                                 STPathElement::typeCurrency | STPathElement::typeIssuer,
-                                idacAccount(), book->getCurrencyOut(),
+                                dacAccount(), book->getCurrencyOut(),
                                 book->getIssuerOut());
                         }
                         else
@@ -1139,7 +1139,7 @@ void Pathfinder::addLink (
                             // add the order book
                             newPath.emplace_back(
                                 STPathElement::typeCurrency | STPathElement::typeIssuer,
-                                idacAccount(), book->getCurrencyOut(),
+                                dacAccount(), book->getCurrencyOut(),
                                 book->getIssuerOut());
                         }
 
@@ -1196,8 +1196,8 @@ Pathfinder::PathType makePath (char const *string)
                 ret.push_back (Pathfinder::nt_BOOKS);
                 break;
 
-            case 'x': // idac book
-                ret.push_back (Pathfinder::nt_IDAC_BOOK);
+            case 'x': // dac book
+                ret.push_back (Pathfinder::nt_DAC_BOOK);
                 break;
 
             case 'f': // book to final currency
@@ -1239,10 +1239,10 @@ void Pathfinder::initPathTable ()
     // CAUTION: Do not include rules that build default paths
 
     mPathTable.clear();
-    fillPaths (pt_IDAC_to_IDAC, {});
+    fillPaths (pt_DAC_to_DAC, {});
 
     fillPaths(
-        pt_IDAC_to_nonIDAC, {
+        pt_DAC_to_nonDAC, {
             {1, "sfd"},   // source -> book -> gateway
             {3, "sfad"},  // source -> book -> account -> destination
             {5, "sfaad"}, // source -> book -> account -> account -> destination
@@ -1253,18 +1253,18 @@ void Pathfinder::initPathTable ()
         });
 
     fillPaths(
-        pt_nonIDAC_to_IDAC, {
-            {1, "sxd"},       // gateway buys IDAC
-            {2, "saxd"},      // source -> gateway -> book(IDAC) -> dest
+        pt_nonDAC_to_DAC, {
+            {1, "sxd"},       // gateway buys DAC
+            {2, "saxd"},      // source -> gateway -> book(DAC) -> dest
             {6, "saaxd"},
             {7, "sbxd"},
             {8, "sabxd"},
             {9, "sabaxd"}
         });
 
-    // non-IDAC to non-IDAC (same currency)
+    // non-DAC to non-DAC (same currency)
     fillPaths(
-        pt_nonIDAC_to_same,  {
+        pt_nonDAC_to_same,  {
             {1, "sad"},     // source -> gateway -> destination
             {1, "sfd"},     // source -> book -> destination
             {4, "safd"},    // source -> gateway -> book -> destination
@@ -1273,16 +1273,16 @@ void Pathfinder::initPathTable ()
             {5, "sbfd"},
             {6, "sxfad"},
             {6, "safad"},
-            {6, "saxfd"},   // source -> gateway -> book to IDAC -> book ->
+            {6, "saxfd"},   // source -> gateway -> book to DAC -> book ->
                             // destination
             {6, "saxfad"},
             {6, "sabfd"},   // source -> gateway -> book -> book -> destination
             {7, "saaad"},
         });
 
-    // non-IDAC to non-IDAC (different currency)
+    // non-DAC to non-DAC (different currency)
     fillPaths(
-        pt_nonIDAC_to_nonIDAC, {
+        pt_nonDAC_to_nonDAC, {
             {1, "sfad"},
             {1, "safd"},
             {3, "safad"},

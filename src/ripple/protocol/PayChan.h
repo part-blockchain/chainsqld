@@ -23,7 +23,7 @@
 #include <ripple/basics/base_uint.h>
 #include <ripple/protocol/HashPrefix.h>
 #include <ripple/protocol/Serializer.h>
-#include <ripple/protocol/IDACAmount.h>
+#include <ripple/protocol/DACAmount.h>
 
 namespace ripple {
 
@@ -32,7 +32,7 @@ void
 serializePayChanAuthorization (
     Serializer& msg,
     uint256 const& key,
-    IDACAmount const& amt)
+    DACAmount const& amt)
 {
     msg.add32 (HashPrefix::paymentChannelClaim);
     msg.add256 (key);

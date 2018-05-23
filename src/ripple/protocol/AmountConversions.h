@@ -21,7 +21,7 @@
 #define RIPPLE_PROTOCOL_AMOUNTCONVERSION_H_INCLUDED
 
 #include <ripple/protocol/IOUAmount.h>
-#include <ripple/protocol/IDACAmount.h>
+#include <ripple/protocol/DACAmount.h>
 #include <ripple/protocol/STAmount.h>
 
 namespace ripple {
@@ -45,19 +45,19 @@ toSTAmount (IOUAmount const& iou)
 
 inline
 STAmount
-toSTAmount (IDACAmount const& idac)
+toSTAmount (DACAmount const& dac)
 {
-    bool const isNeg = idac.signum() < 0;
-    std::uint64_t const umant = isNeg ? - idac.drops () : idac.drops ();
+    bool const isNeg = dac.signum() < 0;
+    std::uint64_t const umant = isNeg ? - dac.drops () : dac.drops ();
     return STAmount (umant, isNeg);
 }
 
 inline
 STAmount
-toSTAmount (IDACAmount const& idac, Issue const& iss)
+toSTAmount (DACAmount const& dac, Issue const& iss)
 {
-    assert (isIDAC(iss.account) && isIDAC(iss.currency));
-    return toSTAmount (idac);
+    assert (isDAC(iss.account) && isDAC(iss.currency));
+    return toSTAmount (dac);
 }
 
 template <class T>
@@ -86,22 +86,22 @@ toAmount<IOUAmount> (STAmount const& amt)
     std::int64_t const sMant =
             isNeg ? - std::int64_t (amt.mantissa ()) : amt.mantissa ();
 
-    assert (! isIDAC (amt));
+    assert (! isDAC (amt));
     return IOUAmount (sMant, amt.exponent ());
 }
 
 template <>
 inline
-IDACAmount
-toAmount<IDACAmount> (STAmount const& amt)
+DACAmount
+toAmount<DACAmount> (STAmount const& amt)
 {
     assert (amt.mantissa () < std::numeric_limits<std::int64_t>::max ());
     bool const isNeg = amt.negative ();
     std::int64_t const sMant =
             isNeg ? - std::int64_t (amt.mantissa ()) : amt.mantissa ();
 
-    assert (isIDAC (amt));
-    return IDACAmount (sMant);
+    assert (isDAC (amt));
+    return DACAmount (sMant);
 }
 
 

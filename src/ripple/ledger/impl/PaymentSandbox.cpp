@@ -221,9 +221,9 @@ PaymentSandbox::balanceHook (AccountID const& account,
         }
     }
 
-    if (isIDAC(issuer) && adjustedAmt < beast::zero)
-        // A calculated negative IDAC balance is not an error case. Consider a
-        // payment snippet that credits a large IDAC amount and then debits the
+    if (isDAC(issuer) && adjustedAmt < beast::zero)
+        // A calculated negative DAC balance is not an error case. Consider a
+        // payment snippet that credits a large DAC amount and then debits the
         // same amount. The credit can't be used but we subtract the debit and
         // calculate a negative value. It's not an error case.
         adjustedAmt.clear();
@@ -282,7 +282,7 @@ PaymentSandbox::balanceChanges (ReadView const& view) const
     using key = std::tuple<AccountID, AccountID, Currency>;
     // Map of delta trust lines. As a special case, when both ends of the trust
     // line are the same currency, then it's delta currency for that issuer. To
-    // get the change in IDAC balance, Account == root, issuer == root, currency == IDAC
+    // get the change in DAC balance, Account == root, issuer == root, currency == DAC
     std::map<key, STAmount> result;
 
     // populate a dictionary with low/high/currency/delta. This can be
@@ -306,7 +306,7 @@ PaymentSandbox::balanceChanges (ReadView const& view) const
             switch(bt)
             {
                 case ltACCOUNT_ROOT:
-                    lowID = idacAccount();
+                    lowID = dacAccount();
                     highID = (*before)[sfAccount];
                     oldBalance = (*before)[sfBalance];
                     newBalance = oldBalance.zeroed();
@@ -331,7 +331,7 @@ PaymentSandbox::balanceChanges (ReadView const& view) const
             switch(at)
             {
                 case ltACCOUNT_ROOT:
-                    lowID = idacAccount();
+                    lowID = dacAccount();
                     highID = (*after)[sfAccount];
                     newBalance = (*after)[sfBalance];
                     oldBalance = newBalance.zeroed();
@@ -357,7 +357,7 @@ PaymentSandbox::balanceChanges (ReadView const& view) const
             switch(at)
             {
                 case ltACCOUNT_ROOT:
-                    lowID = idacAccount();
+                    lowID = dacAccount();
                     highID = (*after)[sfAccount];
                     oldBalance = (*before)[sfBalance];
                     newBalance = (*after)[sfBalance];
@@ -396,7 +396,7 @@ PaymentSandbox::balanceChanges (ReadView const& view) const
     return result;
 }
 
-IDACAmount PaymentSandbox::idacDestroyed () const
+DACAmount PaymentSandbox::dacDestroyed () const
 {
     return items_.dropsDestroyed ();
 }

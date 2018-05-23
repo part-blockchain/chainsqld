@@ -106,12 +106,12 @@ STAmount::STAmount(SerialIter& sit, SField const& name)
     Issue issue;
     issue.currency.copyFrom (sit.get160 ());
 
-    if (isIDAC (issue.currency))
+    if (isDAC (issue.currency))
         Throw<std::runtime_error> ("invalid native currency");
 
     issue.account.copyFrom (sit.get160 ());
 
-    if (isIDAC (issue.account))
+    if (isDAC (issue.account))
         Throw<std::runtime_error> ("invalid native account");
 
     // 10 bits for the offset, sign and "not native" flag
@@ -272,7 +272,7 @@ STAmount::STAmount (IOUAmount const& amount, Issue const& issue)
     canonicalize ();
 }
 
-STAmount::STAmount (IDACAmount const& amount)
+STAmount::STAmount (DACAmount const& amount)
     : mOffset (0)
     , mIsNative (true)
     , mIsNegative (amount < zero)
@@ -296,10 +296,10 @@ STAmount::construct (SerialIter& sit, SField const& name)
 // Conversion
 //
 //------------------------------------------------------------------------------
-IDACAmount STAmount::idac () const
+DACAmount STAmount::dac () const
 {
     if (!mIsNative)
-        Throw<std::logic_error> ("Cannot return non-native STAmount as IDACAmount");
+        Throw<std::logic_error> ("Cannot return non-native STAmount as DACAmount");
 
     auto drops = static_cast<std::int64_t> (mValue);
 
@@ -410,7 +410,7 @@ void
 STAmount::setIssue (Issue const& issue)
 {
     mIssue = std::move(issue);
-    mIsNative = isIDAC (*this);
+    mIsNative = isDAC (*this);
 }
 
 // Convert an offer into an index amount so they sort by rate.
@@ -480,7 +480,7 @@ STAmount::getFullText () const
     {
         ret += "/";
 
-        if (isIDAC (*this))
+        if (isDAC (*this))
             ret += "0";
         else if (mIssue.account == noAccount())
             ret += "1";
@@ -632,7 +632,7 @@ STAmount::isEquivalent (const STBase& t) const
 // inclusive.
 void STAmount::canonicalize ()
 {
-    if (isIDAC (*this))
+    if (isDAC (*this))
     {
         // native currency amounts should always have an offset of zero
         mIsNative = true;
@@ -763,9 +763,9 @@ amountFromString (Issue const& issue, std::string const& amount)
 
     bool negative = (match[1].matched && (match[1] == "-"));
 
-    // Can't specify IDAC using fractional representation
-    if (isIDAC(issue) && match[3].matched)
-        Throw<std::runtime_error> ("IDAC must be specified in integral drops.");
+    // Can't specify DAC using fractional representation
+    if (isDAC(issue) && match[3].matched)
+        Throw<std::runtime_error> ("DAC must be specified in integral drops.");
 
     std::uint64_t mantissa;
     int exponent;
@@ -847,12 +847,12 @@ amountFromJson (SField const& name, Json::Value const& v)
     if (native)
     {
         if (v.isObject ())
-            Throw<std::runtime_error> ("IDAC may not be specified as an object");
-        issue = idacIssue ();
+            Throw<std::runtime_error> ("DAC may not be specified as an object");
+        issue = dacIssue ();
     }
     else
     {
-        // non-IDAC
+        // non-DAC
         if (! to_currency (issue.currency, currency.asString ()))
             Throw<std::runtime_error> ("invalid currency");
 
@@ -860,7 +860,7 @@ amountFromJson (SField const& name, Json::Value const& v)
                 || !to_issuer (issue.account, issuer.asString ()))
             Throw<std::runtime_error> ("invalid issuer");
 
-        if (isIDAC (issue.currency))
+        if (isDAC (issue.currency))
             Throw<std::runtime_error> ("invalid issuer");
     }
 
@@ -1073,7 +1073,7 @@ multiply (STAmount const& v1, STAmount const& v2, Issue const& issue)
     if (v1 == zero || v2 == zero)
         return STAmount (issue);
 
-    if (v1.native() && v2.native() && isIDAC (issue))
+    if (v1.native() && v2.native() && isDAC (issue))
     {
         std::uint64_t const minV = getSNValue (v1) < getSNValue (v2)
                 ? getSNValue (v1) : getSNValue (v2);
@@ -1165,9 +1165,9 @@ mulRound (STAmount const& v1, STAmount const& v2, Issue const& issue,
     if (v1 == zero || v2 == zero)
         return {issue};
 
-    bool const idac = isIDAC (issue);
+    bool const dac = isDAC (issue);
 
-    if (v1.native() && v2.native() && idac)
+    if (v1.native() && v2.native() && dac)
     {
         std::uint64_t minV = (getSNValue (v1) < getSNValue (v2)) ?
                 getSNValue (v1) : getSNValue (v2);
@@ -1220,13 +1220,13 @@ mulRound (STAmount const& v1, STAmount const& v2, Issue const& issue,
 
     int offset = offset1 + offset2 + 14;
     if (resultNegative != roundUp)
-        canonicalizeRound (idac, amount, offset);
+        canonicalizeRound (dac, amount, offset);
     STAmount result (issue, amount, offset, resultNegative);
 
     // Control when bugfixes that require switchover dates are enabled
     if (roundUp && !resultNegative && !result && *stAmountCalcSwitchover)
     {
-        if (idac && *stAmountCalcSwitchover2)
+        if (dac && *stAmountCalcSwitchover2)
         {
             // return the smallest value above zero
             amount = 1;
@@ -1292,13 +1292,13 @@ divRound (STAmount const& num, STAmount const& den,
     int offset = numOffset - denOffset - 17;
 
     if (resultNegative != roundUp)
-        canonicalizeRound (isIDAC (issue), amount, offset);
+        canonicalizeRound (isDAC (issue), amount, offset);
 
     STAmount result (issue, amount, offset, resultNegative);
     // Control when bugfixes that require switchover dates are enabled
     if (roundUp && !resultNegative && !result && *stAmountCalcSwitchover)
     {
-        if (isIDAC(issue) && *stAmountCalcSwitchover2)
+        if (isDAC(issue) && *stAmountCalcSwitchover2)
         {
             // return the smallest value above zero
             amount = 1;

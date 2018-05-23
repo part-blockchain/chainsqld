@@ -188,7 +188,7 @@ public:
         checkMetrics(env, 0, boost::none, 0, 3, 256);
 
         // Create several accounts while the fee is cheap so they all apply.
-        env.fund(IDAC(50000), noripple(alice, bob, charlie, daria));
+        env.fund(DAC(50000), noripple(alice, bob, charlie, daria));
         checkMetrics(env, 0, boost::none, 4, 3, 256);
 
         // Alice - price starts exploding: held
@@ -210,7 +210,7 @@ public:
         //////////////////////////////////////////////////////////////
 
         // Make some more accounts. We'll need them later to abuse the queue.
-        env.fund(IDAC(50000), noripple(elmo, fred, gwen, hank));
+        env.fund(DAC(50000), noripple(elmo, fred, gwen, hank));
         checkMetrics(env, 0, 10, 6, 5, 256);
 
         // Now get a bunch of transactions held.
@@ -369,7 +369,7 @@ public:
         checkMetrics(env, 0, boost::none, 0, 2, 256);
 
         // Create several accounts while the fee is cheap so they all apply.
-        env.fund(IDAC(50000), noripple(alice, bob, charlie));
+        env.fund(DAC(50000), noripple(alice, bob, charlie));
         checkMetrics(env, 0, boost::none, 3, 2, 256);
 
         // Future transaction for Alice - fails
@@ -426,11 +426,11 @@ public:
         checkMetrics(env, 0, boost::none, 0, 2, 256);
 
         // Fund across several ledgers so the TxQ metrics stay restricted.
-        env.fund(IDAC(1000), noripple(alice, bob));
+        env.fund(DAC(1000), noripple(alice, bob));
         env.close(env.now() + 5s, 10000ms);
-        env.fund(IDAC(1000), noripple(charlie, daria));
+        env.fund(DAC(1000), noripple(charlie, daria));
         env.close(env.now() + 5s, 10000ms);
-        env.fund(IDAC(1000), noripple(edgar, felicia));
+        env.fund(DAC(1000), noripple(edgar, felicia));
         env.close(env.now() + 5s, 10000ms);
 
         checkMetrics(env, 0, boost::none, 0, 2, 256);
@@ -531,9 +531,9 @@ public:
         checkMetrics(env, 0, boost::none, 0, 2, 256);
 
         // Fund across several ledgers so the TxQ metrics stay restricted.
-        env.fund(IDAC(1000), noripple(alice, bob));
+        env.fund(DAC(1000), noripple(alice, bob));
         env.close(env.now() + 5s, 10000ms);
-        env.fund(IDAC(1000), noripple(carol));
+        env.fund(DAC(1000), noripple(carol));
         env.close(env.now() + 5s, 10000ms);
 
         // Fill the ledger
@@ -580,7 +580,7 @@ public:
         // Unfortunately bob can't get any more txns into
         // the queue, because of the multiTxnPercent.
         // TANSTAAFL
-        env(noop(bob), fee(IDAC(100)),
+        env(noop(bob), fee(DAC(100)),
             seq(seqBob), ter(telINSUF_FEE_P));
 
         // Carol fills the queue, but can't kick out any
@@ -631,18 +631,18 @@ public:
         auto alice = Account("alice");
         auto bob = Account("bob");
 
-        env.fund(IDAC(1000), noripple(alice));
+        env.fund(DAC(1000), noripple(alice));
 
         // These types of checks are tested elsewhere, but
         // this verifies that TxQ handles the failures as
         // expected.
 
         // Fail in preflight
-        env(pay(alice, bob, IDAC(-1000)),
+        env(pay(alice, bob, DAC(-1000)),
             ter(temBAD_AMOUNT));
 
         // Fail in preclaim
-        env(noop(alice), fee(IDAC(100000)),
+        env(noop(alice), fee(DAC(100000)),
             ter(terINSUF_FEE_B));
     }
 
@@ -660,7 +660,7 @@ public:
 
         checkMetrics(env, 0, boost::none, 0, 2, 256);
 
-        env.fund(IDAC(1000), noripple(alice, bob));
+        env.fund(DAC(1000), noripple(alice, bob));
 
         checkMetrics(env, 0, boost::none, 2, 2, 256);
 
@@ -727,7 +727,7 @@ public:
 
         // Create several accounts while the fee is cheap so they all apply.
         env.fund(drops(2000), noripple(alice));
-        env.fund(IDAC(500000), noripple(bob, charlie, daria));
+        env.fund(DAC(500000), noripple(bob, charlie, daria));
         checkMetrics(env, 0, initQueueMax, 4, 3, 256);
 
         // Alice - price starts exploding: held
@@ -874,7 +874,7 @@ public:
         // bankrupt Alice. Fails, because an account can't have
         // more than the minimum reserve in flight before the
         // last queued transaction
-        aliceFee = env.le(alice)->getFieldAmount(sfBalance).idac().drops()
+        aliceFee = env.le(alice)->getFieldAmount(sfBalance).dac().drops()
             - (59);
         env(noop(alice), seq(aliceSeq),
             fee(aliceFee), ter(telCAN_NOT_QUEUE_BALANCE));
@@ -910,7 +910,7 @@ public:
         checkMetrics(env, 0, 12, 0, 6, 256);
 
         // Alice is broke
-        env.require(balance(alice, IDAC(0)));
+        env.require(balance(alice, DAC(0)));
         env(noop(alice), ter(terINSUF_FEE_B));
 
         // Bob tries to queue up more than the single
@@ -954,13 +954,13 @@ public:
         checkMetrics(env, 0, boost::none, 0, 4, 256);
 
         // Create several accounts while the fee is cheap so they all apply.
-        env.fund(IDAC(50000), noripple(alice, bob, charlie, daria));
+        env.fund(DAC(50000), noripple(alice, bob, charlie, daria));
         checkMetrics(env, 0, boost::none, 4, 4, 256);
 
         env.close();
         checkMetrics(env, 0, 8, 0, 4, 256);
 
-        env.fund(IDAC(50000), noripple(elmo, fred, gwen, hank));
+        env.fund(DAC(50000), noripple(elmo, fred, gwen, hank));
         checkMetrics(env, 0, 8, 4, 4, 256);
 
         env.close();
@@ -1078,7 +1078,7 @@ public:
 
         BEAST_EXPECT(!env.app().getTxQ().getMetrics(*env.current()));
 
-        env.fund(IDAC(50000), noripple(alice));
+        env.fund(DAC(50000), noripple(alice));
 
         // If the queue was enabled, most of these would
         // return terQUEUED. (The required fee for the last
@@ -1105,7 +1105,7 @@ public:
 
         checkMetrics(env, 0, boost::none, 0, 1, 256);
 
-        env.fund(IDAC(50000), noripple(alice));
+        env.fund(DAC(50000), noripple(alice));
         checkMetrics(env, 0, boost::none, 1, 1, 256);
 
         env(fset(alice, asfAccountTxnID));
@@ -1145,7 +1145,7 @@ public:
 
         checkMetrics(env, 0, boost::none, 0, 2, 256);
 
-        env.fund(IDAC(50000), noripple(alice));
+        env.fund(DAC(50000), noripple(alice));
         checkMetrics(env, 0, boost::none, 1, 2, 256);
 
         for (int i = 0; i < 10; ++i)
@@ -1184,7 +1184,7 @@ public:
         checkMetrics(env, 0, initQueueMax, 0, 3, 256);
 
         env.fund(drops(5000), noripple(alice));
-        env.fund(IDAC(50000), noripple(bob));
+        env.fund(DAC(50000), noripple(bob));
         checkMetrics(env, 0, initQueueMax, 2, 3, 256);
         auto USD = bob["USD"];
 
@@ -1237,7 +1237,7 @@ public:
             stuck in the queue. Eventually it will either
             expire, get forced off the end by more valuable
             transactions, get replaced by Alice, or Alice
-            will get more IDAC, and it'll process.
+            will get more DAC, and it'll process.
         */
 
         for (int i = 0; i < 9; ++i)
@@ -1271,7 +1271,7 @@ public:
 
         checkMetrics(env, 0, boost::none, 0, 3, 256);
 
-        env.fund(IDAC(50000), noripple(alice, bob));
+        env.fund(DAC(50000), noripple(alice, bob));
         env.memoize(charlie);
         env.memoize(daria);
         checkMetrics(env, 0, boost::none, 2, 3, 256);
@@ -1337,23 +1337,23 @@ public:
 
         checkMetrics(env, 0, boost::none, 0, 3, 256);
 
-        env.fund(IDAC(50000), noripple(alice, charlie), gw);
+        env.fund(DAC(50000), noripple(alice, charlie), gw);
         checkMetrics(env, 0, boost::none, 4, 3, 256);
 
         auto USD = gw["USD"];
         auto BUX = gw["BUX"];
 
         //////////////////////////////////////////
-        // Offer with high IDAC out blocks later txs
+        // Offer with high DAC out blocks later txs
         auto aliceSeq = env.seq(alice);
         auto aliceBal = env.balance(alice);
 
-        env.require(balance(alice, IDAC(50000)),
+        env.require(balance(alice, DAC(50000)),
             owners(alice, 0));
 
         // If this offer crosses, all of alice's
-        // IDAC will be taken (except the reserve).
-        env(offer(alice, BUX(5000), IDAC(50000)),
+        // DAC will be taken (except the reserve).
+        env(offer(alice, BUX(5000), DAC(50000)),
             queued);
 
         // So even a noop will look like alice
@@ -1365,21 +1365,21 @@ public:
         checkMetrics(env, 0, 8, 2, 4, 256);
 
         // But once we close the ledger, we find alice
-        // has plenty of IDAC, because the offer didn't
+        // has plenty of DAC, because the offer didn't
         // cross (of course).
         env.require(balance(alice, aliceBal - drops(20)),
             owners(alice, 1));
 
         //////////////////////////////////////////
-        // Offer with low IDAC out allows later txs
+        // Offer with low DAC out allows later txs
         fillQueue(env, alice);
         checkMetrics(env, 0, 8, 5, 4, 256);
         aliceSeq = env.seq(alice);
         aliceBal = env.balance(alice);
 
         // If this offer crosses, just a bit
-        // of alice's IDAC will be taken.
-        env(offer(alice, BUX(50), IDAC(500)),
+        // of alice's DAC will be taken.
+        env(offer(alice, BUX(50), DAC(500)),
             queued);
 
         // And later transactions are just fine
@@ -1390,13 +1390,13 @@ public:
         checkMetrics(env, 0, 10, 2, 5, 256);
 
         // But once we close the ledger, we find alice
-        // has plenty of IDAC, because the offer didn't
+        // has plenty of DAC, because the offer didn't
         // cross (of course).
         env.require(balance(alice, aliceBal - drops(20)),
             owners(alice, 2));
 
         //////////////////////////////////////////
-        // Large IDAC payment blocks later txs
+        // Large DAC payment blocks later txs
         fillQueue(env, alice);
         checkMetrics(env, 0, 10, 6, 5, 256);
 
@@ -1406,7 +1406,7 @@ public:
         // If this payment succeeds, alice will
         // send her entire balance to charlie
         // (minus the reserve).
-        env(pay(alice, charlie, IDAC(50000)),
+        env(pay(alice, charlie, DAC(50000)),
             queued);
 
         // So even a noop will look like alice
@@ -1424,7 +1424,7 @@ public:
             owners(alice, 2));
 
         //////////////////////////////////////////
-        // Small IDAC payment allows later txs
+        // Small DAC payment allows later txs
         fillQueue(env, alice);
         checkMetrics(env, 0, 12, 7, 6, 256);
 
@@ -1433,7 +1433,7 @@ public:
 
         // If this payment succeeds, alice will
         // send just a bit of balance to charlie
-        env(pay(alice, charlie, IDAC(500)),
+        env(pay(alice, charlie, DAC(500)),
             queued);
 
         // And later transactions are just fine
@@ -1444,7 +1444,7 @@ public:
         checkMetrics(env, 0, 14, 2, 7, 256);
 
         // The payment succeeds
-        env.require(balance(alice, aliceBal - IDAC(500) - drops(20)),
+        env.require(balance(alice, aliceBal - DAC(500) - drops(20)),
             owners(alice, 2));
 
         //////////////////////////////////////////
@@ -1476,7 +1476,7 @@ public:
             queued);
 
         // But that's fine, because it doesn't affect
-        // alice's IDAC balance (other than the fee, of course).
+        // alice's DAC balance (other than the fee, of course).
         env(noop(alice), seq(aliceSeq + 1), queued);
         checkMetrics(env, 2, 14, 8, 7, 256);
 
@@ -1484,7 +1484,7 @@ public:
         checkMetrics(env, 0, 16, 2, 8, 256);
 
         // So once we close the ledger, alice has her
-        // IDAC balance, but her USD balance went to charlie.
+        // DAC balance, but her USD balance went to charlie.
         env.require(balance(alice, aliceBal - drops(20)),
             balance(alice, USD(0)),
             balance(charlie, aliceUSD),
@@ -1492,9 +1492,9 @@ public:
             owners(charlie, 1));
 
         //////////////////////////////////////////
-        // Large IDAC to IOU payment blocks later txs.
+        // Large DAC to IOU payment blocks later txs.
 
-        env(offer(gw, IDAC(500000), USD(50000)));
+        env(offer(gw, DAC(500000), USD(50000)));
         // Close so we don't have to deal
         // with tx ordering in consensus.
         env.close();
@@ -1508,11 +1508,11 @@ public:
 
         // If this payment succeeds, and uses the
         // entire sendMax, alice will send her
-        // entire IDAC balance to charlie in the
+        // entire DAC balance to charlie in the
         // form of USD.
-        BEAST_EXPECT(IDAC(60000) > aliceBal);
+        BEAST_EXPECT(DAC(60000) > aliceBal);
         env(pay(alice, charlie, USD(1000)),
-            sendmax(IDAC(60000)), queued);
+            sendmax(DAC(60000)), queued);
 
         // So even a noop will look like alice
         // doesn't have the balance to pay the fee
@@ -1523,15 +1523,15 @@ public:
         checkMetrics(env, 0, 18, 2, 9, 256);
 
         // So once we close the ledger, alice sent a payment
-        // to charlie using only a portion of her IDAC balance
-        env.require(balance(alice, aliceBal - IDAC(10000) - drops(20)),
+        // to charlie using only a portion of her DAC balance
+        env.require(balance(alice, aliceBal - DAC(10000) - drops(20)),
             balance(alice, USD(0)),
             balance(charlie, charlieUSD + USD(1000)),
             owners(alice, 3),
             owners(charlie, 1));
 
         //////////////////////////////////////////
-        // Small IDAC to IOU payment allows later txs.
+        // Small DAC to IOU payment allows later txs.
 
         fillQueue(env, charlie);
         checkMetrics(env, 0, 18, 10, 9, 256);
@@ -1542,11 +1542,11 @@ public:
 
         // If this payment succeeds, and uses the
         // entire sendMax, alice will only send
-        // a portion of her IDAC balance to charlie
+        // a portion of her DAC balance to charlie
         // in the form of USD.
-        BEAST_EXPECT(aliceBal > IDAC(6001));
+        BEAST_EXPECT(aliceBal > DAC(6001));
         env(pay(alice, charlie, USD(500)),
-            sendmax(IDAC(6000)), queued);
+            sendmax(DAC(6000)), queued);
 
         // And later transactions are just fine
         env(noop(alice), seq(aliceSeq + 1), queued);
@@ -1556,8 +1556,8 @@ public:
         checkMetrics(env, 0, 20, 2, 10, 256);
 
         // So once we close the ledger, alice sent a payment
-        // to charlie using only a portion of her IDAC balance
-        env.require(balance(alice, aliceBal - IDAC(5000) - drops(20)),
+        // to charlie using only a portion of her DAC balance
+        env.require(balance(alice, aliceBal - DAC(5000) - drops(20)),
             balance(alice, USD(0)),
             balance(charlie, charlieUSD + USD(500)),
             owners(alice, 3),
@@ -1586,7 +1586,7 @@ public:
             auto const conseq = calculateConsequences(pf);
             BEAST_EXPECT(conseq.category == TxConsequences::normal);
             BEAST_EXPECT(conseq.fee == drops(10));
-            BEAST_EXPECT(conseq.potentialSpend == IDAC(0));
+            BEAST_EXPECT(conseq.potentialSpend == DAC(0));
         }
 
         {
@@ -1600,7 +1600,7 @@ public:
             auto const conseq = calculateConsequences(pf);
             BEAST_EXPECT(conseq.category == TxConsequences::normal);
             BEAST_EXPECT(conseq.fee == drops(10));
-            BEAST_EXPECT(conseq.potentialSpend == IDAC(0));
+            BEAST_EXPECT(conseq.potentialSpend == DAC(0));
         }
 
         {
@@ -1612,7 +1612,7 @@ public:
             auto const conseq = calculateConsequences(pf);
             BEAST_EXPECT(conseq.category == TxConsequences::normal);
             BEAST_EXPECT(conseq.fee == drops(10));
-            BEAST_EXPECT(conseq.potentialSpend == IDAC(0));
+            BEAST_EXPECT(conseq.potentialSpend == DAC(0));
         }
 
         {
@@ -1628,7 +1628,7 @@ public:
             auto const conseq = calculateConsequences(pf);
             BEAST_EXPECT(conseq.category == TxConsequences::normal);
             BEAST_EXPECT(conseq.fee == drops(10));
-            BEAST_EXPECT(conseq.potentialSpend == IDAC(0));
+            BEAST_EXPECT(conseq.potentialSpend == DAC(0));
         }
     }
 
@@ -1731,7 +1731,7 @@ public:
         auto const alice = Account("alice");
         auto const bob = Account("bob");
 
-        env.fund(IDAC(500000), noripple(alice, bob));
+        env.fund(DAC(500000), noripple(alice, bob));
         checkMetrics(env, 0, boost::none, 2, 1, 256);
 
         auto const aliceSeq = env.seq(alice);
@@ -1806,7 +1806,7 @@ public:
 
         auto const alice = Account("alice");
         auto const bob = Account("bob");
-        env.fund(IDAC(100000), alice, bob);
+        env.fund(DAC(100000), alice, bob);
 
         auto params = Json::Value(Json::objectValue);
         // Max fee = 50k drops
@@ -1934,7 +1934,7 @@ public:
         Env_ss envs(env);
 
         Account const alice{ "alice" };
-        env.fund(IDAC(1000000), alice);
+        env.fund(DAC(1000000), alice);
         env.close();
 
         auto const withQueue =
@@ -2204,7 +2204,7 @@ public:
         Env_ss envs(env);
 
         Account const alice{ "alice" };
-        env.fund(IDAC(1000000), alice);
+        env.fund(DAC(1000000), alice);
         env.close();
 
         auto submitParams = Json::Value(Json::objectValue);
@@ -2439,7 +2439,7 @@ public:
 
 
         // Fund the first few accounts at non escalated fee
-        env.fund(IDAC(50000), noripple(a,b,c,d));
+        env.fund(DAC(50000), noripple(a,b,c,d));
         checkMetrics(env, 0, boost::none, 4, 3, 256);
 
         // First transaction establishes the messaging
@@ -2503,7 +2503,7 @@ public:
         checkMetrics(env, 0, 8, 0, 4, 256);
 
         // Fund then next few accounts at non escalated fee
-        env.fund(IDAC(50000), noripple(e,f,g,h,i));
+        env.fund(DAC(50000), noripple(e,f,g,h,i));
 
         // Extra transactions with low fee are queued
         auto queued = ter(terQUEUED);
@@ -2597,7 +2597,7 @@ public:
         auto bob = Account("bob");
 
         checkMetrics(env, 0, boost::none, 0, 3, 256);
-        env.fund(IDAC(50000000), alice, bob);
+        env.fund(DAC(50000000), alice, bob);
 
         fillQueue(env, alice);
 
@@ -2781,7 +2781,7 @@ public:
             fillQueue(env, bob);
             checkMetrics(env, 3, 34, 18, 17, 256);
 
-            env(noop(alice), fee(IDAC(1)), seq(aliceSeq++), ter(terQUEUED));
+            env(noop(alice), fee(DAC(1)), seq(aliceSeq++), ter(terQUEUED));
             checkMetrics(env, 4, 34, 18, 17, 256);
 
             // With normal load, those txs get into the ledger

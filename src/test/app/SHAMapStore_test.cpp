@@ -213,7 +213,7 @@ public:
         Env env(*this, envconfig(onlineDelete));
 
         auto& store = env.app().getSHAMapStore();
-        env.fund(IDAC(10000), noripple("alice"));
+        env.fund(DAC(10000), noripple("alice"));
 
         validationCheck(env, 0);
         ledgerCheck(env, 1, 2);
@@ -245,7 +245,7 @@ public:
 
         for (auto i = firstSeq + 1; i < deleteInterval + firstSeq; ++i)
         {
-            env.fund(IDAC(10000), noripple("test" + to_string(i)));
+            env.fund(DAC(10000), noripple("test" + to_string(i)));
             env.close();
 
             ledgerTmp = env.rpc("ledger", "current");

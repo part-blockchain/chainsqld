@@ -1,7 +1,7 @@
 # !!! The official build system is SConstruct !!!
-# This is an experimental cmake build file for idacd
+# This is an experimental cmake build file for dacd
 #
-# cmake support in idacd. Currently supports:
+# cmake support in dacd. Currently supports:
 #
 #  * unity/nounity debug/release
 #  * running protobuf
@@ -34,9 +34,9 @@
 #
 #  * The Visual Studio solution will be generated with two projects, one
 #    unity, one non-unity. Which is default depends on the nounity flag in
-#    -Dtarget. Unity targets will create `idacd` and `idacd_classic`.
-#    Non-unity targets will create `idacd` and `idacd_unity`. In either
-#    case, only the `idacd` build will be enabled by default. It does
+#    -Dtarget. Unity targets will create `dacd` and `dacd_classic`.
+#    Non-unity targets will create `dacd` and `dacd_unity`. In either
+#    case, only the `dacd` build will be enabled by default. It does
 #    not appear possible to include both unity and non-unity configs in one
 #    project and disable compilation based on configuration.
 #
@@ -72,7 +72,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/Builds/CMake")
 include(CMakeFuncs)
 set(openssl_min 1.0.2)
 parse_target()
-project(idacd)
+project(dacd)
 #########################################################
 
 if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
@@ -248,14 +248,14 @@ jtx_unity2.cpp
 csf_unity.cpp)
 
 prepend(peersafe_unity_srcs
-src/idac/unity/
+src/dac/unity/
 gm_encrypt.cpp
 app_table.cpp
 app_sql.cpp)
 
 
 
-list(APPEND idacd_src_unity ${beast_unity_srcs} ${ripple_unity_srcs} ${peersafe_unity_srcs} ${test_unity_srcs})
+list(APPEND dacd_src_unity ${beast_unity_srcs} ${ripple_unity_srcs} ${peersafe_unity_srcs} ${test_unity_srcs})
 
 add_with_props(rippled_src_unity src/test/unity/nodestore_test_unity.cpp
 -I"${CMAKE_SOURCE_DIR}/"src/rocksdb2/include
@@ -263,13 +263,13 @@ add_with_props(rippled_src_unity src/test/unity/nodestore_test_unity.cpp
 -I"${CMAKE_SOURCE_DIR}/"src/snappy/config
 ${rocks_db_system_header})
 
-add_with_props(idacd_src_unity src/ripple/unity/nodestore.cpp
+add_with_props(dacd_src_unity src/ripple/unity/nodestore.cpp
 -I"${CMAKE_SOURCE_DIR}"/src/rocksdb2/include
 -I"${CMAKE_SOURCE_DIR}"/src/snappy/snappy
 -I"${CMAKE_SOURCE_DIR}"/src/snappy/config
 ${rocks_db_system_header})
 
-add_with_props(idacd_src_unity src/ripple/unity/soci_ripple.cpp ${soci_extra_includes})
+add_with_props(dacd_src_unity src/ripple/unity/soci_ripple.cpp ${soci_extra_includes})
 
 list(APPEND ripple_unity_srcs ${beast_unity_srcs} ${test_unity_srcs}
 src/ripple/unity/nodestore.cpp
@@ -280,7 +280,7 @@ src/test/unity/nodestore_test_unity.cpp)
 
 # Non-unity sources
 file(GLOB_RECURSE core_srcs src/ripple/core/*.cpp)
-add_with_props(idacd_src_nonunity "${core_srcs}"
+add_with_props(dacd_src_nonunity "${core_srcs}"
     -I"${CMAKE_SOURCE_DIR}"/src/soci/src/core
     -I"${CMAKE_SOURCE_DIR}"/src/sqlite)
 
@@ -308,7 +308,7 @@ foreach(curdir
         server
         shamap)
     file(GLOB_RECURSE cursrcs src/ripple/${curdir}/*.cpp)
-    list(APPEND idacd_src_nonunity "${cursrcs}")
+    list(APPEND dacd_src_nonunity "${cursrcs}")
     list(APPEND non_unity_srcs "${cursrcs}")
 endforeach()
 
@@ -319,15 +319,15 @@ foreach(curdir
         gmencrypt
         protocol
         rpc)
-    file(GLOB_RECURSE cursrcs src/idac/${curdir}/*.cpp)
-    list(APPEND idacd_src_nonunity "${cursrcs}")
+    file(GLOB_RECURSE cursrcs src/dac/${curdir}/*.cpp)
+    list(APPEND dacd_src_nonunity "${cursrcs}")
     list(APPEND non_unity_srcs "${cursrcs}")
 endforeach()
 
 file(GLOB_RECURSE nodestore_srcs src/ripple/nodestore/*.cpp
     src/test/nodestore/*.cpp)
 
-add_with_props(idacd_src_nonunity "${nodestore_srcs}"
+add_with_props(dacd_src_nonunity "${nodestore_srcs}"
     -I"${CMAKE_SOURCE_DIR}"/src/rocksdb2/include
     -I"${CMAKE_SOURCE_DIR}"/src/snappy/snappy
     -I"${CMAKE_SOURCE_DIR}"/src/snappy/config
@@ -359,7 +359,7 @@ foreach(curdir
     list(APPEND test_srcs "${cursrcs}")
 endforeach()
 
-add_with_props(idacd_src_nonunity "${test_srcs}"
+add_with_props(dacd_src_nonunity "${test_srcs}"
     -I"${CMAKE_SOURCE_DIR}"/src/rocksdb2/include
     -I"${CMAKE_SOURCE_DIR}"/src/snappy/snappy
     -I"${CMAKE_SOURCE_DIR}"/src/snappy/config
@@ -368,9 +368,9 @@ add_with_props(idacd_src_nonunity "${test_srcs}"
 list(APPEND non_unity_srcs "${test_srcs}")
 
 if(WIN32 OR is_xcode)
-    # idacd headers. Only needed for IDEs.
-    file(GLOB_RECURSE idacd_headers src/*.h src/*.hpp)
-    list(APPEND idacd_headers Builds/CMake/CMakeFuncs.cmake)
+    # dacd headers. Only needed for IDEs.
+    file(GLOB_RECURSE dacd_headers src/*.h src/*.hpp)
+    list(APPEND dacd_headers Builds/CMake/CMakeFuncs.cmake)
     foreach(curdir
             beast/asio
             beast/core
@@ -382,12 +382,12 @@ if(WIN32 OR is_xcode)
             validators
             websocket)
         file(GLOB_RECURSE cursrcs src/ripple/${curdir}/*.cpp)
-        list(APPEND idacd_headers "${cursrcs}")
+        list(APPEND dacd_headers "${cursrcs}")
     endforeach()
-    list(APPEND idacd_src_nonunity "${idacd_headers}")
+    list(APPEND dacd_src_nonunity "${dacd_headers}")
 
     set_property(
-        SOURCE ${idacd_headers}
+        SOURCE ${dacd_headers}
         APPEND
         PROPERTY HEADER_FILE_ONLY
         true)
@@ -419,7 +419,7 @@ endif()
 
 ############################################################
 
-add_with_props(idacd_src_all src/ripple/unity/soci.cpp
+add_with_props(dacd_src_all src/ripple/unity/soci.cpp
   ${soci_extra_includes})
 
 if (NOT is_msvc)
@@ -428,7 +428,7 @@ else()
   unset(no_unused_w)
 endif()
 
-add_with_props(idacd_src_all src/ripple/unity/secp256k1.cpp
+add_with_props(dacd_src_all src/ripple/unity/secp256k1.cpp
   -I"${CMAKE_SOURCE_DIR}"/src/secp256k1
   ${no_unused_w}
   )
@@ -441,7 +441,7 @@ foreach(cursrc
     src/ripple/unity/ripple.proto.cpp
     src/ripple/unity/resource.cpp)
 
-  add_with_props(idacd_src_all ${cursrc}
+  add_with_props(dacd_src_all ${cursrc}
     ${rocks_db_system_header}
     )
 
@@ -453,10 +453,10 @@ else()
   unset(extra_props)
 endif()
 
-add_with_props(idacd_src_all src/sqlite/sqlite_unity.c
+add_with_props(dacd_src_all src/sqlite/sqlite_unity.c
   ${extra_props})
 
-add_with_props(idacd_src_all src/ripple/unity/ed25519_donna.c
+add_with_props(dacd_src_all src/ripple/unity/ed25519_donna.c
   -I"${CMAKE_SOURCE_DIR}"/src/ed25519-donna)
 
 if (is_gcc)
@@ -465,7 +465,7 @@ else()
   unset(no_init_w)
 endif()
 
-add_with_props(idacd_src_all src/ripple/unity/rocksdb.cpp
+add_with_props(dacd_src_all src/ripple/unity/rocksdb.cpp
   -I"${CMAKE_SOURCE_DIR}"/src/rocksdb2
   -I"${CMAKE_SOURCE_DIR}"/src/rocksdb2/include
   -I"${CMAKE_SOURCE_DIR}"/src/snappy/snappy
@@ -476,17 +476,17 @@ if (NOT is_msvc)
   set(no_unused_w -Wno-unused-function)
 endif()
 
-add_with_props(idacd_src_all src/ripple/unity/snappy.cpp
+add_with_props(dacd_src_all src/ripple/unity/snappy.cpp
   -I"${CMAKE_SOURCE_DIR}"/src/snappy/snappy
   -I"${CMAKE_SOURCE_DIR}"/src/snappy/config
   ${no_unused_w})
 
 if (APPLE AND is_clang)
-  list(APPEND idacd_src_all src/ripple/unity/beastobjc.mm)
+  list(APPEND dacd_src_all src/ripple/unity/beastobjc.mm)
 endif()
 
-list(APPEND idacd_src_unity "${idacd_src_all}")
-list(APPEND idacd_src_nonunity "${idacd_src_all}")
+list(APPEND dacd_src_unity "${dacd_src_all}")
+list(APPEND dacd_src_nonunity "${dacd_src_all}")
 
 ############################################################
 
@@ -497,15 +497,15 @@ if (WIN32 OR is_xcode)
 endif()
 
 if(unity)
-    add_executable(idacd ${idacd_src_unity} ${PROTO_HDRS})
-    add_executable(idacd_classic EXCLUDE_FROM_ALL ${idacd_src_nonunity} ${PROTO_HDRS})
-    set(other_target idacd_classic)
+    add_executable(dacd ${dacd_src_unity} ${PROTO_HDRS})
+    add_executable(dacd_classic EXCLUDE_FROM_ALL ${dacd_src_nonunity} ${PROTO_HDRS})
+    set(other_target dacd_classic)
 else()
-    add_executable(idacd ${idacd_src_nonunity} ${PROTO_HDRS})
-    add_executable(idacd_unity EXCLUDE_FROM_ALL ${idacd_src_unity} ${PROTO_HDRS})
-    set(other_target idacd_unity)
+    add_executable(dacd ${dacd_src_nonunity} ${PROTO_HDRS})
+    add_executable(dacd_unity EXCLUDE_FROM_ALL ${dacd_src_unity} ${PROTO_HDRS})
+    set(other_target dacd_unity)
 endif()
-list(APPEND targets "idacd")
+list(APPEND targets "dacd")
 list(APPEND targets ${other_target})
 # Not the same as EXCLUDE_FROM_ALL. Prevents Visual Studio from building the
 # other_target when the user builds the solution (default when pressing <F7>)
@@ -557,7 +557,7 @@ add_custom_target(docs
   WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/docs"
   SOURCES "${doc_srcs}"
   )
-set_startup_project(idacd)
+set_startup_project(dacd)
 
 foreach(target IN LISTS targets)
     target_link_libraries(${target}
@@ -567,6 +567,6 @@ foreach(target IN LISTS targets)
 endforeach()
 
 if (NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
-  message(WARNING "idacd requires a 64 bit target architecture.\n"
-    "The most likely cause of this warning is trying to build idacd with a 32-bit OS.")
+  message(WARNING "dacd requires a 64 bit target architecture.\n"
+    "The most likely cause of this warning is trying to build dacd with a 32-bit OS.")
 endif()

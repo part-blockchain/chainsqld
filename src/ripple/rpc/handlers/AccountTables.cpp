@@ -23,7 +23,7 @@
 #include <ripple/rpc/Context.h>
 #include <ripple/rpc/handlers/Handlers.h>
 #include <ripple/rpc/impl/RPCHelpers.h>
-#include <idac/rpc/impl/TableAssistant.h>
+#include <dac/rpc/impl/TableAssistant.h>
 
 namespace ripple {
 Json::Value doGetAccountTables(RPC::Context&  context)

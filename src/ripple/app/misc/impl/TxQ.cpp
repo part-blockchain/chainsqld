@@ -51,7 +51,7 @@ getFeeLevelPaid(
     // If the math overflows, return the clipped
     // result blindly. This is very unlikely to ever
     // happen.
-    return mulDiv(tx[sfFee].idac().drops(),
+    return mulDiv(tx[sfFee].dac().drops(),
         baseRefLevel,
             refTxnCostDrops).second;
 }
@@ -629,8 +629,8 @@ TxQ::apply(Application& app, OpenView& view,
 
         TxQAccount::TxMap::iterator nextTxIter;
 
-        IDACAmount fee = beast::zero;
-        IDACAmount potentialSpend = beast::zero;
+        DACAmount fee = beast::zero;
+        DACAmount potentialSpend = beast::zero;
         bool includeCurrentFee = false;
     };
 
@@ -872,34 +872,34 @@ TxQ::apply(Application& app, OpenView& view,
                         this account. Currently, it will not count,
                         for the same reason that it is not checked on
                         the first transaction.
-                    Assume: Minimum account reserve is 20 IDAC.
-                    Example 1: If I have 1,000,000 IDAC, I can queue
-                        a transaction with a 1,000,000 IDAC fee. In
+                    Assume: Minimum account reserve is 20 DAC.
+                    Example 1: If I have 1,000,000 DAC, I can queue
+                        a transaction with a 1,000,000 DAC fee. In
                         the meantime, some other transaction may
                         lower my balance (eg. taking an offer). When
                         the transaction executes, I will either
-                        spend the 1,000,000 IDAC, or the transaction
+                        spend the 1,000,000 DAC, or the transaction
                         will get stuck in the queue with a
                         `terINSUF_FEE_B`.
-                    Example 2: If I have 1,000,000 IDAC, and I queue
-                        10 transactions with 0.1 IDAC fee, I have 1 IDAC
+                    Example 2: If I have 1,000,000 DAC, and I queue
+                        10 transactions with 0.1 DAC fee, I have 1 DAC
                         in flight. I can now queue another tx with a
-                        999,999 IDAC fee. When the first 10 execute,
+                        999,999 DAC fee. When the first 10 execute,
                         they're guaranteed to pay their fee, because
                         nothing can eat into my reserve. The last
                         transaction, again, will either spend the
-                        999,999 IDAC, or get stuck in the queue.
-                    Example 3: If I have 1,000,000 IDAC, and I queue
-                        7 transactions with 3 IDAC fee, I have 21 IDAC
+                        999,999 DAC, or get stuck in the queue.
+                    Example 3: If I have 1,000,000 DAC, and I queue
+                        7 transactions with 3 DAC fee, I have 21 DAC
                         in flight. I can not queue any more transactions,
                         no matter how small or large the fee.
                     Transactions stuck in the queue are mitigated by
                     LastLedgerSeq and MaybeTx::retriesRemaining.
                 */
-                auto const balance = (*sle)[sfBalance].idac();
+                auto const balance = (*sle)[sfBalance].dac();
                 auto totalFee = multiTxn->fee;
                 if (multiTxn->includeCurrentFee)
-                    totalFee += (*tx)[sfFee].idac();
+                    totalFee += (*tx)[sfFee].dac();
                 if (totalFee >= balance ||
                     totalFee >= view.fees().accountReserve(0))
                 {

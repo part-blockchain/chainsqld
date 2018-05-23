@@ -30,7 +30,7 @@ namespace jtx {
 /** A balance matches.
 
     This allows "none" which means either the account
-    doesn't exist (no IDAC) or the trust line does not
+    doesn't exist (no DAC) or the trust line does not
     exist. If an amount is specified, the SLE must
     exist even if the amount is 0, or else the test
     fails.
@@ -47,7 +47,7 @@ public:
             none_t)
         : none_(true)
         , account_(account)
-        , value_(IDAC)
+        , value_(DAC)
     {
     }
 

@@ -110,17 +110,17 @@ Json::Value doBookOffers (RPC::Context& context)
     }
     else
     {
-        pay_issuer = idacAccount ();
+        pay_issuer = dacAccount ();
     }
 
-    if (isIDAC (pay_currency) && ! isIDAC (pay_issuer))
+    if (isDAC (pay_currency) && ! isDAC (pay_issuer))
         return RPC::make_error (
             rpcSRC_ISR_MALFORMED, "Unneeded field 'taker_pays.issuer' for "
-            "IDAC currency specification.");
+            "DAC currency specification.");
 
-    if (!isIDAC (pay_currency) && isIDAC (pay_issuer))
+    if (!isDAC (pay_currency) && isDAC (pay_issuer))
         return RPC::make_error (rpcSRC_ISR_MALFORMED,
-            "Invalid field 'taker_pays.issuer', expected non-IDAC issuer.");
+            "Invalid field 'taker_pays.issuer', expected non-DAC issuer.");
 
     AccountID get_issuer;
 
@@ -140,18 +140,18 @@ Json::Value doBookOffers (RPC::Context& context)
     }
     else
     {
-        get_issuer = idacAccount ();
+        get_issuer = dacAccount ();
     }
 
 
-    if (isIDAC (get_currency) && ! isIDAC (get_issuer))
+    if (isDAC (get_currency) && ! isDAC (get_issuer))
         return RPC::make_error (rpcDST_ISR_MALFORMED,
             "Unneeded field 'taker_gets.issuer' for "
-                               "IDAC currency specification.");
+                               "DAC currency specification.");
 
-    if (!isIDAC (get_currency) && isIDAC (get_issuer))
+    if (!isDAC (get_currency) && isDAC (get_issuer))
         return RPC::make_error (rpcDST_ISR_MALFORMED,
-            "Invalid field 'taker_gets.issuer', expected non-IDAC issuer.");
+            "Invalid field 'taker_gets.issuer', expected non-DAC issuer.");
 
     boost::optional<AccountID> takerID;
     if (context.params.isMember (jss::taker))

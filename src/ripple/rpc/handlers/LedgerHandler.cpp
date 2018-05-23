@@ -62,7 +62,7 @@ Status LedgerHandler::check()
 
     options_ = (full ? LedgerFill::full : 0)
             | (expand ? LedgerFill::expand : 0)
-            | (transactions ? LedgerFill::dumpTidac : 0)
+            | (transactions ? LedgerFill::dumpTdac : 0)
             | (accounts ? LedgerFill::dumpState : 0)
             | (binary ? LedgerFill::binary : 0)
             | (owner_funds ? LedgerFill::ownerFunds : 0)

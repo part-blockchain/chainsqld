@@ -63,7 +63,7 @@ SetTrust::preflight (PreflightContext const& ctx)
     if (badCurrency() == saLimitAmount.getCurrency ())
     {
         JLOG(j.trace()) <<
-            "Malformed transaction: specifies IDAC as IOU";
+            "Malformed transaction: specifies DAC as IOU";
         return temBAD_CURRENCY;
     }
 
@@ -163,13 +163,13 @@ SetTrust::doApply ()
     //
     // Without this logic, a gateway that wanted to have a
     // new user use its services, would have to give that
-    // user enough IDAC to cover not only the account reserve
+    // user enough DAC to cover not only the account reserve
     // but the incremental reserve for the trust line as
     // well. A person with no intention of using the gateway
-    // could use the extra IDAC for their own purposes.
+    // could use the extra DAC for their own purposes.
 
-    IDACAmount const reserveCreate ((uOwnerCount < 2)
-        ? IDACAmount (zero)
+    DACAmount const reserveCreate ((uOwnerCount < 2)
+        ? DACAmount (zero)
         : view().fees().accountReserve(uOwnerCount + 1));
 
     std::uint32_t uQualityIn (bQualityIn ? ctx_.tx.getFieldU32 (sfQualityIn) : 0);
@@ -427,7 +427,7 @@ SetTrust::doApply ()
             JLOG(j_.trace()) <<
                 "Delay transaction: Insufficent reserve to add trust line.";
 
-            // Another transaction could provide IDAC to the account and then
+            // Another transaction could provide DAC to the account and then
             // this transaction would succeed.
             terResult = tecINSUF_RESERVE_LINE;
         }

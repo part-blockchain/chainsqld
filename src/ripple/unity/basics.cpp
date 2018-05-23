@@ -33,7 +33,7 @@
 #include <ripple/basics/impl/Sustain.cpp>
 #include <ripple/basics/impl/Time.cpp>
 #include <ripple/basics/impl/UptimeTimer.cpp>
-#include <idac/basics/impl/characterUtilities.cpp>
+#include <dac/basics/impl/characterUtilities.cpp>
 
 #if DOXYGEN
 #include <ripple/basics/README.md>

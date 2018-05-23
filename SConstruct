@@ -1,4 +1,4 @@
-# idacd SConstruct
+# dacd SConstruct
 #
 '''
 
@@ -6,7 +6,7 @@
     ----------------------------------------------------------------------------
 
     <none>          Same as 'install'
-    install         Default target and copies it to build/idacd (default)
+    install         Default target and copies it to build/dacd (default)
 
     all             All available variants
     debug           All available debug variants
@@ -84,9 +84,9 @@ The following extra options may be used:
     --assert Enable asserts, even in release builds.
 
 GCC 5: If the gcc toolchain is used, gcc version 5 or better is required. On
-    linux distros that ship with gcc 4 (ubuntu < 15.10), idacd will force gcc
+    linux distros that ship with gcc 4 (ubuntu < 15.10), dacd will force gcc
     to use gcc4's ABI (there was an ABI change between versions). This allows us
-    to use the package manager to install idacd dependencies. It also means if
+    to use the package manager to install dacd dependencies. It also means if
     the user builds C++ dependencies themselves - such as boost - they must
     either be built with gcc 4 or with the preprocessor flag
     `_GLIBCXX_USE_CXX11_ABI` set to zero.
@@ -95,7 +95,7 @@ Clang on linux: Clang cannot use the new gcc 5 ABI (clang does not know about
     the `abi_tag` attribute). On linux distros that ship with the gcc 5 ABI
     (ubuntu >= 15.10), building with clang requires building boost and protobuf
     with the old ABI (best to build them with clang). It is best to statically
-    link idacd in this scenario (use the `--static` with scons), as dynamic
+    link dacd in this scenario (use the `--static` with scons), as dynamic
     linking may use a library with the incorrect ABI.
 
 
@@ -124,7 +124,7 @@ import glob
 import SCons.Action
 
 if (not platform.machine().endswith('64')):
-    print('Warning: Detected {} architecture. idacd requires a 64-bit OS.'.format(
+    print('Warning: Detected {} architecture. dacd requires a 64-bit OS.'.format(
           platform.machine()));
 
 sys.path.append(os.path.join('src', 'ripple', 'beast', 'site_scons'))
@@ -192,7 +192,7 @@ def check_openssl():
     build_time = 'Mon Apr  7 20:33:19 UTC 2014'
     if parse_time(d) < parse_time(build_time):
         raise Exception('Your openSSL was built on %s; '
-                        'idacd needs a version built on or after %s.'
+                        'dacd needs a version built on or after %s.'
                         % (line, build_time))
 
 
@@ -1038,12 +1038,12 @@ def get_classic_sources(toolchain):
     append_sources(result, *list_sources('src/ripple/rpc', '.cpp'))
     append_sources(result, *list_sources('src/ripple/shamap', '.cpp'))
     append_sources(result, *list_sources('src/ripple/server', '.cpp'))
-    append_sources(result, *list_sources('src/idac/app', '.cpp'))
-    append_sources(result, *list_sources('src/idac/basics', '.cpp'))
-    append_sources(result, *list_sources('src/idac/crypto', '.cpp'))
-    append_sources(result, *list_sources('src/idac/gmencrypt', '.cpp'))
-    append_sources(result, *list_sources('src/idac/protocol', '.cpp'))
-    append_sources(result, *list_sources('src/idac/rpc', '.cpp'))
+    append_sources(result, *list_sources('src/dac/app', '.cpp'))
+    append_sources(result, *list_sources('src/dac/basics', '.cpp'))
+    append_sources(result, *list_sources('src/dac/crypto', '.cpp'))
+    append_sources(result, *list_sources('src/dac/gmencrypt', '.cpp'))
+    append_sources(result, *list_sources('src/dac/protocol', '.cpp'))
+    append_sources(result, *list_sources('src/dac/rpc', '.cpp'))
     append_sources(result, *list_sources('src/test/app', '.cpp'))
     append_sources(result, *list_sources('src/test/basics', '.cpp'))
     append_sources(result, *list_sources('src/test/beast', '.cpp'))
@@ -1115,9 +1115,9 @@ def get_unity_sources(toolchain):
         'src/ripple/unity/rpcx2.cpp',
         'src/ripple/unity/shamap.cpp',
         'src/ripple/unity/server.cpp',
-        'src/idac/unity/gm_encrypt.cpp',
-        'src/idac/unity/app_table.cpp',
-        'src/idac/unity/app_sql.cpp',
+        'src/dac/unity/gm_encrypt.cpp',
+        'src/dac/unity/app_table.cpp',
+        'src/dac/unity/app_sql.cpp',
         'src/test/unity/app_test_unity1.cpp',
         'src/test/unity/app_test_unity2.cpp',
         'src/test/unity/basics_test_unity.cpp',
@@ -1317,7 +1317,7 @@ for tu_style in ['classic', 'unity']:
                 object_builder.add_source_files('src/ripple/unity/beastobjc.mm')
 
             target = env.Program(
-                target=os.path.join(variant_dir, 'idacd'),
+                target=os.path.join(variant_dir, 'dacd'),
                 source=object_builder.objects
                 )
 
@@ -1355,7 +1355,7 @@ for key, value in aliases.items():
     env.Alias(key, value)
 
 vcxproj = base.VSProject(
-    os.path.join('Builds', 'VisualStudio2015', 'idacd'),
+    os.path.join('Builds', 'VisualStudio2015', 'dacd'),
     source = [],
     VSPROJECT_ROOT_DIRS = [
         'build/',
@@ -1376,7 +1376,7 @@ def PhonyTargets(env = None, **kw):
     for target, action in kw.items():
         env.AlwaysBuild(env.Alias(target, [], action))
 
-# Build the list of idacd source files that hold unit tests
+# Build the list of dacd source files that hold unit tests
 def do_count(target, source, env):
     def list_testfiles(base, suffixes):
         def _iter(base):

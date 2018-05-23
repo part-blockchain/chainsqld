@@ -46,12 +46,12 @@ bool getNoRippleFlag (jtx::Env const& env,
 }
 
 jtx::PrettyAmount
-idacMinusFee (jtx::Env const& env, std::int64_t idacAmount)
+dacMinusFee (jtx::Env const& env, std::int64_t dacAmount)
 {
     using namespace jtx;
     auto feeDrops = env.current ()->fees ().base;
     return drops (
-        dropsPerIDAC<std::int64_t>::value * idacAmount - feeDrops);
+        dropsPerDAC<std::int64_t>::value * dacAmount - feeDrops);
 };
 
 struct Flow_test : public beast::unit_test::suite
@@ -84,26 +84,26 @@ struct Flow_test : public beast::unit_test::suite
             // Pay USD, trivial path
             Env env (*this, with_features(fs));
 
-            env.fund (IDAC (10000), alice, bob, gw);
+            env.fund (DAC (10000), alice, bob, gw);
             env.trust (USD (1000), alice, bob);
             env (pay (gw, alice, USD (100)));
             env (pay (alice, bob, USD (10)), paths (USD));
             env.require (balance (bob, USD (10)));
         }
         {
-            // IDAC transfer
+            // DAC transfer
             Env env (*this, with_features(fs));
 
-            env.fund (IDAC (10000), alice, bob);
-            env (pay (alice, bob, IDAC (100)));
-            env.require (balance (bob, IDAC (10000 + 100)));
-            env.require (balance (alice, idacMinusFee (env, 10000 - 100)));
+            env.fund (DAC (10000), alice, bob);
+            env (pay (alice, bob, DAC (100)));
+            env.require (balance (bob, DAC (10000 + 100)));
+            env.require (balance (alice, dacMinusFee (env, 10000 - 100)));
         }
         {
             // Partial payments
             Env env (*this, with_features(fs));
 
-            env.fund (IDAC (10000), alice, bob, gw);
+            env.fund (DAC (10000), alice, bob, gw);
             env.trust (USD (1000), alice, bob);
             env (pay (gw, alice, USD (100)));
             env (pay (alice, bob, USD (110)), paths (USD),
@@ -117,7 +117,7 @@ struct Flow_test : public beast::unit_test::suite
             // Pay by rippling through accounts, use path finder
             Env env (*this, with_features(fs));
 
-            env.fund (IDAC (10000), alice, bob, carol, dan);
+            env.fund (DAC (10000), alice, bob, carol, dan);
             env.trust (USDA (10), bob);
             env.trust (USDB (10), carol);
             env.trust (USDC (10), dan);
@@ -132,7 +132,7 @@ struct Flow_test : public beast::unit_test::suite
             // and charge a transfer fee
             Env env (*this, with_features(fs));
 
-            env.fund (IDAC (10000), alice, bob, carol, dan);
+            env.fund (DAC (10000), alice, bob, carol, dan);
             env.trust (USDA (10), bob);
             env.trust (USDB (10), alice, carol);
             env.trust (USDC (10), dan);
@@ -150,7 +150,7 @@ struct Flow_test : public beast::unit_test::suite
             // Test that the transfer fee is not charged when alice issues
             Env env (*this, with_features(fs));
 
-            env.fund (IDAC (10000), alice, bob, carol, dan);
+            env.fund (DAC (10000), alice, bob, carol, dan);
             env.trust (USDA (10), bob);
             env.trust (USDB (10), alice, carol);
             env.trust (USDC (10), dan);
@@ -166,7 +166,7 @@ struct Flow_test : public beast::unit_test::suite
             // Paths: A->B->D->E ; A->C->D->E
             Env env (*this, with_features(fs));
 
-            env.fund (IDAC (10000), alice, bob, carol, dan, erin);
+            env.fund (DAC (10000), alice, bob, carol, dan, erin);
             env.trust (USDA (10), bob, carol);
             env.trust (USDB (10), dan);
             env.trust (USDC (10), alice, dan);
@@ -187,7 +187,7 @@ struct Flow_test : public beast::unit_test::suite
             // Limit quality
             Env env (*this, with_features(fs));
 
-            env.fund (IDAC (10000), alice, bob, carol);
+            env.fund (DAC (10000), alice, bob, carol);
             env.trust (USDA (10), bob);
             env.trust (USDB (10), carol);
 
@@ -223,7 +223,7 @@ struct Flow_test : public beast::unit_test::suite
                     bobAliceQOut < 100)
                     continue;  // Bug in flow v1
                 Env env(*this, with_features(fs));
-                env.fund(IDAC(10000), alice, bob, carol, dan);
+                env.fund(DAC(10000), alice, bob, carol, dan);
                 env(trust(bob, USDD(100)), qualityInPercent(bobDanQIn));
                 env(trust(bob, USDA(100)), qualityOutPercent(bobAliceQOut));
                 env(trust(carol, USDA(100)));
@@ -246,7 +246,7 @@ struct Flow_test : public beast::unit_test::suite
         for (auto carolAliceQIn : {80, 100, 120})
         {
             Env env(*this, with_features(fs));
-            env.fund(IDAC(10000), alice, bob, carol);
+            env.fund(DAC(10000), alice, bob, carol);
             env(trust(bob, USDA(10)));
             env(trust(carol, USDA(10)), qualityInPercent(carolAliceQIn));
 
@@ -262,7 +262,7 @@ struct Flow_test : public beast::unit_test::suite
         for (auto bobAliceQOut : {80, 100, 120})
         {
             Env env(*this, with_features(fs));
-            env.fund(IDAC(10000), alice, bob, carol);
+            env.fund(DAC(10000), alice, bob, carol);
             env(trust(bob, USDA(10)), qualityOutPercent(bobAliceQOut));
             env(trust(carol, USDA(10)));
 
@@ -292,7 +292,7 @@ struct Flow_test : public beast::unit_test::suite
             // simple IOU/IOU offer
             Env env (*this, with_features(fs));
 
-            env.fund (IDAC (10000), alice, bob, carol, gw);
+            env.fund (DAC (10000), alice, bob, carol, gw);
             env.trust (USD (1000), alice, bob, carol);
             env.trust (BTC (1000), alice, bob, carol);
 
@@ -310,76 +310,76 @@ struct Flow_test : public beast::unit_test::suite
             BEAST_EXPECT(!isOffer (env, bob, BTC (50), USD (50)));
         }
         {
-            // simple IOU/IDAC IDAC/IOU offer
+            // simple IOU/DAC DAC/IOU offer
             Env env (*this, with_features(fs));
 
-            env.fund (IDAC (10000), alice, bob, carol, gw);
+            env.fund (DAC (10000), alice, bob, carol, gw);
             env.trust (USD (1000), alice, bob, carol);
             env.trust (BTC (1000), alice, bob, carol);
 
             env (pay (gw, alice, BTC (50)));
             env (pay (gw, bob, USD (50)));
 
-            env (offer (bob, BTC (50), IDAC (50)));
-            env (offer (bob, IDAC (50), USD (50)));
+            env (offer (bob, BTC (50), DAC (50)));
+            env (offer (bob, DAC (50), USD (50)));
 
-            env (pay (alice, carol, USD (50)), path (~IDAC, ~USD),
+            env (pay (alice, carol, USD (50)), path (~DAC, ~USD),
                 sendmax (BTC (50)));
 
             env.require (balance (alice, BTC (0)));
             env.require (balance (bob, BTC (50)));
             env.require (balance (bob, USD (0)));
             env.require (balance (carol, USD (50)));
-            BEAST_EXPECT(!isOffer (env, bob, IDAC (50), USD (50)));
-            BEAST_EXPECT(!isOffer (env, bob, BTC (50), IDAC (50)));
+            BEAST_EXPECT(!isOffer (env, bob, DAC (50), USD (50)));
+            BEAST_EXPECT(!isOffer (env, bob, BTC (50), DAC (50)));
         }
         {
-            // simple IDAC -> USD through offer and sendmax
+            // simple DAC -> USD through offer and sendmax
             Env env (*this, with_features(fs));
 
-            env.fund (IDAC (10000), alice, bob, carol, gw);
+            env.fund (DAC (10000), alice, bob, carol, gw);
             env.trust (USD (1000), alice, bob, carol);
             env.trust (BTC (1000), alice, bob, carol);
 
             env (pay (gw, bob, USD (50)));
 
-            env (offer (bob, IDAC (50), USD (50)));
+            env (offer (bob, DAC (50), USD (50)));
 
             env (pay (alice, carol, USD (50)), path (~USD),
-                 sendmax (IDAC (50)));
+                 sendmax (DAC (50)));
 
-            env.require (balance (alice, idacMinusFee (env, 10000 - 50)));
-            env.require (balance (bob, idacMinusFee (env, 10000 + 50)));
+            env.require (balance (alice, dacMinusFee (env, 10000 - 50)));
+            env.require (balance (bob, dacMinusFee (env, 10000 + 50)));
             env.require (balance (bob, USD (0)));
             env.require (balance (carol, USD (50)));
-            BEAST_EXPECT(!isOffer (env, bob, IDAC (50), USD (50)));
+            BEAST_EXPECT(!isOffer (env, bob, DAC (50), USD (50)));
         }
         {
-            // simple USD -> IDAC through offer and sendmax
+            // simple USD -> DAC through offer and sendmax
             Env env (*this, with_features(fs));
 
-            env.fund (IDAC (10000), alice, bob, carol, gw);
+            env.fund (DAC (10000), alice, bob, carol, gw);
             env.trust (USD (1000), alice, bob, carol);
             env.trust (BTC (1000), alice, bob, carol);
 
             env (pay (gw, alice, USD (50)));
 
-            env (offer (bob, USD (50), IDAC (50)));
+            env (offer (bob, USD (50), DAC (50)));
 
-            env (pay (alice, carol, IDAC (50)), path (~IDAC),
+            env (pay (alice, carol, DAC (50)), path (~DAC),
                  sendmax (USD (50)));
 
             env.require (balance (alice, USD (0)));
-            env.require (balance (bob, idacMinusFee (env, 10000 - 50)));
+            env.require (balance (bob, dacMinusFee (env, 10000 - 50)));
             env.require (balance (bob, USD (50)));
-            env.require (balance (carol, IDAC (10000 + 50)));
-            BEAST_EXPECT(!isOffer (env, bob, USD (50), IDAC (50)));
+            env.require (balance (carol, DAC (10000 + 50)));
+            BEAST_EXPECT(!isOffer (env, bob, USD (50), DAC (50)));
         }
         {
             // test unfunded offers are removed when payment succeeds
             Env env (*this, with_features(fs));
 
-            env.fund (IDAC (10000), alice, bob, carol, gw);
+            env.fund (DAC (10000), alice, bob, carol, gw);
             env.trust (USD (1000), alice, bob, carol);
             env.trust (BTC (1000), alice, bob, carol);
             env.trust (EUR (1000), alice, bob, carol);
@@ -425,7 +425,7 @@ struct Flow_test : public beast::unit_test::suite
             // unfunded offers when the payment succeeds.
             Env env (*this, with_features(fs));
 
-            env.fund (IDAC (10000), alice, bob, carol, gw);
+            env.fund (DAC (10000), alice, bob, carol, gw);
             env.trust (USD (1000), alice, bob, carol);
             env.trust (BTC (1000), alice, bob, carol);
             env.trust (EUR (1000), alice, bob, carol);
@@ -453,7 +453,7 @@ struct Flow_test : public beast::unit_test::suite
                 auto IPE = [](Issue const& iss) {
                     return STPathElement(
                         STPathElement::typeCurrency | STPathElement::typeIssuer,
-                        idacAccount(),
+                        dacAccount(),
                         iss.currency,
                         iss.account);
                 };
@@ -504,7 +504,7 @@ struct Flow_test : public beast::unit_test::suite
                 100 * env.closed ()->info ().closeTimeResolution;
             env.close (closeTime);
 
-            env.fund (IDAC (10000), alice, bob, carol, gw);
+            env.fund (DAC (10000), alice, bob, carol, gw);
             env.trust (USD (1000), alice, bob, carol);
             env.trust (EUR (1000), alice, bob, carol);
 
@@ -514,7 +514,7 @@ struct Flow_test : public beast::unit_test::suite
             env (offer (bob, USD (1), drops (2)), txflags (tfPassive));
             env (offer (bob, drops (1), EUR (1000)), txflags (tfPassive));
 
-            env (pay (alice, carol, EUR (1)), path (~IDAC, ~EUR),
+            env (pay (alice, carol, EUR (1)), path (~DAC, ~EUR),
                 sendmax (USD (0.4)), txflags (tfNoRippleDirect|tfPartialPayment));
 
             env.require (balance (carol, EUR (1)));
@@ -543,7 +543,7 @@ struct Flow_test : public beast::unit_test::suite
             // transfer rate
             Env env (*this, with_features(fs));
 
-            env.fund (IDAC (10000), alice, bob, carol, gw);
+            env.fund (DAC (10000), alice, bob, carol, gw);
             env(rate(gw, 1.25));
             env.trust (USD (1000), alice, bob, carol);
             env (pay (gw, alice, USD (50)));
@@ -555,7 +555,7 @@ struct Flow_test : public beast::unit_test::suite
             // transfer rate is not charged when issuer is src or dst
             Env env (*this, with_features(fs));
 
-            env.fund (IDAC (10000), alice, bob, carol, gw);
+            env.fund (DAC (10000), alice, bob, carol, gw);
             env(rate(gw, 1.25));
             env.trust (USD (1000), alice, bob, carol);
             env (pay (gw, alice, USD (50)));
@@ -567,16 +567,16 @@ struct Flow_test : public beast::unit_test::suite
             // transfer fee on an offer
             Env env (*this, with_features(fs));
 
-            env.fund (IDAC (10000), alice, bob, carol, gw);
+            env.fund (DAC (10000), alice, bob, carol, gw);
             env(rate(gw, 1.25));
             env.trust (USD (1000), alice, bob, carol);
             env (pay (gw, bob, USD (65)));
 
-            env (offer (bob, IDAC (50), USD (50)));
+            env (offer (bob, DAC (50), USD (50)));
 
-            env (pay (alice, carol, USD (50)), path (~USD), sendmax (IDAC (50)));
+            env (pay (alice, carol, USD (50)), path (~USD), sendmax (DAC (50)));
             env.require (
-                balance (alice, idacMinusFee (env, 10000 - 50)),
+                balance (alice, dacMinusFee (env, 10000 - 50)),
                 balance (bob, USD (2.5)), // owner pays transfer fee
                 balance (carol, USD (50)));
         }
@@ -585,19 +585,19 @@ struct Flow_test : public beast::unit_test::suite
             // Transfer fee two consecutive offers
             Env env (*this, with_features(fs));
 
-            env.fund (IDAC (10000), alice, bob, carol, gw);
+            env.fund (DAC (10000), alice, bob, carol, gw);
             env(rate(gw, 1.25));
             env.trust (USD (1000), alice, bob, carol);
             env.trust (EUR (1000), alice, bob, carol);
             env (pay (gw, bob, USD (50)));
             env (pay (gw, bob, EUR (50)));
 
-            env (offer (bob, IDAC (50), USD (50)));
+            env (offer (bob, DAC (50), USD (50)));
             env (offer (bob, USD (50), EUR (50)));
 
-            env (pay (alice, carol, EUR (40)), path (~USD, ~EUR), sendmax (IDAC (40)));
+            env (pay (alice, carol, EUR (40)), path (~USD, ~EUR), sendmax (DAC (40)));
             env.require (
-                balance (alice,  idacMinusFee (env, 10000 - 40)),
+                balance (alice,  dacMinusFee (env, 10000 - 40)),
                 balance (bob, USD (40)),
                 balance (bob, EUR (0)),
                 balance (carol, EUR (40)));
@@ -610,7 +610,7 @@ struct Flow_test : public beast::unit_test::suite
             auto const USDA = alice["USD"];
             auto const USDB = bob["USD"];
 
-            env.fund (IDAC (10000), alice, bob, carol, gw);
+            env.fund (DAC (10000), alice, bob, carol, gw);
             env(rate(gw, 1.25));
             env.trust (USD (1000), alice, bob, carol);
             env.trust (USDA (1000), bob);
@@ -631,7 +631,7 @@ struct Flow_test : public beast::unit_test::suite
             auto const USDB = bob["USD"];
             Account const dan ("dan");
 
-            env.fund (IDAC (10000), alice, bob, carol, dan, gw);
+            env.fund (DAC (10000), alice, bob, carol, dan, gw);
             env(rate(gw, 1.25));
             env.trust (USD (1000), alice, bob, carol, dan);
             env.trust (EUR (1000), carol, dan);
@@ -655,14 +655,14 @@ struct Flow_test : public beast::unit_test::suite
             // Offer where the owner is also the issuer, owner pays fee
             Env env (*this, with_features(fs));
 
-            env.fund (IDAC (10000), alice, bob, gw);
+            env.fund (DAC (10000), alice, bob, gw);
             env(rate(gw, 1.25));
             env.trust (USD (1000), alice, bob);
-            env (offer (gw, IDAC (100), USD (100)));
+            env (offer (gw, DAC (100), USD (100)));
             env (pay (alice, bob, USD (100)),
-                 sendmax (IDAC (100)));
+                 sendmax (DAC (100)));
             env.require (
-                balance (alice, idacMinusFee(env, 10000-100)),
+                balance (alice, dacMinusFee(env, 10000-100)),
                 balance (bob, USD (100)));
         }
         if (!hasFeature(featureOwnerPaysFee, fs))
@@ -670,14 +670,14 @@ struct Flow_test : public beast::unit_test::suite
             // Offer where the owner is also the issuer, sender pays fee
             Env env (*this, with_features(fs));
 
-            env.fund (IDAC (10000), alice, bob, gw);
+            env.fund (DAC (10000), alice, bob, gw);
             env(rate(gw, 1.25));
             env.trust (USD (1000), alice, bob);
-            env (offer (gw, IDAC (125), USD (125)));
+            env (offer (gw, DAC (125), USD (125)));
             env (pay (alice, bob, USD (100)),
-                 sendmax (IDAC (200)));
+                 sendmax (DAC (200)));
             env.require (
-                balance (alice, idacMinusFee(env, 10000-125)),
+                balance (alice, dacMinusFee(env, 10000-125)),
                 balance (bob, USD (100)));
         }
     }
@@ -702,7 +702,7 @@ struct Flow_test : public beast::unit_test::suite
                 100 * env.closed ()->info ().closeTimeResolution;
         env.close (closeTime);
 
-        env.fund (IDAC(10000), alice, carol, gw);
+        env.fund (DAC(10000), alice, carol, gw);
         env.fund (reserve(env, 5), bob);
         env.trust (USD (1000), alice, bob, carol);
         env.trust (EUR (1000), alice, bob, carol);
@@ -711,17 +711,17 @@ struct Flow_test : public beast::unit_test::suite
         env (pay (gw, alice, EUR (50)));
         env (pay (gw, bob, USD (50)));
 
-        // Bob has _just_ slightly less than 50 idac available
+        // Bob has _just_ slightly less than 50 dac available
         // If his owner count changes, he will have more liquidity.
         // This is one error case to test (when Flow is used).
-        // Computing the incomming idac to the IDAC/USD offer will require two
-        // recursive calls to the EUR/IDAC offer. The second call will return
+        // Computing the incomming dac to the DAC/USD offer will require two
+        // recursive calls to the EUR/DAC offer. The second call will return
         // tecPATH_DRY, but the entire path should not be marked as dry. This
         // is the second error case to test (when flowV1 is used).
-        env (offer (bob, EUR (50), IDAC (50)));
-        env (offer (bob, IDAC (50), USD (50)));
+        env (offer (bob, EUR (50), DAC (50)));
+        env (offer (bob, DAC (50), USD (50)));
 
-        env (pay (alice, carol, USD (1000000)), path (~IDAC, ~USD),
+        env (pay (alice, carol, USD (1000000)), path (~DAC, ~USD),
             sendmax (EUR (500)),
             txflags (tfNoRippleDirect | tfPartialPayment));
 
@@ -753,16 +753,16 @@ struct Flow_test : public beast::unit_test::suite
             Env env (*this, no_features);
             env.close (closeTime);
 
-            env.fund (IDAC(10000), alice, bob, carol, gw);
+            env.fund (DAC(10000), alice, bob, carol, gw);
 
             env.trust (USD(100), alice, bob, carol);
             env (pay (gw, bob, USD (100)));
-            env (offer (bob, IDAC (50), USD (50)));
-            env (offer (bob, IDAC (100), USD (50)));
+            env (offer (bob, DAC (50), USD (50)));
+            env (offer (bob, DAC (100), USD (50)));
 
             auto expectedResult =
                 closeTime < fix1141Time () ? tecPATH_DRY : tesSUCCESS;
-            env (pay (alice, carol, USD (100)), path (~USD), sendmax (IDAC (100)),
+            env (pay (alice, carol, USD (100)), path (~USD), sendmax (DAC (100)),
                 txflags (tfNoRippleDirect | tfPartialPayment | tfLimitQuality),
                 ter (expectedResult));
 
@@ -773,7 +773,7 @@ struct Flow_test : public beast::unit_test::suite
 
     // Helper function that returns the reserve on an account based on
     // the passed in number of owners.
-    static IDACAmount reserve(jtx::Env& env, std::uint32_t count)
+    static DACAmount reserve(jtx::Env& env, std::uint32_t count)
     {
         return env.current()->fees().accountReserve (count);
     }
@@ -816,7 +816,7 @@ struct Flow_test : public beast::unit_test::suite
             fix1141Time () + 100 * env.closed ()->info ().closeTimeResolution;
         env.close (closeTime);
 
-        env.fund (IDAC (1000000), gw1, gw2);
+        env.fund (DAC (1000000), gw1, gw2);
         env.close ();
 
         // The fee that's charged for transactions.
@@ -890,7 +890,7 @@ struct Flow_test : public beast::unit_test::suite
             fix1141Time () + 100 * env.closed ()->info ().closeTimeResolution;
         env.close (closeTime);
 
-        env.fund (IDAC (1000000), gw1, gw2);
+        env.fund (DAC (1000000), gw1, gw2);
         env.close ();
 
         // The fee that's charged for transactions.
@@ -941,14 +941,14 @@ struct Flow_test : public beast::unit_test::suite
             BEAST_EXPECT(offer[sfTakerPays] == USD (495));
         }
     }
-    void testSelfFundedIDACEndpoint (bool consumeOffer, std::initializer_list<uint256> fs)
+    void testSelfFundedDACEndpoint (bool consumeOffer, std::initializer_list<uint256> fs)
     {
         // Test that the deferred credit table is not bypassed for
-        // IDACEndpointSteps. If the account in the first step is sending IDAC and
-        // that account also owns an offer that receives IDAC, it should not be
-        // possible for that step to use the IDAC received in the offer as part
+        // DACEndpointSteps. If the account in the first step is sending DAC and
+        // that account also owns an offer that receives DAC, it should not be
+        // possible for that step to use the DAC received in the offer as part
         // of the payment.
-        testcase("Self funded IDACEndpoint");
+        testcase("Self funded DACEndpoint");
 
         using namespace jtx;
 
@@ -963,15 +963,15 @@ struct Flow_test : public beast::unit_test::suite
         auto const gw = Account("gw");
         auto const USD = gw["USD"];
 
-        env.fund(IDAC(10000), alice, gw);
+        env.fund(DAC(10000), alice, gw);
         env(trust(alice, USD(20)));
         env(pay(gw, alice, USD(10)));
-        env(offer(alice, IDAC(50000), USD(10)));
+        env(offer(alice, DAC(50000), USD(10)));
 
         // Consuming the offer changes the owner count, which could also cause
         // liquidity to decrease in the forward pass
         auto const toSend = consumeOffer ? USD(10) : USD(9);
-        env(pay(alice, alice, toSend), path(~USD), sendmax(IDAC(20000)),
+        env(pay(alice, alice, toSend), path(~USD), sendmax(DAC(20000)),
             txflags(tfPartialPayment | tfNoRippleDirect));
     }
 
@@ -996,7 +996,7 @@ struct Flow_test : public beast::unit_test::suite
             auto const gw = Account("gw");
             auto const USD = gw["USD"];
 
-            env.fund(IDAC(100000), alice, bob, gw);
+            env.fund(DAC(100000), alice, bob, gw);
             env(trust(bob, USD(20)));
 
             STAmount tinyAmt1{USD.issue(), 9000000000000000ll, -17, false,
@@ -1009,9 +1009,9 @@ struct Flow_test : public beast::unit_test::suite
                 sendmax(drops(9000000000)), txflags(tfNoRippleDirect));
 
             if (withFix)
-                BEAST_EXPECT(!isOffer(env, gw, IDAC(0), USD(0)));
+                BEAST_EXPECT(!isOffer(env, gw, DAC(0), USD(0)));
             else
-                BEAST_EXPECT(isOffer(env, gw, IDAC(0), USD(0)));
+                BEAST_EXPECT(isOffer(env, gw, DAC(0), USD(0)));
         }
         {
             // Test forward
@@ -1028,7 +1028,7 @@ struct Flow_test : public beast::unit_test::suite
             auto const gw = Account("gw");
             auto const USD = gw["USD"];
 
-            env.fund(IDAC(100000), alice, bob, gw);
+            env.fund(DAC(100000), alice, bob, gw);
             env(trust(alice, USD(20)));
 
             STAmount tinyAmt1{USD.issue(), 9000000000000000ll, -17, false,
@@ -1039,13 +1039,13 @@ struct Flow_test : public beast::unit_test::suite
             env(pay(gw, alice, tinyAmt1));
 
             env(offer(gw, tinyAmt3, drops(9000000000)));
-            env(pay(alice, bob, drops(9000000000)), path(~IDAC),
+            env(pay(alice, bob, drops(9000000000)), path(~DAC),
                 sendmax(USD(1)), txflags(tfNoRippleDirect));
 
             if (withFix)
-                BEAST_EXPECT(!isOffer(env, gw, USD(0), IDAC(0)));
+                BEAST_EXPECT(!isOffer(env, gw, USD(0), DAC(0)));
             else
-                BEAST_EXPECT(isOffer(env, gw, USD(0), IDAC(0)));
+                BEAST_EXPECT(isOffer(env, gw, USD(0), DAC(0)));
         }
     }
 
@@ -1063,7 +1063,7 @@ struct Flow_test : public beast::unit_test::suite
         auto const USD = gw["USD"];
         auto const usdC = USD.currency;
 
-        env.fund(IDAC(10000), alice, bob, gw);
+        env.fund(DAC(10000), alice, bob, gw);
         // Need to be past this time to see the bug
         env.close(fix1274Time() +
             100 * env.closed()->info().closeTimeResolution);
@@ -1081,27 +1081,27 @@ struct Flow_test : public beast::unit_test::suite
             // 5.0...
             STAmount{
                 USD.issue(), std::uint64_t(5000000000000000ull), -15, false},
-            IDAC(1000)));
+            DAC(1000)));
 
         env(offer(gw,
             // .555...
             STAmount{
                 USD.issue(), std::uint64_t(5555555555555555ull), -16, false},
-            IDAC(10)));
+            DAC(10)));
 
         env(offer(gw,
             // 4.44....
             STAmount{
                 USD.issue(), std::uint64_t(4444444444444444ull), -15, false},
-            IDAC(.1)));
+            DAC(.1)));
 
         env(offer(alice,
             // 17
             STAmount{
                 USD.issue(), std::uint64_t(1700000000000000ull), -14, false},
-            IDAC(.001)));
+            DAC(.001)));
 
-        env(pay(alice, bob, IDAC(10000)), path(~IDAC), sendmax(USD(100)),
+        env(pay(alice, bob, DAC(10000)), path(~DAC), sendmax(USD(100)),
             txflags(tfPartialPayment | tfNoRippleDirect));
     }
 
@@ -1122,7 +1122,7 @@ struct Flow_test : public beast::unit_test::suite
         auto const carol = Account("carol");
         auto const gw = Account("gw");
 
-        env.fund(IDAC(100000000), alice, noripple(bob), carol, gw);
+        env.fund(DAC(100000000), alice, noripple(bob), carol, gw);
         env.trust(gw["USD"](10000), alice, carol);
         env(trust(bob, gw["USD"](10000), tfSetNoRipple));
         env.trust(gw["USD"](10000), bob);
@@ -1133,10 +1133,10 @@ struct Flow_test : public beast::unit_test::suite
         env(pay(gw, alice, gw["USD"](1000)));
         env.close();
 
-        env(offer(alice, bob["USD"](1000), IDAC(1)));
+        env(offer(alice, bob["USD"](1000), DAC(1)));
         env.close();
 
-        env(pay(alice, alice, IDAC(1)), path(gw, bob, ~IDAC),
+        env(pay(alice, alice, DAC(1)), path(gw, bob, ~DAC),
             sendmax(gw["USD"](1000)), txflags(tfNoRippleDirect),
             ter(withFix ? tecPATH_DRY : tesSUCCESS));
         env.close();
@@ -1147,11 +1147,11 @@ struct Flow_test : public beast::unit_test::suite
             env(pay(bob, alice, bob["USD"](1000)));
         }
 
-        env(offer(alice, IDAC(1000), bob["USD"](1000)));
+        env(offer(alice, DAC(1000), bob["USD"](1000)));
         env.close();
 
         env(pay (carol, carol, gw["USD"](1000)), path(~bob["USD"], gw),
-            sendmax(IDAC(100000)), txflags(tfNoRippleDirect),
+            sendmax(DAC(100000)), txflags(tfNoRippleDirect),
             ter(withFix ? tecPATH_DRY : tesSUCCESS));
         env.close();
 
@@ -1170,7 +1170,7 @@ struct Flow_test : public beast::unit_test::suite
         auto closeTime = fix1449Time() + d;
         env.close(closeTime);
 
-        // pay alice -> idac -> USD/bob -> bob -> gw -> alice
+        // pay alice -> dac -> USD/bob -> bob -> gw -> alice
         // set no ripple on bob's side of the bob/gw trust line
         // carol has the bob/USD and makes an offer, bob has USD/gw
 
@@ -1180,7 +1180,7 @@ struct Flow_test : public beast::unit_test::suite
         auto const gw = Account("gw");
         auto const USD = gw["USD"];
 
-        env.fund(IDAC(100000000), alice, bob, carol, gw);
+        env.fund(DAC(100000000), alice, bob, carol, gw);
         env.trust(USD(10000), alice, carol);
         env(trust(bob, USD(10000), tfSetNoRipple));
         env.trust(USD(10000), bob);
@@ -1191,11 +1191,11 @@ struct Flow_test : public beast::unit_test::suite
         env(pay(gw, bob, USD(1000)));
         env.close();
 
-        env(offer(carol, IDAC(1), bob["USD"](1000)));
+        env(offer(carol, DAC(1), bob["USD"](1000)));
         env.close();
 
         env(pay(alice, alice, USD(1000)), path(~bob["USD"], bob, gw),
-            sendmax(IDAC(1)), txflags(tfNoRippleDirect),
+            sendmax(DAC(1)), txflags(tfNoRippleDirect),
             ter(withFix ? tecPATH_DRY : tesSUCCESS));
         env.close();
     }
@@ -1204,7 +1204,7 @@ struct Flow_test : public beast::unit_test::suite
     testSelfPayLowQualityOffer (std::initializer_list<uint256> fs)
     {
         // The new payment code used to assert if an offer was made for more
-        // IDAC than the offering account held.  This unit test reproduces
+        // DAC than the offering account held.  This unit test reproduces
         // that failing case.
         testcase ("Self crossing low quality offer");
 
@@ -1246,7 +1246,7 @@ struct Flow_test : public beast::unit_test::suite
 
         Env env(*this, with_features(fs));
 
-        env.fund(IDAC(10000), alice);
+        env.fund(DAC(10000), alice);
 
         env(pay(alice, alice,
                 alice["USD"](100)),
@@ -1275,8 +1275,8 @@ struct Flow_test : public beast::unit_test::suite
             testTransferRate({featureOwnerPaysFee, fs...});
             testSelfPayment1({fs...});
             testSelfPayment2({fs...});
-            testSelfFundedIDACEndpoint(false, {fs...});
-            testSelfFundedIDACEndpoint(true, {fs...});
+            testSelfFundedDACEndpoint(false, {fs...});
+            testSelfFundedDACEndpoint(true, {fs...});
             testUnfundedOffer(true, {fs...});
             testUnfundedOffer(false,  {fs...});
             testReexecuteDirectStep({fix1368, fs...});

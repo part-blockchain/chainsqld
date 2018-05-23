@@ -21,7 +21,7 @@
 #define RIPPLE_APP_TX_TRANSACTOR_H_INCLUDED
 
 #include <ripple/app/tx/impl/ApplyContext.h>
-#include <ripple/protocol/IDACAmount.h>
+#include <ripple/protocol/DACAmount.h>
 #include <ripple/beast/utility/Journal.h>
 #include <boost/optional.hpp>
 
@@ -80,9 +80,9 @@ protected:
     beast::Journal j_;
 
     AccountID     account_;
-    IDACAmount     mFeeDue;
-    IDACAmount     mPriorBalance;  // Balance before fees.
-    IDACAmount     mSourceBalance; // Balance after fees.
+    DACAmount     mFeeDue;
+    DACAmount     mPriorBalance;  // Balance before fees.
+    DACAmount     mSourceBalance; // Balance after fees.
 
 public:
     /** Process the transaction. */
@@ -137,11 +137,11 @@ public:
     }
 
     static
-    IDACAmount
+    DACAmount
     calculateFeePaid(STTx const& tx);
 
     static
-    IDACAmount
+    DACAmount
     calculateMaxSpend(STTx const& tx);
 
     static
@@ -168,7 +168,7 @@ protected:
 private:
     void setSeq ();
     TER payFee ();
-    void claimFee (IDACAmount& fee, TER terResult, std::vector<uint256> const& removedOffers);
+    void claimFee (DACAmount& fee, TER terResult, std::vector<uint256> const& removedOffers);
     static TER checkSingleSign (PreclaimContext const& ctx);
     static TER checkMultiSign (PreclaimContext const& ctx);
 	void checkAddChainIDSle();

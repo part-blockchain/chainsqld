@@ -37,8 +37,8 @@ namespace jtx {
 
 /*
 
-The decision was made to accept amounts of drops and IDAC
-using an int type, since the range of IDAC is 100 billion
+The decision was made to accept amounts of drops and DAC
+using an int type, since the range of DAC is 100 billion
 and having both signed and unsigned overloads creates
 tricky code leading to overload resolution ambiguities.
 
@@ -61,14 +61,14 @@ struct None
 //------------------------------------------------------------------------------
 
 template <class T>
-struct dropsPerIDAC
+struct dropsPerDAC
 {
     static T const value = 1000000;
 };
 
-/** Represents an IDAC or IOU quantity
+/** Represents an DAC or IOU quantity
     This customizes the string conversion and supports
-    IDAC conversions from integer and floating point.
+    DAC conversions from integer and floating point.
 */
 struct PrettyAmount
 {
@@ -160,21 +160,21 @@ struct BookSpec
 
 //------------------------------------------------------------------------------
 
-struct IDAC_t
+struct DAC_t
 {
     /** Implicit conversion to Issue.
 
-        This allows passing IDAC where
+        This allows passing DAC where
         an Issue is expected.
     */
     operator Issue() const
     {
-        return idacIssue();
+        return dacIssue();
     }
 
-    /** Returns an amount of IDAC as STAmount
+    /** Returns an amount of DAC as STAmount
 
-        @param v The number of IDAC (not drops)
+        @param v The number of DAC (not drops)
     */
     /** @{ */
     template <class T, class = std::enable_if_t<
@@ -185,14 +185,14 @@ struct IDAC_t
         return { std::conditional_t<
             std::is_signed<T>::value,
                 std::int64_t, std::uint64_t>{v} *
-                    dropsPerIDAC<T>::value };
+                    dropsPerDAC<T>::value };
     }
 
     PrettyAmount
     operator()(double v) const
     {
         auto const c =
-            dropsPerIDAC<int>::value;
+            dropsPerDAC<int>::value;
         if (v >= 0)
         {
             auto const d = std::uint64_t(
@@ -211,31 +211,31 @@ struct IDAC_t
     }
     /** @} */
 
-    /** Returns None-of-IDAC */
+    /** Returns None-of-DAC */
     None
     operator()(none_t) const
     {
-        return { idacIssue() };
+        return { dacIssue() };
     }
 
     friend
     BookSpec
-    operator~ (IDAC_t const&)
+    operator~ (DAC_t const&)
     {        
-        return BookSpec( idacAccount(),
-            idacCurrency() );
+        return BookSpec( dacAccount(),
+            dacCurrency() );
     }
 };
 
-/** Converts to IDAC Issue or STAmount.
+/** Converts to DAC Issue or STAmount.
 
     Examples:
-        IDAC         Converts to the IDAC Issue
-        IDAC(10)     Returns STAmount of 10 IDAC
+        DAC         Converts to the DAC Issue
+        DAC(10)     Returns STAmount of 10 DAC
 */
-extern IDAC_t const IDAC;
+extern DAC_t const DAC;
 
-/** Returns an IDAC STAmount.
+/** Returns an DAC STAmount.
 
     Example:
         drops(10)   Returns STAmount of 10 drops

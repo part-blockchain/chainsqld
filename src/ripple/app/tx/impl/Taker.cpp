@@ -59,14 +59,14 @@ BasicTaker::BasicTaker (
 
     // If we are dealing with a particular flavor, make sure that it's the
     // flavor we expect:
-    assert (cross_type != CrossType::IdacToIou ||
-        (isIDAC (issue_in ()) && !isIDAC (issue_out ())));
+    assert (cross_type != CrossType::DacToIou ||
+        (isDAC (issue_in ()) && !isDAC (issue_out ())));
 
-    assert (cross_type != CrossType::IouToIdac ||
-        (!isIDAC (issue_in ()) && isIDAC (issue_out ())));
+    assert (cross_type != CrossType::IouToDac ||
+        (!isDAC (issue_in ()) && isDAC (issue_out ())));
 
-    // And make sure we're not crossing IDAC for IDAC
-    assert (!isIDAC (issue_in ()) || !isIDAC (issue_out ()));
+    // And make sure we're not crossing DAC for DAC
+    assert (!isDAC (issue_in ()) || !isDAC (issue_out ()));
 
     // If this is a passive order, we adjust the quality so as to prevent offers
     // at the same quality level from being consumed.
@@ -192,13 +192,13 @@ BasicTaker::log_flow (char const* description, Flow const& flow)
 
     stream << description;
 
-    if (isIDAC (issue_in ()))
+    if (isDAC (issue_in ()))
         stream << "   order in: " << format_amount (flow.order.in);
     else
         stream << "   order in: " << format_amount (flow.order.in) <<
             " (issuer: " << format_amount (flow.issuers.in) << ")";
 
-    if (isIDAC (issue_out ()))
+    if (isDAC (issue_out ()))
         stream << "  order out: " << format_amount (flow.order.out);
     else
         stream << "  order out: " << format_amount (flow.order.out) <<
@@ -206,7 +206,7 @@ BasicTaker::log_flow (char const* description, Flow const& flow)
 }
 
 BasicTaker::Flow
-BasicTaker::flow_idac_to_iou (
+BasicTaker::flow_dac_to_iou (
     Amounts const& order, Quality quality,
     STAmount const& owner_funds, STAmount const& taker_funds,
     Rate const& rate_out)
@@ -215,7 +215,7 @@ BasicTaker::flow_idac_to_iou (
     f.order = order;
     f.issuers.out = multiply (f.order.out, rate_out);
 
-    log_flow ("flow_idac_to_iou", f);
+    log_flow ("flow_dac_to_iou", f);
 
     // Clamp on owner balance
     if (owner_funds < f.issuers.out)
@@ -246,7 +246,7 @@ BasicTaker::flow_idac_to_iou (
 
     // Clamp on remaining offer if we are not handling the second leg
     // of an autobridge.
-    if (cross_type_ == CrossType::IdacToIou && (remaining_.in < f.order.in))
+    if (cross_type_ == CrossType::DacToIou && (remaining_.in < f.order.in))
     {
         f.order.in = remaining_.in;
         f.order.out = qual_div (f.order.in, quality, f.order.out);
@@ -258,7 +258,7 @@ BasicTaker::flow_idac_to_iou (
 }
 
 BasicTaker::Flow
-BasicTaker::flow_iou_to_idac (
+BasicTaker::flow_iou_to_dac (
     Amounts const& order, Quality quality,
     STAmount const& owner_funds, STAmount const& taker_funds,
     Rate const& rate_in)
@@ -267,7 +267,7 @@ BasicTaker::flow_iou_to_idac (
     f.order = order;
     f.issuers.in = multiply (f.order.in, rate_in);
 
-    log_flow ("flow_iou_to_idac", f);
+    log_flow ("flow_iou_to_dac", f);
 
     // Clamp on owner's funds
     if (owner_funds < f.order.out)
@@ -280,7 +280,7 @@ BasicTaker::flow_iou_to_idac (
 
     // Clamp if taker wants to limit the output and we are not the
     // first leg of an autobridge.
-    if (!sell_ && cross_type_ == CrossType::IouToIdac)
+    if (!sell_ && cross_type_ == CrossType::IouToDac)
     {
         if (remaining_.out < f.order.out)
         {
@@ -377,14 +377,14 @@ BasicTaker::do_cross (Amounts offer, Quality quality, AccountID const& owner)
 
     Flow result;
 
-    if (cross_type_ == CrossType::IdacToIou)
+    if (cross_type_ == CrossType::DacToIou)
     {
-        result = flow_idac_to_iou (offer, quality, owner_funds, taker_funds,
+        result = flow_dac_to_iou (offer, quality, owner_funds, taker_funds,
             out_rate (owner, account ()));
     }
-    else if (cross_type_ == CrossType::IouToIdac)
+    else if (cross_type_ == CrossType::IouToDac)
     {
-        result = flow_iou_to_idac (offer, quality, owner_funds, taker_funds,
+        result = flow_iou_to_dac (offer, quality, owner_funds, taker_funds,
             in_rate (owner, account ()));
     }
     else
@@ -435,21 +435,21 @@ BasicTaker::do_cross (
         leg2_out_funds = std::max (leg2_out_funds, offer2.out);
     }
 
-    // The amount available to flow via IDAC is the amount that the owner of the
+    // The amount available to flow via DAC is the amount that the owner of the
     // first leg of the bridge has, up to the first leg's output.
     //
     // But, when both legs of a bridge are owned by the same person, the amount
-    // of IDAC that can flow between the two legs is, essentially, infinite
-    // since all the owner is doing is taking out IDAC of his left pocket
+    // of DAC that can flow between the two legs is, essentially, infinite
+    // since all the owner is doing is taking out DAC of his left pocket
     // and putting it in his right pocket. In that case, we set the available
-    // IDAC to the largest of the two offers.
-    auto idac_funds = get_funds (owner1, offer1.out);
+    // DAC to the largest of the two offers.
+    auto dac_funds = get_funds (owner1, offer1.out);
 
     if (owner1 == owner2)
     {
         JLOG(journal_.trace()) <<
             "The bridge endpoints are owned by the same account.";
-        idac_funds = std::max (offer1.out, offer2.in);
+        dac_funds = std::max (offer1.out, offer2.in);
     }
 
     if (auto stream = journal_.debug())
@@ -457,7 +457,7 @@ BasicTaker::do_cross (
         stream << "Available bridge funds:";
         stream << "  leg1 in: " << format_amount (leg1_in_funds);
         stream << " leg2 out: " << format_amount (leg2_out_funds);
-        stream << "      idac: " << format_amount (idac_funds);
+        stream << "      dac: " << format_amount (dac_funds);
     }
 
     auto const leg1_rate = in_rate (owner1, account ());
@@ -465,19 +465,19 @@ BasicTaker::do_cross (
 
     // Attempt to determine the maximal flow that can be achieved across each
     // leg independent of the other.
-    auto flow1 = flow_iou_to_idac (offer1, quality1, idac_funds, leg1_in_funds, leg1_rate);
+    auto flow1 = flow_iou_to_dac (offer1, quality1, dac_funds, leg1_in_funds, leg1_rate);
 
     if (!flow1.sanity_check ())
         Throw<std::logic_error> ("Computed flow1 fails sanity check.");
 
-    auto flow2 = flow_idac_to_iou (offer2, quality2, leg2_out_funds, idac_funds, leg2_rate);
+    auto flow2 = flow_dac_to_iou (offer2, quality2, leg2_out_funds, dac_funds, leg2_rate);
 
     if (!flow2.sanity_check ())
         Throw<std::logic_error> ("Computed flow2 fails sanity check.");
 
     // We now have the maximal flows across each leg individually. We need to
-    // equalize them, so that the amount of IDAC that flows out of the first leg
-    // is the same as the amount of IDAC that flows into the second leg. We take
+    // equalize them, so that the amount of DAC that flows out of the first leg
+    // is the same as the amount of DAC that flows into the second leg. We take
     // the side which is the limiting factor (if any) and adjust the other.
     if (flow1.order.out < flow2.order.in)
     {
@@ -515,7 +515,7 @@ Taker::Taker (CrossType cross_type, ApplyView& view,
         calculateRate(view, offer.in.getIssuer(), account),
         calculateRate(view, offer.out.getIssuer(), account), journal)
     , view_ (view)
-    , idac_flow_ (0)
+    , dac_flow_ (0)
     , direct_crossings_ (0)
     , bridge_crossings_ (0)
 {
@@ -526,13 +526,13 @@ Taker::Taker (CrossType cross_type, ApplyView& view,
     {
         stream << "Crossing as: " << to_string (account);
 
-        if (isIDAC (issue_in ()))
+        if (isDAC (issue_in ()))
             stream << "   Offer in: " << format_amount (offer.in);
         else
             stream << "   Offer in: " << format_amount (offer.in) <<
                 " (issuer: " << issue_in ().account << ")";
 
-        if (isIDAC (issue_out ()))
+        if (isDAC (issue_out ()))
             stream << "  Offer out: " << format_amount (offer.out);
         else
             stream << "  Offer out: " << format_amount (offer.out) <<
@@ -571,13 +571,13 @@ Taker::get_funds (AccountID const& account, STAmount const& amount) const
     return accountFunds(view_, account, amount, fhZERO_IF_FROZEN, journal_);
 }
 
-TER Taker::transferIDAC (
+TER Taker::transferDAC (
     AccountID const& from,
     AccountID const& to,
     STAmount const& amount)
 {
-    if (!isIDAC (amount))
-        Throw<std::logic_error> ("Using transferIDAC with IOU");
+    if (!isDAC (amount))
+        Throw<std::logic_error> ("Using transferDAC with IOU");
 
     if (from == to)
         return tesSUCCESS;
@@ -586,7 +586,7 @@ TER Taker::transferIDAC (
     if (amount == zero)
         return tesSUCCESS;
 
-    return ripple::transferIDAC (view_, from, to, amount, journal_);
+    return ripple::transferDAC (view_, from, to, amount, journal_);
 }
 
 TER Taker::redeemIOU (
@@ -594,8 +594,8 @@ TER Taker::redeemIOU (
     STAmount const& amount,
     Issue const& issue)
 {
-    if (isIDAC (amount))
-        Throw<std::logic_error> ("Using redeemIOU with IDAC");
+    if (isDAC (amount))
+        Throw<std::logic_error> ("Using redeemIOU with DAC");
 
     if (account == issue.account)
         return tesSUCCESS;
@@ -622,8 +622,8 @@ TER Taker::issueIOU (
     STAmount const& amount,
     Issue const& issue)
 {
-    if (isIDAC (amount))
-        Throw<std::logic_error> ("Using issueIOU with IDAC");
+    if (isDAC (amount))
+        Throw<std::logic_error> ("Using issueIOU with DAC");
 
     if (account == issue.account)
         return tesSUCCESS;
@@ -644,9 +644,9 @@ Taker::fill (BasicTaker::Flow const& flow, Offer& offer)
 
     TER result = tesSUCCESS;
 
-    if (cross_type () != CrossType::IdacToIou)
+    if (cross_type () != CrossType::DacToIou)
     {
-        assert (!isIDAC (flow.order.in));
+        assert (!isDAC (flow.order.in));
 
         if(result == tesSUCCESS)
             result = redeemIOU (account (), flow.issuers.in, flow.issuers.in.issue ());
@@ -656,16 +656,16 @@ Taker::fill (BasicTaker::Flow const& flow, Offer& offer)
     }
     else
     {
-        assert (isIDAC (flow.order.in));
+        assert (isDAC (flow.order.in));
 
         if (result == tesSUCCESS)
-            result = transferIDAC (account (), offer.owner (), flow.order.in);
+            result = transferDAC (account (), offer.owner (), flow.order.in);
     }
 
     // Now send funds from the account whose offer we're taking
-    if (cross_type () != CrossType::IouToIdac)
+    if (cross_type () != CrossType::IouToDac)
     {
-        assert (!isIDAC (flow.order.out));
+        assert (!isDAC (flow.order.out));
 
         if(result == tesSUCCESS)
             result = redeemIOU (offer.owner (), flow.issuers.out, flow.issuers.out.issue ());
@@ -675,10 +675,10 @@ Taker::fill (BasicTaker::Flow const& flow, Offer& offer)
     }
     else
     {
-        assert (isIDAC (flow.order.out));
+        assert (isDAC (flow.order.out));
 
         if (result == tesSUCCESS)
-            result = transferIDAC (offer.owner (), account (), flow.order.out);
+            result = transferDAC (offer.owner (), account (), flow.order.out);
     }
 
     if (result == tesSUCCESS)
@@ -709,9 +709,9 @@ Taker::fill (
             result = issueIOU (leg1.owner (), flow1.order.in, flow1.order.in.issue ());
     }
 
-    // leg1 to leg2: bridging over IDAC
+    // leg1 to leg2: bridging over DAC
     if (result == tesSUCCESS)
-        result = transferIDAC (leg1.owner (), leg2.owner (), flow1.order.out);
+        result = transferDAC (leg1.owner (), leg2.owner (), flow1.order.out);
 
     // leg2 to Taker: IOU
     if (leg2.owner () != account ())
@@ -726,7 +726,7 @@ Taker::fill (
     if (result == tesSUCCESS)
     {
         bridge_crossings_++;
-        idac_flow_ += flow1.order.out;
+        dac_flow_ += flow1.order.out;
     }
 
     return result;
@@ -735,8 +735,8 @@ Taker::fill (
 TER
 Taker::cross (Offer& offer)
 {
-    // In direct crossings, at least one leg must not be IDAC.
-    if (isIDAC (offer.amount ().in) && isIDAC (offer.amount ().out))
+    // In direct crossings, at least one leg must not be DAC.
+    if (isDAC (offer.amount ().in) && isDAC (offer.amount ().out))
         return tefINTERNAL;
 
     auto const amount = do_cross (
@@ -748,9 +748,9 @@ Taker::cross (Offer& offer)
 TER
 Taker::cross (Offer& leg1, Offer& leg2)
 {
-    // In bridged crossings, IDAC must can't be the input to the first leg
+    // In bridged crossings, DAC must can't be the input to the first leg
     // or the output of the second leg.
-    if (isIDAC (leg1.amount ().in) || isIDAC (leg2.amount ().out))
+    if (isDAC (leg1.amount ().in) || isDAC (leg2.amount ().out))
         return tefINTERNAL;
 
     auto ret = do_cross (
@@ -766,7 +766,7 @@ Taker::calculateRate (
         AccountID const& issuer,
             AccountID const& account)
 {
-    return isIDAC (issuer) || (account == issuer)
+    return isDAC (issuer) || (account == issuer)
         ? parityRate
         : transferRate (view, issuer);
 }

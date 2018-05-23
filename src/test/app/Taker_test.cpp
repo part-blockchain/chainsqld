@@ -131,10 +131,10 @@ private:
         return issue;
     }
 
-    Issue const& idac () const
+    Issue const& dac () const
     {
         static Issue const issue (
-            idacCurrency (), idacAccount ());
+            dacCurrency (), dacAccount ());
         return issue;
     }
 
@@ -202,10 +202,10 @@ private:
 
         CrossType cross_type;
 
-        if (isIDAC (issue_out))
-            cross_type = CrossType::IouToIdac;
-        else if (isIDAC (issue_in))
-            cross_type = CrossType::IdacToIou;
+        if (isDAC (issue_out))
+            cross_type = CrossType::IouToDac;
+        else if (isDAC (issue_in))
+            cross_type = CrossType::DacToIou;
         else
             cross_type = CrossType::IouToIou;
 
@@ -237,7 +237,7 @@ private:
 
     Quality get_quality(std::string in, std::string out)
     {
-        return Quality (parse_amounts (in, idac(), out, idac ()));
+        return Quality (parse_amounts (in, dac(), out, dac ()));
     }
 
 public:
@@ -255,85 +255,85 @@ public:
     // NIKB TODO: Augment TestTaker so currencies and rates can be specified
     //            once without need for repetition.
     void
-    test_idac_to_iou ()
+    test_dac_to_iou ()
     {
-        testcase ("IDAC Quantization: input");
+        testcase ("DAC Quantization: input");
 
         Quality q1 = get_quality ("1", "1");
 
         //                             TAKER                    OWNER
         //                     QUAL    OFFER     FUNDS  QUAL    OFFER     FUNDS     EXPECTED
-        //                                        IDAC                      USD
-        attempt (Sell, "N:N",   q1, { "2", "2" },  "2",  q1, { "2", "2" }, "2",   { "2", "2" },   idac(), usd());
-        attempt (Sell, "N:B",   q1, { "2", "2" },  "2",  q1, { "2", "2" }, "1.8", { "1", "1.8" }, idac(), usd());
-        attempt (Buy,  "N:T",   q1, { "1", "1" },  "2",  q1, { "2", "2" }, "2",   { "1", "1" },   idac(), usd());
-        attempt (Buy,  "N:BT",  q1, { "1", "1" },  "2",  q1, { "2", "2" }, "1.8", { "1", "1" },   idac(), usd());
-        attempt (Buy,  "N:TB",  q1, { "1", "1" },  "2",  q1, { "2", "2" }, "0.8", { "0", "0.8" }, idac(), usd());
+        //                                        DAC                      USD
+        attempt (Sell, "N:N",   q1, { "2", "2" },  "2",  q1, { "2", "2" }, "2",   { "2", "2" },   dac(), usd());
+        attempt (Sell, "N:B",   q1, { "2", "2" },  "2",  q1, { "2", "2" }, "1.8", { "1", "1.8" }, dac(), usd());
+        attempt (Buy,  "N:T",   q1, { "1", "1" },  "2",  q1, { "2", "2" }, "2",   { "1", "1" },   dac(), usd());
+        attempt (Buy,  "N:BT",  q1, { "1", "1" },  "2",  q1, { "2", "2" }, "1.8", { "1", "1" },   dac(), usd());
+        attempt (Buy,  "N:TB",  q1, { "1", "1" },  "2",  q1, { "2", "2" }, "0.8", { "0", "0.8" }, dac(), usd());
 
-        attempt (Sell, "T:N",   q1, { "1", "1" },  "2",  q1, { "2", "2" }, "2",   { "1", "1" },   idac(), usd());
-        attempt (Sell, "T:B",   q1, { "1", "1" },  "2",  q1, { "2", "2" }, "1.8", { "1", "1.8" }, idac(), usd());
-        attempt (Buy,  "T:T",   q1, { "1", "1" },  "2",  q1, { "2", "2" }, "2",   { "1", "1" },   idac(), usd());
-        attempt (Buy,  "T:BT",  q1, { "1", "1" },  "2",  q1, { "2", "2" }, "1.8", { "1", "1" },   idac(), usd());
-        attempt (Buy,  "T:TB",  q1, { "1", "1" },  "2",  q1, { "2", "2" }, "0.8", { "0", "0.8" }, idac(), usd());
+        attempt (Sell, "T:N",   q1, { "1", "1" },  "2",  q1, { "2", "2" }, "2",   { "1", "1" },   dac(), usd());
+        attempt (Sell, "T:B",   q1, { "1", "1" },  "2",  q1, { "2", "2" }, "1.8", { "1", "1.8" }, dac(), usd());
+        attempt (Buy,  "T:T",   q1, { "1", "1" },  "2",  q1, { "2", "2" }, "2",   { "1", "1" },   dac(), usd());
+        attempt (Buy,  "T:BT",  q1, { "1", "1" },  "2",  q1, { "2", "2" }, "1.8", { "1", "1" },   dac(), usd());
+        attempt (Buy,  "T:TB",  q1, { "1", "1" },  "2",  q1, { "2", "2" }, "0.8", { "0", "0.8" }, dac(), usd());
 
-        attempt (Sell, "A:N",   q1, { "2", "2" },  "1",  q1, { "2", "2" }, "2",   { "1", "1" },   idac(), usd());
-        attempt (Sell, "A:B",   q1, { "2", "2" },  "1",  q1, { "2", "2" }, "1.8", { "1", "1.8" }, idac(), usd());
-        attempt (Buy,  "A:T",   q1, { "2", "2" },  "1",  q1, { "3", "3" }, "3",   { "1", "1" },   idac(), usd());
-        attempt (Buy,  "A:BT",  q1, { "2", "2" },  "1",  q1, { "3", "3" }, "2.4", { "1", "1" },   idac(), usd());
-        attempt (Buy,  "A:TB",  q1, { "2", "2" },  "1",  q1, { "3", "3" }, "0.8", { "0", "0.8" }, idac(), usd());
+        attempt (Sell, "A:N",   q1, { "2", "2" },  "1",  q1, { "2", "2" }, "2",   { "1", "1" },   dac(), usd());
+        attempt (Sell, "A:B",   q1, { "2", "2" },  "1",  q1, { "2", "2" }, "1.8", { "1", "1.8" }, dac(), usd());
+        attempt (Buy,  "A:T",   q1, { "2", "2" },  "1",  q1, { "3", "3" }, "3",   { "1", "1" },   dac(), usd());
+        attempt (Buy,  "A:BT",  q1, { "2", "2" },  "1",  q1, { "3", "3" }, "2.4", { "1", "1" },   dac(), usd());
+        attempt (Buy,  "A:TB",  q1, { "2", "2" },  "1",  q1, { "3", "3" }, "0.8", { "0", "0.8" }, dac(), usd());
 
-        attempt (Sell, "TA:N",  q1, { "2", "2" },  "1",  q1, { "2", "2" }, "2",   { "1", "1" },   idac(), usd());
-        attempt (Sell, "TA:B",  q1, { "2", "2" },  "1",  q1, { "3", "3" }, "1.8", { "1", "1.8" }, idac(), usd());
-        attempt (Buy,  "TA:T",  q1, { "2", "2" },  "1",  q1, { "3", "3" }, "3",   { "1", "1" },   idac(), usd());
-        attempt (Buy,  "TA:BT", q1, { "2", "2" },  "1",  q1, { "3", "3" }, "1.8", { "1", "1.8" }, idac(), usd());
-        attempt (Buy,  "TA:TB", q1, { "2", "2" },  "1",  q1, { "3", "3" }, "1.8", { "1", "1.8" }, idac(), usd());
+        attempt (Sell, "TA:N",  q1, { "2", "2" },  "1",  q1, { "2", "2" }, "2",   { "1", "1" },   dac(), usd());
+        attempt (Sell, "TA:B",  q1, { "2", "2" },  "1",  q1, { "3", "3" }, "1.8", { "1", "1.8" }, dac(), usd());
+        attempt (Buy,  "TA:T",  q1, { "2", "2" },  "1",  q1, { "3", "3" }, "3",   { "1", "1" },   dac(), usd());
+        attempt (Buy,  "TA:BT", q1, { "2", "2" },  "1",  q1, { "3", "3" }, "1.8", { "1", "1.8" }, dac(), usd());
+        attempt (Buy,  "TA:TB", q1, { "2", "2" },  "1",  q1, { "3", "3" }, "1.8", { "1", "1.8" }, dac(), usd());
 
-        attempt (Sell, "AT:N",  q1, { "2", "2" },  "1",  q1, { "3", "3" }, "3",   { "1", "1" },   idac(), usd());
-        attempt (Sell, "AT:B",  q1, { "2", "2" },  "1",  q1, { "3", "3" }, "1.8", { "1", "1.8" }, idac(), usd());
-        attempt (Buy,  "AT:T",  q1, { "2", "2" },  "1",  q1, { "3", "3" }, "3",   { "1", "1" },   idac(), usd());
-        attempt (Buy,  "AT:BT", q1, { "2", "2" },  "1",  q1, { "3", "3" }, "1.8", { "1", "1.8" }, idac(), usd());
-        attempt (Buy,  "AT:TB", q1, { "2", "2" },  "1",  q1, { "3", "3" }, "0.8", { "0", "0.8" }, idac(), usd());
+        attempt (Sell, "AT:N",  q1, { "2", "2" },  "1",  q1, { "3", "3" }, "3",   { "1", "1" },   dac(), usd());
+        attempt (Sell, "AT:B",  q1, { "2", "2" },  "1",  q1, { "3", "3" }, "1.8", { "1", "1.8" }, dac(), usd());
+        attempt (Buy,  "AT:T",  q1, { "2", "2" },  "1",  q1, { "3", "3" }, "3",   { "1", "1" },   dac(), usd());
+        attempt (Buy,  "AT:BT", q1, { "2", "2" },  "1",  q1, { "3", "3" }, "1.8", { "1", "1.8" }, dac(), usd());
+        attempt (Buy,  "AT:TB", q1, { "2", "2" },  "1",  q1, { "3", "3" }, "0.8", { "0", "0.8" }, dac(), usd());
     }
 
     void
-    test_iou_to_idac ()
+    test_iou_to_dac ()
     {
-        testcase ("IDAC Quantization: output");
+        testcase ("DAC Quantization: output");
 
         Quality q1 = get_quality ("1", "1");
 
         //                             TAKER                     OWNER
         //                     QUAL    OFFER     FUNDS   QUAL    OFFER     FUNDS    EXPECTED
-        //                                        USD                       IDAC
-        attempt (Sell, "N:N",   q1, { "3", "3" }, "3",   q1, { "3", "3" }, "3",  { "3",   "3" }, usd(), idac());
-        attempt (Sell, "N:B",   q1, { "3", "3" }, "3",   q1, { "3", "3" }, "2",  { "2",   "2" }, usd(), idac());
-        attempt (Buy,  "N:T",   q1, { "3", "3" }, "2.5", q1, { "5", "5" }, "5",  { "2.5", "2" }, usd(), idac());
-        attempt (Buy,  "N:BT",  q1, { "3", "3" }, "1.5", q1, { "5", "5" }, "4",  { "1.5", "1" }, usd(), idac());
-        attempt (Buy,  "N:TB",  q1, { "3", "3" }, "2.2", q1, { "5", "5" }, "1",  { "1",   "1" }, usd(), idac());
+        //                                        USD                       DAC
+        attempt (Sell, "N:N",   q1, { "3", "3" }, "3",   q1, { "3", "3" }, "3",  { "3",   "3" }, usd(), dac());
+        attempt (Sell, "N:B",   q1, { "3", "3" }, "3",   q1, { "3", "3" }, "2",  { "2",   "2" }, usd(), dac());
+        attempt (Buy,  "N:T",   q1, { "3", "3" }, "2.5", q1, { "5", "5" }, "5",  { "2.5", "2" }, usd(), dac());
+        attempt (Buy,  "N:BT",  q1, { "3", "3" }, "1.5", q1, { "5", "5" }, "4",  { "1.5", "1" }, usd(), dac());
+        attempt (Buy,  "N:TB",  q1, { "3", "3" }, "2.2", q1, { "5", "5" }, "1",  { "1",   "1" }, usd(), dac());
 
-        attempt (Sell, "T:N",   q1, { "1", "1" }, "2",   q1, { "2", "2" }, "2",  { "1",   "1" }, usd(), idac());
-        attempt (Sell, "T:B",   q1, { "2", "2" }, "2",   q1, { "3", "3" }, "1",  { "1",   "1" }, usd(), idac());
-        attempt (Buy,  "T:T",   q1, { "1", "1" }, "2",   q1, { "2", "2" }, "2",  { "1",   "1" }, usd(), idac());
-        attempt (Buy,  "T:BT",  q1, { "1", "1" }, "2",   q1, { "3", "3" }, "2",  { "1",   "1" }, usd(), idac());
-        attempt (Buy,  "T:TB",  q1, { "2", "2" }, "2",   q1, { "3", "3" }, "1",  { "1",   "1" }, usd(), idac());
+        attempt (Sell, "T:N",   q1, { "1", "1" }, "2",   q1, { "2", "2" }, "2",  { "1",   "1" }, usd(), dac());
+        attempt (Sell, "T:B",   q1, { "2", "2" }, "2",   q1, { "3", "3" }, "1",  { "1",   "1" }, usd(), dac());
+        attempt (Buy,  "T:T",   q1, { "1", "1" }, "2",   q1, { "2", "2" }, "2",  { "1",   "1" }, usd(), dac());
+        attempt (Buy,  "T:BT",  q1, { "1", "1" }, "2",   q1, { "3", "3" }, "2",  { "1",   "1" }, usd(), dac());
+        attempt (Buy,  "T:TB",  q1, { "2", "2" }, "2",   q1, { "3", "3" }, "1",  { "1",   "1" }, usd(), dac());
 
-        attempt (Sell, "A:N",   q1, { "2", "2" }, "1.5", q1, { "2", "2" }, "2",  { "1.5", "1" }, usd(), idac());
-        attempt (Sell, "A:B",   q1, { "2", "2" }, "1.8", q1, { "3", "3" }, "2",  { "1.8", "1" }, usd(), idac());
-        attempt (Buy,  "A:T",   q1, { "2", "2" }, "1.2", q1, { "3", "3" }, "3",  { "1.2", "1" }, usd(), idac());
-        attempt (Buy,  "A:BT",  q1, { "2", "2" }, "1.5", q1, { "4", "4" }, "3",  { "1.5", "1" }, usd(), idac());
-        attempt (Buy,  "A:TB",  q1, { "2", "2" }, "1.5", q1, { "4", "4" }, "1",  { "1",   "1" }, usd(), idac());
+        attempt (Sell, "A:N",   q1, { "2", "2" }, "1.5", q1, { "2", "2" }, "2",  { "1.5", "1" }, usd(), dac());
+        attempt (Sell, "A:B",   q1, { "2", "2" }, "1.8", q1, { "3", "3" }, "2",  { "1.8", "1" }, usd(), dac());
+        attempt (Buy,  "A:T",   q1, { "2", "2" }, "1.2", q1, { "3", "3" }, "3",  { "1.2", "1" }, usd(), dac());
+        attempt (Buy,  "A:BT",  q1, { "2", "2" }, "1.5", q1, { "4", "4" }, "3",  { "1.5", "1" }, usd(), dac());
+        attempt (Buy,  "A:TB",  q1, { "2", "2" }, "1.5", q1, { "4", "4" }, "1",  { "1",   "1" }, usd(), dac());
 
-        attempt (Sell, "TA:N",  q1, { "2", "2" }, "1.5", q1, { "2", "2" }, "2",  { "1.5", "1" }, usd(), idac());
-        attempt (Sell, "TA:B",  q1, { "2", "2" }, "1.5", q1, { "3", "3" }, "1",  { "1",   "1" }, usd(), idac());
-        attempt (Buy,  "TA:T",  q1, { "2", "2" }, "1.5", q1, { "3", "3" }, "3",  { "1.5", "1" }, usd(), idac());
-        attempt (Buy,  "TA:BT", q1, { "2", "2" }, "1.8", q1, { "4", "4" }, "3",  { "1.8", "1" }, usd(), idac());
-        attempt (Buy,  "TA:TB", q1, { "2", "2" }, "1.2", q1, { "3", "3" }, "1",  { "1",   "1" }, usd(), idac());
+        attempt (Sell, "TA:N",  q1, { "2", "2" }, "1.5", q1, { "2", "2" }, "2",  { "1.5", "1" }, usd(), dac());
+        attempt (Sell, "TA:B",  q1, { "2", "2" }, "1.5", q1, { "3", "3" }, "1",  { "1",   "1" }, usd(), dac());
+        attempt (Buy,  "TA:T",  q1, { "2", "2" }, "1.5", q1, { "3", "3" }, "3",  { "1.5", "1" }, usd(), dac());
+        attempt (Buy,  "TA:BT", q1, { "2", "2" }, "1.8", q1, { "4", "4" }, "3",  { "1.8", "1" }, usd(), dac());
+        attempt (Buy,  "TA:TB", q1, { "2", "2" }, "1.2", q1, { "3", "3" }, "1",  { "1",   "1" }, usd(), dac());
 
-        attempt (Sell, "AT:N",  q1, { "2", "2" }, "2.5", q1, { "4", "4" }, "4",  { "2",   "2" }, usd(), idac());
-        attempt (Sell, "AT:B",  q1, { "2", "2" }, "2.5", q1, { "3", "3" }, "1",  { "1",   "1" }, usd(), idac());
-        attempt (Buy,  "AT:T",  q1, { "2", "2" }, "2.5", q1, { "3", "3" }, "3",  { "2",   "2" }, usd(), idac());
-        attempt (Buy,  "AT:BT", q1, { "2", "2" }, "2.5", q1, { "4", "4" }, "3",  { "2",   "2" }, usd(), idac());
-        attempt (Buy,  "AT:TB", q1, { "2", "2" }, "2.5", q1, { "3", "3" }, "1",  { "1",   "1" }, usd(), idac());
+        attempt (Sell, "AT:N",  q1, { "2", "2" }, "2.5", q1, { "4", "4" }, "4",  { "2",   "2" }, usd(), dac());
+        attempt (Sell, "AT:B",  q1, { "2", "2" }, "2.5", q1, { "3", "3" }, "1",  { "1",   "1" }, usd(), dac());
+        attempt (Buy,  "AT:T",  q1, { "2", "2" }, "2.5", q1, { "3", "3" }, "3",  { "2",   "2" }, usd(), dac());
+        attempt (Buy,  "AT:BT", q1, { "2", "2" }, "2.5", q1, { "4", "4" }, "3",  { "2",   "2" }, usd(), dac());
+        attempt (Buy,  "AT:TB", q1, { "2", "2" }, "2.5", q1, { "3", "3" }, "1",  { "1",   "1" }, usd(), dac());
     }
 
     void
@@ -360,8 +360,8 @@ public:
     void
     run()
     {
-        test_idac_to_iou ();
-        test_iou_to_idac ();
+        test_dac_to_iou ();
+        test_iou_to_dac ();
         test_iou_to_iou ();
     }
 };

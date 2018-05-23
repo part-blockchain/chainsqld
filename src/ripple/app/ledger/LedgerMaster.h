@@ -37,7 +37,7 @@
 #include <ripple/core/Stoppable.h>
 #include <ripple/beast/utility/PropertyStream.h>
 #include <mutex>
-#include <idac/protocol/TableDefines.h>
+#include <dac/protocol/TableDefines.h>
 #include <ripple/protocol/Protocol.h>
 
 #include "ripple.pb.h"

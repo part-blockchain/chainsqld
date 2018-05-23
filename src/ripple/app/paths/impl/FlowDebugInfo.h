@@ -23,7 +23,7 @@
 #include <ripple/app/paths/impl/AmountSpec.h>
 #include <ripple/ledger/PaymentSandbox.h>
 #include <ripple/protocol/IOUAmount.h>
-#include <ripple/protocol/IDACAmount.h>
+#include <ripple/protocol/DACAmount.h>
 
 #include <boost/container/flat_map.hpp>
 #include <boost/optional.hpp>
@@ -229,10 +229,10 @@ struct FlowDebugInfo
                 }
                 ostr << ']';
             };
-            auto writeIdacAmtList = [&write_list](
+            auto writeDacAmtList = [&write_list](
                 std::vector<EitherAmount> const& amts, char delim=';') {
                 auto get_val = [](EitherAmount const& a) -> std::string {
-                    return ripple::to_string (a.idac);
+                    return ripple::to_string (a.dac);
                 };
                 write_list (amts, get_val, delim);
             };
@@ -263,16 +263,16 @@ struct FlowDebugInfo
                 }
                 ostr << ']';
             };
-            auto writeNestedIdacAmtList = [&ostr, &writeIdacAmtList](
+            auto writeNestedDacAmtList = [&ostr, &writeDacAmtList](
                 std::vector<std::vector<EitherAmount>> const& amts) {
                 ostr << '[';
                 if (!amts.empty ())
                 {
-                    writeIdacAmtList(amts[0], '|');
+                    writeDacAmtList(amts[0], '|');
                     for (size_t i = 1, e = amts.size (); i < e; ++i)
                     {
                         ostr << ';';
-                        writeIdacAmtList(amts[i], '|');
+                        writeDacAmtList(amts[i], '|');
                     }
                 }
                 ostr << ']';
@@ -280,12 +280,12 @@ struct FlowDebugInfo
 
             ostr << ", in_pass: ";
             if (passInfo.nativeIn)
-                writeIdacAmtList (passInfo.in);
+                writeDacAmtList (passInfo.in);
             else
                 writeIouAmtList (passInfo.in);
             ostr << ", out_pass: ";
             if (passInfo.nativeOut)
-                writeIdacAmtList (passInfo.out);
+                writeDacAmtList (passInfo.out);
             else
                 writeIouAmtList (passInfo.out);
             ostr << ", num_active: ";
@@ -295,12 +295,12 @@ struct FlowDebugInfo
             {
                 ostr << ", l_src_in: ";
                 if (passInfo.nativeIn)
-                    writeNestedIdacAmtList (passInfo.liquiditySrcIn);
+                    writeNestedDacAmtList (passInfo.liquiditySrcIn);
                 else
                     writeNestedIouAmtList (passInfo.liquiditySrcIn);
                 ostr << ", l_src_out: ";
                 if (passInfo.nativeOut)
-                    writeNestedIdacAmtList (passInfo.liquiditySrcOut);
+                    writeNestedDacAmtList (passInfo.liquiditySrcOut);
                 else
                     writeNestedIouAmtList (passInfo.liquiditySrcOut);
             }
@@ -342,13 +342,13 @@ writeDiffs (std::ostringstream& ostr, Iter begin, Iter end)
 
 using BalanceDiffs = std::pair<
     std::map<std::tuple<AccountID, AccountID, Currency>, STAmount>,
-    IDACAmount>;
+    DACAmount>;
 
 inline
 BalanceDiffs
 balanceDiffs(PaymentSandbox const& sb, ReadView const& rv)
 {
-    return {sb.balanceChanges (rv), sb.idacDestroyed ()};
+    return {sb.balanceChanges (rv), sb.dacDestroyed ()};
 }
 
 inline
@@ -358,9 +358,9 @@ balanceDiffsToString (boost::optional<BalanceDiffs> const& bd)
     if (!bd)
         return std::string{};
     auto const& diffs = bd->first;
-    auto const& idacDestroyed = bd->second;
+    auto const& dacDestroyed = bd->second;
     std::ostringstream ostr;
-    ostr << ", idacDestroyed: " << to_string (idacDestroyed);
+    ostr << ", dacDestroyed: " << to_string (dacDestroyed);
     ostr << ", balanceDiffs: ";
     writeDiffs (ostr, diffs.begin (), diffs.end ());
     return ostr.str ();

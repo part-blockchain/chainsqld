@@ -30,7 +30,7 @@
 #include <ripple/protocol/Feature.h>
 #include <ripple/protocol/IOUAmount.h>
 #include <ripple/protocol/Quality.h>
-#include <ripple/protocol/IDACAmount.h>
+#include <ripple/protocol/DACAmount.h>
 
 #include <boost/container/flat_set.hpp>
 
@@ -239,7 +239,7 @@ public:
         // Calculate amount that goes to the taker and the amount charged the
         // offer owner
         auto rate = [&](AccountID const& id) {
-            if (isIDAC(id) || id == this->strandDst_)
+            if (isDAC(id) || id == this->strandDst_)
                 return parityRate;
             return transferRate(v, id);
         };
@@ -485,7 +485,7 @@ BookStep<TIn, TOut, TDerived>::forEachOffer (
     // Calculate amount that goes to the taker and the amount charged the offer owner
     auto rate = [this, &sb](AccountID const& id)->std::uint32_t
     {
-        if (isIDAC (id) || id == this->strandDst_)
+        if (isDAC (id) || id == this->strandDst_)
             return QUALITY_ONE;
         return transferRate (sb, id).value;
     };
@@ -523,9 +523,9 @@ BookStep<TIn, TOut, TDerived>::forEachOffer (
                 continue;
 
         // Make sure offer owner has authorization to own IOUs from issuer.
-        // An account can always own IDAC or their own IOUs.
+        // An account can always own DAC or their own IOUs.
         if (flowCross &&
-            (!isIDAC (offer.issueIn().currency)) &&
+            (!isDAC (offer.issueIn().currency)) &&
             (offer.owner() != offer.issueIn().account))
         {
             auto const& issuerID = offer.issueIn().account;
@@ -1011,18 +1011,18 @@ bool equalHelper (Step const& step, ripple::Book const& book)
 
 bool bookStepEqual (Step const& step, ripple::Book const& book)
 {
-    bool const inIDAC = isIDAC (book.in.currency);
-    bool const outIDAC = isIDAC (book.out.currency);
-    if (inIDAC && outIDAC)
-        return equalHelper<IDACAmount, IDACAmount,
-            BookPaymentStep<IDACAmount, IDACAmount>> (step, book);
-    if (inIDAC && !outIDAC)
-        return equalHelper<IDACAmount, IOUAmount,
-            BookPaymentStep<IDACAmount, IOUAmount>> (step, book);
-    if (!inIDAC && outIDAC)
-        return equalHelper<IOUAmount, IDACAmount,
-            BookPaymentStep<IOUAmount, IDACAmount>> (step, book);
-    if (!inIDAC && !outIDAC)
+    bool const inDAC = isDAC (book.in.currency);
+    bool const outDAC = isDAC (book.out.currency);
+    if (inDAC && outDAC)
+        return equalHelper<DACAmount, DACAmount,
+            BookPaymentStep<DACAmount, DACAmount>> (step, book);
+    if (inDAC && !outDAC)
+        return equalHelper<DACAmount, IOUAmount,
+            BookPaymentStep<DACAmount, IOUAmount>> (step, book);
+    if (!inDAC && outDAC)
+        return equalHelper<IOUAmount, DACAmount,
+            BookPaymentStep<IOUAmount, DACAmount>> (step, book);
+    if (!inDAC && !outDAC)
         return equalHelper<IOUAmount, IOUAmount,
             BookPaymentStep<IOUAmount, IOUAmount>> (step, book);
     return false;
@@ -1075,7 +1075,7 @@ make_BookStepIX (
     StrandContext const& ctx,
     Issue const& in)
 {
-    return make_BookStepHelper<IOUAmount, IDACAmount> (ctx, in, idacIssue());
+    return make_BookStepHelper<IOUAmount, DACAmount> (ctx, in, dacIssue());
 }
 
 std::pair<TER, std::unique_ptr<Step>>
@@ -1083,7 +1083,7 @@ make_BookStepXI (
     StrandContext const& ctx,
     Issue const& out)
 {
-    return make_BookStepHelper<IDACAmount, IOUAmount> (ctx, idacIssue(), out);
+    return make_BookStepHelper<DACAmount, IOUAmount> (ctx, dacIssue(), out);
 }
 
 } // ripple

@@ -31,10 +31,10 @@ struct BookDirs_test : public beast::unit_test::suite
         Env env(*this, with_features(fs));
         auto gw = Account("gw");
         auto USD = gw["USD"];
-        env.fund(IDAC(1000000), "alice", "bob", "gw");
+        env.fund(DAC(1000000), "alice", "bob", "gw");
 
         {
-            Book book(idacIssue(), USD.issue());
+            Book book(dacIssue(), USD.issue());
             {
                 auto d = BookDirs(*env.current(), book);
                 BEAST_EXPECT(std::begin(d) == std::end(d));
@@ -47,16 +47,16 @@ struct BookDirs_test : public beast::unit_test::suite
         }
 
         {
-            env(offer("alice", Account("alice")["USD"](50), IDAC(10)));
+            env(offer("alice", Account("alice")["USD"](50), DAC(10)));
             auto d = BookDirs(*env.current(),
-                Book(Account("alice")["USD"].issue(), idacIssue()));
+                Book(Account("alice")["USD"].issue(), dacIssue()));
             BEAST_EXPECT(std::distance(d.begin(), d.end()) == 1);
         }
 
         {
-            env(offer("alice", gw["CNY"](50), IDAC(10)));
+            env(offer("alice", gw["CNY"](50), DAC(10)));
             auto d = BookDirs(*env.current(),
-                Book(gw["CNY"].issue(), idacIssue()));
+                Book(gw["CNY"].issue(), dacIssue()));
             BEAST_EXPECT(std::distance(d.begin(), d.end()) == 1);
         }
 
@@ -73,16 +73,16 @@ struct BookDirs_test : public beast::unit_test::suite
             auto AUD = gw["AUD"];
             for (auto i = 1, j = 3; i <= 3; ++i, --j)
                 for (auto k = 0; k < 80; ++k)
-                    env(offer("alice", AUD(i), IDAC(j)));
+                    env(offer("alice", AUD(i), DAC(j)));
 
             auto d = BookDirs(*env.current(),
-                Book(AUD.issue(), idacIssue()));
+                Book(AUD.issue(), dacIssue()));
             BEAST_EXPECT(std::distance(d.begin(), d.end()) == 240);
             auto i = 1, j = 3, k = 0;
             for (auto const& e : d)
             {
                 BEAST_EXPECT(e->getFieldAmount(sfTakerPays) == AUD(i));
-                BEAST_EXPECT(e->getFieldAmount(sfTakerGets) == IDAC(j));
+                BEAST_EXPECT(e->getFieldAmount(sfTakerGets) == DAC(j));
                 if (++k % 80 == 0)
                 {
                     ++i;

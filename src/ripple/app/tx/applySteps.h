@@ -120,7 +120,7 @@ public:
 
 /** Structure describing the consequences to the account
     of applying a transaction if the transaction consumes
-    the maximum IDAC allowed.
+    the maximum DAC allowed.
 
     @see calculateConsequences
 */
@@ -141,13 +141,13 @@ struct TxConsequences
     /// transactions
     ConsequenceCategory const category;
     /// Transaction fee
-    IDACAmount const fee;
+    DACAmount const fee;
     /// Does NOT include the fee.
-    IDACAmount const potentialSpend;
+    DACAmount const potentialSpend;
 
     /// Constructor
     TxConsequences(ConsequenceCategory const category_,
-        IDACAmount const fee_, IDACAmount const spend_)
+        DACAmount const fee_, DACAmount const spend_)
         : category(category_)
         , fee(fee_)
         , potentialSpend(spend_)
@@ -240,8 +240,8 @@ std::uint64_t
 calculateBaseFee(Application& app, ReadView const& view,
     STTx const& tx, beast::Journal j);
 
-/** Determine the IDAC balance consequences if a transaction
-    consumes the maximum IDAC allowed.
+/** Determine the DAC balance consequences if a transaction
+    consumes the maximum DAC allowed.
 
     @pre The transaction has been checked
     and validated using `preflight`

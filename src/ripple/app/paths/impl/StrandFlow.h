@@ -28,7 +28,7 @@
 #include <ripple/app/paths/impl/Steps.h>
 #include <ripple/basics/Log.h>
 #include <ripple/protocol/IOUAmount.h>
-#include <ripple/protocol/IDACAmount.h>
+#include <ripple/protocol/DACAmount.h>
 
 #include <boost/container/flat_set.hpp>
 
@@ -99,9 +99,9 @@ flow (
 
     boost::container::flat_set<uint256> ofrsToRm;
 
-    if (isDirectIdacToIdac<TInAmt, TOutAmt> (strand))
+    if (isDirectDacToDac<TInAmt, TOutAmt> (strand))
     {
-        // The current implementation returns NO_LINE for IDAC->IDAC transfers.
+        // The current implementation returns NO_LINE for DAC->DAC transfers.
         // Keep this behavior
         return {tecNO_LINE, std::move (ofrsToRm)};
     }

@@ -88,15 +88,15 @@ public:
         AccountID const& account, Currency const& currency,
         AccountID const& issuer, bool forceCurrency = false)
         : mType (typeNone), mAccountID (account), mCurrencyID (currency)
-        , mIssuerID (issuer), is_offer_ (isIDAC(mAccountID))
+        , mIssuerID (issuer), is_offer_ (isDAC(mAccountID))
     {
         if (!is_offer_)
             mType |= typeAccount;
 
-        if (forceCurrency || !isIDAC(currency))
+        if (forceCurrency || !isDAC(currency))
             mType |= typeCurrency;
 
-        if (!isIDAC(issuer))
+        if (!isDAC(issuer))
             mType |= typeIssuer;
 
         hash_value_ = get_hash (*this);
@@ -106,7 +106,7 @@ public:
         unsigned int uType, AccountID const& account, Currency const& currency,
         AccountID const& issuer)
         : mType (uType), mAccountID (account), mCurrencyID (currency)
-        , mIssuerID (issuer), is_offer_ (isIDAC(mAccountID))
+        , mIssuerID (issuer), is_offer_ (isDAC(mAccountID))
     {
         hash_value_ = get_hash (*this);
     }

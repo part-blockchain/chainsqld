@@ -66,8 +66,8 @@
 #include <ripple/beast/core/SystemStats.h>
 #include <ripple/beast/utility/rngfill.h>
 #include <ripple/basics/make_lock.h>
-#include <idac/rpc/impl/TableAssistant.h>
-#include <idac/rpc/TableUtils.h>
+#include <dac/rpc/impl/TableAssistant.h>
+#include <dac/rpc/TableUtils.h>
 #include <beast/core/detail/base64.hpp>
 #include <boost/asio/steady_timer.hpp>
 
@@ -2364,7 +2364,7 @@ Json::Value NetworkOPsImp::getServerInfo (bool human, bool admin)
 
             /* Json::Value doesn't support uint64, so clamp to max
                 uint32 value. This is mostly theoretical, since there
-                probably isn't enough extant IDAC to drive the factor
+                probably isn't enough extant DAC to drive the factor
                 that high.
             */
             info[jss::load_factor_fee_escalation] =
@@ -2444,13 +2444,13 @@ Json::Value NetworkOPsImp::getServerInfo (bool human, bool admin)
         }
         else
         {
-            l[jss::base_fee_idac] = static_cast<double> (baseFee) /
+            l[jss::base_fee_dac] = static_cast<double> (baseFee) /
                     SYSTEM_CURRENCY_PARTS;
-            l[jss::reserve_base_idac]   =
+            l[jss::reserve_base_dac]   =
                 static_cast<double> (Json::UInt (
                     lpClosed->fees().accountReserve(0).drops() * baseFee / baseRef))
                     / SYSTEM_CURRENCY_PARTS;
-            l[jss::reserve_inc_idac]    =
+            l[jss::reserve_inc_dac]    =
                 static_cast<double> (Json::UInt (
                     lpClosed->fees().increment * baseFee / baseRef))
                     / SYSTEM_CURRENCY_PARTS;

@@ -45,7 +45,7 @@ public:
     }
 
     static
-    IDACAmount
+    DACAmount
     calculateMaxSpend(STTx const& tx);
 
     static

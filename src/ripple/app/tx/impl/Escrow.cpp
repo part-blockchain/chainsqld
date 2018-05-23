@@ -29,7 +29,7 @@
 #include <ripple/protocol/Feature.h>
 #include <ripple/protocol/Indexes.h>
 #include <ripple/protocol/TxFlags.h>
-#include <ripple/protocol/IDACAmount.h>
+#include <ripple/protocol/DACAmount.h>
 #include <ripple/ledger/View.h>
 
 // During an EscrowFinish, the transaction must specify both
@@ -42,14 +42,14 @@ namespace ripple {
 
 /*
     Escrow allows an account holder to sequester any amount
-    of IDAC in its own ledger entry, until the escrow process
+    of DAC in its own ledger entry, until the escrow process
     either finishes or is canceled.
 
     If the escrow process finishes successfully, then the
     destination account (which must exist) will receives the
-    sequestered IDAC. If the escrow is, instead, canceled,
+    sequestered DAC. If the escrow is, instead, canceled,
     the account which created the escrow will receive the
-    sequestered IDAC back instead.
+    sequestered DAC back instead.
 
     EscrowCreate
 
@@ -128,16 +128,16 @@ namespace ripple {
     By careful selection of fields in each transaction,
     these operations may be achieved:
 
-        * Lock up IDAC for a time period
+        * Lock up DAC for a time period
         * Execute a payment conditionally
 */
 
 //------------------------------------------------------------------------------
 
-IDACAmount
+DACAmount
 EscrowCreate::calculateMaxSpend(STTx const& tx)
 {
-    return tx[sfAmount].idac();
+    return tx[sfAmount].dac();
 }
 
 TER
@@ -150,7 +150,7 @@ EscrowCreate::preflight (PreflightContext const& ctx)
     if (!isTesSuccess (ret))
         return ret;
 
-    if (! isIDAC(ctx.tx[sfAmount]))
+    if (! isDAC(ctx.tx[sfAmount]))
         return temBAD_AMOUNT;
 
     if (ctx.tx[sfAmount] <= beast::zero)
@@ -215,14 +215,14 @@ EscrowCreate::doApply()
 
     // Check reserve and funds availability
     {
-        auto const balance = STAmount((*sle)[sfBalance]).idac();
+        auto const balance = STAmount((*sle)[sfBalance]).dac();
         auto const reserve = ctx_.view().fees().accountReserve(
             (*sle)[sfOwnerCount] + 1);
 
         if (balance < reserve)
             return tecINSUFFICIENT_RESERVE;
 
-        if (balance < reserve + STAmount(ctx_.tx[sfAmount]).idac())
+        if (balance < reserve + STAmount(ctx_.tx[sfAmount]).dac())
             return tecUNFUNDED;
     }
 
@@ -235,7 +235,7 @@ EscrowCreate::doApply()
         if (((*sled)[sfFlags] & lsfRequireDestTag) &&
                 ! ctx_.tx[~sfDestinationTag])
             return tecDST_TAG_NEEDED;
-        if ((*sled)[sfFlags] & lsfDisallowIDAC)
+        if ((*sled)[sfFlags] & lsfDisallowDAC)
             return tecNO_TARGET;
     }
 

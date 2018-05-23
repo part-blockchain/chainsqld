@@ -25,7 +25,7 @@
 #include <ripple/basics/TaggedCache.h>
 #include <ripple/core/Config.h>
 #include <ripple/beast/utility/PropertyStream.h>
-#include <idac/gmencrypt/hardencrypt/HardEncryptObj.h>
+#include <dac/gmencrypt/hardencrypt/HardEncryptObj.h>
 #include <ripple/protocol/Protocol.h>
 #include <memory>
 #include <mutex>

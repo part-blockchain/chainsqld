@@ -24,7 +24,7 @@
 #include <ripple/protocol/JsonFields.h>
 #include <ripple/protocol/Seed.h>
 #include <ripple/rpc/Context.h>
-#include <idac/gmencrypt/hardencrypt/HardEncryptObj.h>
+#include <dac/gmencrypt/hardencrypt/HardEncryptObj.h>
 
 namespace ripple {
 

@@ -21,7 +21,7 @@
 #define RIPPLE_PATH_IMPL_AMOUNTSPEC_H_INCLUDED
 
 #include <ripple/protocol/IOUAmount.h>
-#include <ripple/protocol/IDACAmount.h>
+#include <ripple/protocol/DACAmount.h>
 #include <ripple/protocol/STAmount.h>
 
 namespace ripple {
@@ -31,7 +31,7 @@ struct AmountSpec
     bool native;
     union
     {
-        IDACAmount idac;
+        DACAmount dac;
         IOUAmount iou;
     };
     boost::optional<AccountID> issuer;
@@ -44,7 +44,7 @@ struct AmountSpec
         AmountSpec const& amt)
     {
         if (amt.native)
-            stream << to_string (amt.idac);
+            stream << to_string (amt.dac);
         else
             stream << to_string (amt.iou);
         if (amt.currency)
@@ -64,7 +64,7 @@ struct EitherAmount
     union
     {
         IOUAmount iou;
-        IDACAmount idac;
+        DACAmount dac;
     };
 
     EitherAmount () = default;
@@ -81,8 +81,8 @@ struct EitherAmount
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #endif
     explicit
-    EitherAmount (IDACAmount const& a)
-            :idac(a)
+    EitherAmount (DACAmount const& a)
+            :dac(a)
     {
 #ifndef NDEBUG
         native = true;
@@ -99,7 +99,7 @@ struct EitherAmount
         native = a.native;
 #endif
         if (a.native)
-            idac = a.idac;
+            dac = a.dac;
         else
             iou = a.iou;
     }
@@ -124,11 +124,11 @@ get<IOUAmount> (EitherAmount& amt)
 
 template <>
 inline
-IDACAmount&
-get<IDACAmount> (EitherAmount& amt)
+DACAmount&
+get<DACAmount> (EitherAmount& amt)
 {
     assert (amt.native);
-    return amt.idac;
+    return amt.dac;
 }
 
 template <class T>
@@ -150,11 +150,11 @@ get<IOUAmount> (EitherAmount const& amt)
 
 template <>
 inline
-IDACAmount const&
-get<IDACAmount> (EitherAmount const& amt)
+DACAmount const&
+get<DACAmount> (EitherAmount const& amt)
 {
     assert (amt.native);
-    return amt.idac;
+    return amt.dac;
 }
 
 inline
@@ -167,10 +167,10 @@ toAmountSpec (STAmount const& amt)
         isNeg ? - std::int64_t (amt.mantissa ()) : amt.mantissa ();
     AmountSpec result;
 
-    result.native = isIDAC (amt);
+    result.native = isDAC (amt);
     if (result.native)
     {
-        result.idac = IDACAmount (sMant);
+        result.dac = DACAmount (sMant);
     }
     else
     {
@@ -186,8 +186,8 @@ inline
 EitherAmount
 toEitherAmount (STAmount const& amt)
 {
-    if (isIDAC (amt))
-        return EitherAmount{amt.idac()};
+    if (isDAC (amt))
+        return EitherAmount{amt.dac()};
     return EitherAmount{amt.iou()};
 }
 
@@ -198,12 +198,12 @@ toAmountSpec (
     boost::optional<Currency> const& c)
 {
     AmountSpec r;
-    r.native = (!c || isIDAC (*c));
+    r.native = (!c || isDAC (*c));
     r.currency = c;
     assert (ea.native == r.native);
     if (r.native)
     {
-        r.idac = ea.idac;
+        r.dac = ea.dac;
     }
     else
     {

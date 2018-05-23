@@ -35,8 +35,8 @@ public:
 		std::string args = arg();
 		size_t npos = args.find("conf=");
 		if (npos == std::string::npos) {
-			std::cout << "usage: idacd.exe --unittest=\"DataBaseConn\""
-				<< "--unittest-arg=\"conf = idacd.cfg\"" << std::endl;
+			std::cout << "usage: dacd.exe --unittest=\"DataBaseConn\""
+				<< "--unittest-arg=\"conf = dacd.cfg\"" << std::endl;
 			exit(-1);
 		}
 
@@ -72,7 +72,7 @@ public:
 	void test_InsertRecord() {
 		ripple::DatabaseCon database(setup_, "ripple", NULL, 0, db_type_);
 		soci::session& session = database.getSession();
-		session << "insert into user (id,name) values (1,'idac')";
+		session << "insert into user (id,name) values (1,'dac')";
 		session << "insert into user (id,name) values (2,'ripple')";
 
 		int count = 0;
@@ -83,7 +83,7 @@ public:
 	void test_UpdateRecord() {
 		ripple::DatabaseCon database(setup_, "ripple", NULL, 0, db_type_);
 		soci::session& session = database.getSession();
-		std::string new_name = "new idac";
+		std::string new_name = "new dac";
 		int update_id = 1;
 		//session << "update user set name = :name where id = :id",
 		//		soci::use(new_name), soci::use(update_id);
@@ -104,7 +104,7 @@ public:
 		ripple::DatabaseCon database(setup_, "ripple", NULL, 0, db_type_);
 		soci::session& session = database.getSession();
 		
-		std::string expected_name[] = {"new idac", "ripple"};
+		std::string expected_name[] = {"new dac", "ripple"};
 		soci::rowset<soci::row> rs = (session.prepare << "select * from user");
 		int id = 1;
 		for (auto it = rs.begin(); it != rs.end(); it++) {
@@ -133,7 +133,7 @@ public:
 		{
 			soci::transaction tr(session);
 			try {
-				session << "insert into user (id,name) values (1,'idac')";
+				session << "insert into user (id,name) values (1,'dac')";
 				tr.rollback();
 			}
 			catch (const soci::soci_error &e) {

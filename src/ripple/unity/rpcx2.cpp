@@ -63,15 +63,15 @@
 #include <ripple/rpc/impl/TransactionSign.cpp>
 
 #include <ripple/rpc/handlers/AccountTables.cpp>
-#include <idac/rpc/handlers/TableHandler.cpp>
-#include <idac/rpc/handlers/TableDump.cpp>
-#include <idac/rpc/handlers/TableAudit.cpp>
-#include <idac/rpc/handlers/TableName.cpp>
-#include <idac/rpc/handlers/TableCheckHash.cpp>
-#include <idac/rpc/impl/TableAssistant.cpp>
-#include <idac/rpc/impl/TableUtils.cpp>
-#include <idac/rpc/impl/TxPrepareBase.cpp>
-#include <idac/rpc/impl/TxCommonPrepare.cpp>
-#include <idac/rpc/impl/TxSingleTransPrepare.cpp>
-#include <idac/rpc/impl/TxTransactionPrepare.cpp>
+#include <dac/rpc/handlers/TableHandler.cpp>
+#include <dac/rpc/handlers/TableDump.cpp>
+#include <dac/rpc/handlers/TableAudit.cpp>
+#include <dac/rpc/handlers/TableName.cpp>
+#include <dac/rpc/handlers/TableCheckHash.cpp>
+#include <dac/rpc/impl/TableAssistant.cpp>
+#include <dac/rpc/impl/TableUtils.cpp>
+#include <dac/rpc/impl/TxPrepareBase.cpp>
+#include <dac/rpc/impl/TxCommonPrepare.cpp>
+#include <dac/rpc/impl/TxSingleTransPrepare.cpp>
+#include <dac/rpc/impl/TxTransactionPrepare.cpp>
 

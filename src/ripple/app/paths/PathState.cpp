@@ -105,7 +105,7 @@ bool PathState::lessPriority (PathState const& lhs, PathState const& rhs)
 //   account.
 // - Offers can only go directly to another offer if the currency and issuer are
 //   an exact match.
-// - Real issuers must be specified for non-IDAC.
+// - Real issuers must be specified for non-DAC.
 TER PathState::pushImpliedNodes (
     AccountID const& account,    // --> Delivering to this account.
     Currency const& currency,  // --> Delivering this currency.
@@ -121,25 +121,25 @@ TER PathState::pushImpliedNodes (
     if (nodes_.back ().issue_.currency != currency)
     {
         // Currency is different, need to convert via an offer from an order
-        // book.  idacAccount() does double duty as signaling "this is an order
+        // book.  dacAccount() does double duty as signaling "this is an order
         // book".
 
         // Corresponds to "Implies an offer directory" in the diagram, currently
         // at http://goo.gl/Uj3HAB.
 
-        auto type = isIDAC(currency) ? STPathElement::typeCurrency
+        auto type = isDAC(currency) ? STPathElement::typeCurrency
             : STPathElement::typeCurrency | STPathElement::typeIssuer;
 
         // The offer's output is what is now wanted.
-        // idacAccount() is a placeholder for offers.
-        resultCode = pushNode (type, idacAccount(), currency, issuer);
+        // dacAccount() is a placeholder for offers.
+        resultCode = pushNode (type, dacAccount(), currency, issuer);
     }
 
 
-    // For ripple, non-IDAC, ensure the issuer is on at least one side of the
+    // For ripple, non-DAC, ensure the issuer is on at least one side of the
     // transaction.
     if (resultCode == tesSUCCESS
-        && !isIDAC(currency)
+        && !isDAC(currency)
         && nodes_.back ().account_ != issuer
         // Previous is not issuing own IOUs.
         && account != issuer)
@@ -209,9 +209,9 @@ TER PathState::pushNode (
         JLOG (j_.debug()) << "pushNode: bad bits.";
         resultCode = temBAD_PATH;
     }
-    else if (hasIssuer && isIDAC (node.issue_))
+    else if (hasIssuer && isDAC (node.issue_))
     {
-        JLOG (j_.debug()) << "pushNode: issuer specified for IDAC.";
+        JLOG (j_.debug()) << "pushNode: issuer specified for DAC.";
 
         resultCode = temBAD_PATH;
     }
@@ -234,7 +234,7 @@ TER PathState::pushNode (
         // Account link
         node.account_ = account;
         node.issue_.account = hasIssuer ? issuer :
-                (isIDAC (node.issue_) ? idacAccount() : account);
+                (isDAC (node.issue_) ? dacAccount() : account);
         // Zero value - for accounts.
         node.saRevRedeem = STAmount ({node.issue_.currency, account});
         node.saRevIssue = node.saRevRedeem;
@@ -262,7 +262,7 @@ TER PathState::pushNode (
             resultCode = pushImpliedNodes (
                 node.account_,
                 node.issue_.currency,
-                isIDAC(node.issue_.currency) ? idacAccount() : account);
+                isDAC(node.issue_.currency) ? dacAccount() : account);
 
             // Note: backNode may no longer be the immediately previous node.
         }
@@ -359,9 +359,9 @@ TER PathState::pushNode (
         // issuer.
         if (hasIssuer)
             node.issue_.account = issuer;
-        else if (isIDAC (node.issue_.currency))
-            node.issue_.account = idacAccount();
-        else if (isIDAC (backNode.issue_.account))
+        else if (isDAC (node.issue_.currency))
+            node.issue_.account = dacAccount();
+        else if (isDAC (backNode.issue_.account))
             node.issue_.account = backNode.account_;
         else
             node.issue_.account = backNode.issue_.account;
@@ -387,7 +387,7 @@ TER PathState::pushNode (
 
             // Insert intermediary issuer account if needed.
             resultCode   = pushImpliedNodes (
-                idacAccount(), // Rippling, but offers don't have an account.
+                dacAccount(), // Rippling, but offers don't have an account.
                 backNode.issue_.currency,
                 backNode.issue_.account);
         }
@@ -429,31 +429,31 @@ TER PathState::expandPath (
     Currency const& currencyOutID = saOutReq.getCurrency ();
     AccountID const& issuerOutID = saOutReq.getIssuer ();
     AccountID const& uSenderIssuerID
-        = isIDAC(uMaxCurrencyID) ? idacAccount() : uSenderID;
-    // Sender is always issuer for non-IDAC.
+        = isDAC(uMaxCurrencyID) ? dacAccount() : uSenderID;
+    // Sender is always issuer for non-DAC.
 
     JLOG (j_.trace())
         << "expandPath> " << spSourcePath.getJson (0);
 
     terStatus = tesSUCCESS;
 
-    // IDAC with issuer is malformed.
-    if ((isIDAC (uMaxCurrencyID) && !isIDAC (uMaxIssuerID))
-        || (isIDAC (currencyOutID) && !isIDAC (issuerOutID)))
+    // DAC with issuer is malformed.
+    if ((isDAC (uMaxCurrencyID) && !isDAC (uMaxIssuerID))
+        || (isDAC (currencyOutID) && !isDAC (issuerOutID)))
     {
         JLOG (j_.debug())
-            << "expandPath> issuer with IDAC";
+            << "expandPath> issuer with DAC";
         terStatus   = temBAD_PATH;
     }
 
     // Push sending node.
-    // For non-IDAC, issuer is always sending account.
+    // For non-DAC, issuer is always sending account.
     // - Trying to expand, not-compact.
     // - Every issuer will be traversed through.
     if (terStatus == tesSUCCESS)
     {
         terStatus   = pushNode (
-            !isIDAC(uMaxCurrencyID)
+            !isDAC(uMaxCurrencyID)
             ? STPathElement::typeAccount | STPathElement::typeCurrency |
               STPathElement::typeIssuer
             : STPathElement::typeAccount | STPathElement::typeCurrency,
@@ -472,7 +472,7 @@ TER PathState::expandPath (
     if (tesSUCCESS == terStatus && uMaxIssuerID != uSenderIssuerID)
     {
         // May have an implied account node.
-        // - If it was IDAC, then issuers would have matched.
+        // - If it was DAC, then issuers would have matched.
 
         // Figure out next node properties for implied node.
         const auto uNxtCurrencyID  = spSourcePath.size ()
@@ -485,11 +485,11 @@ TER PathState::expandPath (
         // understands it.
         const auto nextAccountID   = spSourcePath.size ()
                 ? AccountID(spSourcePath. front ().getAccountID ())
-                : !isIDAC(currencyOutID)
+                : !isDAC(currencyOutID)
                 ? (issuerOutID == uReceiverID)
                 ? AccountID(uReceiverID)
                 : AccountID(issuerOutID)                      // Use implied node.
-                : idacAccount();
+                : dacAccount();
 
         JLOG (j_.debug())
             << "expandPath: implied check:"
@@ -501,7 +501,7 @@ TER PathState::expandPath (
         // Can't just use push implied, because it can't compensate for next
         // account.
         if (!uNxtCurrencyID
-            // Next is IDAC, offer next. Must go through issuer.
+            // Next is DAC, offer next. Must go through issuer.
             || uMaxCurrencyID != uNxtCurrencyID
             // Next is different currency, offer next...
             || uMaxIssuerID != nextAccountID)
@@ -515,7 +515,7 @@ TER PathState::expandPath (
 
             // Add account implied by SendMax.
             terStatus = pushNode (
-                !isIDAC(uMaxCurrencyID)
+                !isDAC(uMaxCurrencyID)
                     ? STPathElement::typeAccount | STPathElement::typeCurrency |
                       STPathElement::typeIssuer
                     : STPathElement::typeAccount | STPathElement::typeCurrency,
@@ -537,7 +537,7 @@ TER PathState::expandPath (
     }
 
     if (terStatus == tesSUCCESS
-        && !isIDAC(currencyOutID)               // Next is not IDAC
+        && !isDAC(currencyOutID)               // Next is not DAC
         && issuerOutID != uReceiverID)         // Out issuer is not receiver
     {
         assert (!nodes_.empty ());
@@ -555,7 +555,7 @@ TER PathState::expandPath (
                 << " issuer=" << issuerOutID;
 
             terStatus   = pushNode (
-                !isIDAC(currencyOutID)
+                !isDAC(currencyOutID)
                     ? STPathElement::typeAccount | STPathElement::typeCurrency |
                       STPathElement::typeIssuer
                     : STPathElement::typeAccount | STPathElement::typeCurrency,
@@ -571,7 +571,7 @@ TER PathState::expandPath (
         // Last node is always an account.
 
         terStatus   = pushNode (
-            !isIDAC(currencyOutID)
+            !isDAC(currencyOutID)
                 ? STPathElement::typeAccount | STPathElement::typeCurrency |
                    STPathElement::typeIssuer
                : STPathElement::typeAccount | STPathElement::typeCurrency,

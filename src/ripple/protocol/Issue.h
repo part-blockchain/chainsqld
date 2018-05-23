@@ -66,7 +66,7 @@ hash_append(Hasher& h, Issue const& r)
 
 /** Ordered comparison.
     The assets are ordered first by currency and then by account,
-    if the currency is not IDAC.
+    if the currency is not DAC.
 */
 int
 compare (Issue const& lhs, Issue const& rhs);
@@ -93,10 +93,10 @@ operator<= (Issue const& lhs, Issue const& rhs);
 
 //------------------------------------------------------------------------------
 
-/** Returns an asset specifier that represents IDAC. */
-inline Issue const& idacIssue ()
+/** Returns an asset specifier that represents DAC. */
+inline Issue const& dacIssue ()
 {
-    static Issue issue {idacCurrency(), idacAccount()};
+    static Issue issue {dacCurrency(), dacAccount()};
     return issue;
 }
 

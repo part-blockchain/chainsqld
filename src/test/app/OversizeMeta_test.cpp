@@ -35,7 +35,7 @@ public:
     {
         using namespace jtx;
         for (std::size_t i = 1; i <= n; ++i)
-            env(offer("alice", IDAC(i), iou(1)));
+            env(offer("alice", DAC(i), iou(1)));
     }
 
     void
@@ -47,7 +47,7 @@ public:
         env.disable_sigs();
         auto const gw = Account("gateway");
         auto const USD = gw["USD"];
-        env.fund(IDAC(billion), gw, "alice", "bob", "carol");
+        env.fund(DAC(billion), gw, "alice", "bob", "carol");
         env.trust(USD(billion), "alice", "bob", "carol");
         env(pay(gw, "alice", USD(billion)));
         createOffers(env, USD, n);
@@ -88,7 +88,7 @@ public:
     {
         using namespace jtx;
         for (std::size_t i = 1; i <= n; ++i)
-            env(offer("alice", IDAC(1), iou(1)));
+            env(offer("alice", DAC(1), iou(1)));
     }
 
     void
@@ -101,12 +101,12 @@ public:
         env.disable_sigs();
         auto const gw = Account("gateway");
         auto const USD = gw["USD"];
-        env.fund(IDAC(billion), gw, "alice", "bob", "carol");
+        env.fund(DAC(billion), gw, "alice", "bob", "carol");
         env.trust(USD(billion), "alice", "bob", "carol");
         env(pay(gw, "alice", USD(billion)));
         createOffers(env, USD, n);
         env(pay("alice", gw, USD(billion)));
-        env(offer("alice", USD(1), IDAC(1)));
+        env(offer("alice", USD(1), DAC(1)));
     }
 
     void
@@ -151,7 +151,7 @@ public:
     {
         using namespace jtx;
         for (std::size_t i = 1; i <= n; ++i)
-            env(offer("alice", IDAC(i), iou(1)));
+            env(offer("alice", DAC(i), iou(1)));
     }
 
     bool
@@ -163,12 +163,12 @@ public:
         env.disable_sigs();
         auto const gw = Account("gateway");
         auto const USD = gw["USD"];
-        env.fund(IDAC(billion), gw, "alice", "bob", "carol");
+        env.fund(DAC(billion), gw, "alice", "bob", "carol");
         env.trust(USD(billion), "alice", "bob", "carol");
         env(pay(gw, "alice", USD(billion)));
         createOffers(env, USD, n);
         env(pay("alice", gw, USD(billion)));
-        env(offer("alice", USD(1), IDAC(1)), ter(std::ignore));
+        env(offer("alice", USD(1), DAC(1)), ter(std::ignore));
         return env.ter() == tecOVERSIZE;
     }
 

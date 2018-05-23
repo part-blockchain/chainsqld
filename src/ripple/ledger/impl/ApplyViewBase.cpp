@@ -186,10 +186,10 @@ ApplyViewBase::rawReplace(
 }
 
 void
-ApplyViewBase::rawDestroyIDAC(
-    IDACAmount const& fee)
+ApplyViewBase::rawDestroyDAC(
+    DACAmount const& fee)
 {
-    items_.destroyIDAC(fee);
+    items_.destroyDAC(fee);
 }
 
 //---

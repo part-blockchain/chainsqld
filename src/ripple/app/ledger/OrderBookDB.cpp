@@ -84,7 +84,7 @@ void OrderBookDB::update(
     hash_set< uint256 > seen;
     OrderBookDB::IssueToOrderBook destMap;
     OrderBookDB::IssueToOrderBook sourceMap;
-    hash_set< Issue > IDACBooks;
+    hash_set< Issue > DACBooks;
 
     JLOG (j_.debug()) << "OrderBookDB::update>";
 
@@ -130,8 +130,8 @@ void OrderBookDB::update(
                     auto orderBook = std::make_shared<OrderBook> (index, book);
                     sourceMap[book.in].push_back (orderBook);
                     destMap[book.out].push_back (orderBook);
-                    if (isIDAC(book.out))
-                        IDACBooks.insert(book.in);
+                    if (isDAC(book.out))
+                        DACBooks.insert(book.in);
                     ++books;
                 }
             }
@@ -151,7 +151,7 @@ void OrderBookDB::update(
     {
         std::lock_guard <std::recursive_mutex> sl (mLock);
 
-        mIDACBooks.swap(IDACBooks);
+        mDACBooks.swap(DACBooks);
         mSourceMap.swap(sourceMap);
         mDestMap.swap(destMap);
     }
@@ -160,16 +160,16 @@ void OrderBookDB::update(
 
 void OrderBookDB::addOrderBook(Book const& book)
 {
-    bool toIDAC = isIDAC (book.out);
+    bool toDAC = isDAC (book.out);
     std::lock_guard <std::recursive_mutex> sl (mLock);
 
-    if (toIDAC)
+    if (toDAC)
     {
-        // We don't want to search through all the to-IDAC or from-IDAC order
+        // We don't want to search through all the to-DAC or from-DAC order
         // books!
         for (auto ob: mSourceMap[book.in])
         {
-            if (isIDAC (ob->getCurrencyOut ())) // also to IDAC
+            if (isDAC (ob->getCurrencyOut ())) // also to DAC
                 return;
         }
     }
@@ -189,8 +189,8 @@ void OrderBookDB::addOrderBook(Book const& book)
 
     mSourceMap[book.in].push_back (orderBook);
     mDestMap[book.out].push_back (orderBook);
-    if (toIDAC)
-        mIDACBooks.insert(book.in);
+    if (toDAC)
+        mDACBooks.insert(book.in);
 }
 
 // return list of all orderbooks that want this issuerID and currencyID
@@ -207,10 +207,10 @@ int OrderBookDB::getBookSize(Issue const& issue) {
     return it == mSourceMap.end () ? 0 : it->second.size();
 }
 
-bool OrderBookDB::isBookToIDAC(Issue const& issue)
+bool OrderBookDB::isBookToDAC(Issue const& issue)
 {
     std::lock_guard <std::recursive_mutex> sl (mLock);
-    return mIDACBooks.count(issue) > 0;
+    return mDACBooks.count(issue) > 0;
 }
 
 BookListeners::pointer OrderBookDB::makeBookListeners (Book const& book)

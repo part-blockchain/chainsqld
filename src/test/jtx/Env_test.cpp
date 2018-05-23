@@ -91,17 +91,17 @@ public:
 
         try
         {
-            IDAC(0.0000001);
+            DAC(0.0000001);
             fail("missing exception");
         }
         catch(std::domain_error const&)
         {
             pass();
         }
-        IDAC(-0.000001);
+        DAC(-0.000001);
         try
         {
-            IDAC(-0.0000009);
+            DAC(-0.0000009);
             fail("missing exception");
         }
         catch(std::domain_error const&)
@@ -109,23 +109,23 @@ public:
             pass();
         }
 
-        BEAST_EXPECT(to_string(IDAC(5)) == "5 IDAC");
-        BEAST_EXPECT(to_string(IDAC(.80)) == "0.8 IDAC");
-        BEAST_EXPECT(to_string(IDAC(.005)) == "5000 drops");
-        BEAST_EXPECT(to_string(IDAC(0.1)) == "0.1 IDAC");
-        BEAST_EXPECT(to_string(IDAC(10000)) == "10000 IDAC");
+        BEAST_EXPECT(to_string(DAC(5)) == "5 DAC");
+        BEAST_EXPECT(to_string(DAC(.80)) == "0.8 DAC");
+        BEAST_EXPECT(to_string(DAC(.005)) == "5000 drops");
+        BEAST_EXPECT(to_string(DAC(0.1)) == "0.1 DAC");
+        BEAST_EXPECT(to_string(DAC(10000)) == "10000 DAC");
         BEAST_EXPECT(to_string(drops(10)) == "10 drops");
-        BEAST_EXPECT(to_string(drops(123400000)) == "123.4 IDAC");
-        BEAST_EXPECT(to_string(IDAC(-5)) == "-5 IDAC");
-        BEAST_EXPECT(to_string(IDAC(-.99)) == "-0.99 IDAC");
-        BEAST_EXPECT(to_string(IDAC(-.005)) == "-5000 drops");
-        BEAST_EXPECT(to_string(IDAC(-0.1)) == "-0.1 IDAC");
+        BEAST_EXPECT(to_string(drops(123400000)) == "123.4 DAC");
+        BEAST_EXPECT(to_string(DAC(-5)) == "-5 DAC");
+        BEAST_EXPECT(to_string(DAC(-.99)) == "-0.99 DAC");
+        BEAST_EXPECT(to_string(DAC(-.005)) == "-5000 drops");
+        BEAST_EXPECT(to_string(DAC(-0.1)) == "-0.1 DAC");
         BEAST_EXPECT(to_string(drops(-10)) == "-10 drops");
-        BEAST_EXPECT(to_string(drops(-123400000)) == "-123.4 IDAC");
+        BEAST_EXPECT(to_string(drops(-123400000)) == "-123.4 DAC");
 
-        BEAST_EXPECT(IDAC(1) == drops(1000000));
-        BEAST_EXPECT(IDAC(1) == STAmount(1000000));
-        BEAST_EXPECT(STAmount(1000000) == IDAC(1));
+        BEAST_EXPECT(DAC(1) == drops(1000000));
+        BEAST_EXPECT(DAC(1) == STAmount(1000000));
+        BEAST_EXPECT(STAmount(1000000) == DAC(1));
 
         auto const gw = Account("gw");
         auto const USD = gw["USD"];
@@ -146,7 +146,7 @@ public:
     testEnv()
     {
         using namespace jtx;
-        auto const n = IDAC(10000);
+        auto const n = DAC(10000);
         auto const gw = Account("gw");
         auto const USD = gw["USD"];
         auto const alice = Account("alice");
@@ -154,7 +154,7 @@ public:
         // unfunded
         {
             Env env(*this);
-            env(pay("alice", "bob", IDAC(1000)), seq(1), fee(10), sig("alice"), ter(terNO_ACCOUNT));
+            env(pay("alice", "bob", DAC(1000)), seq(1), fee(10), sig("alice"), ter(terNO_ACCOUNT));
         }
 
         // fund
@@ -232,11 +232,11 @@ public:
         auto const gw = Account("gw");
         auto const USD = gw["USD"];
         env.require(balance("alice", none));
-        env.require(balance("alice", IDAC(none)));
-        env.fund(IDAC(10000), "alice", gw);
+        env.require(balance("alice", DAC(none)));
+        env.fund(DAC(10000), "alice", gw);
         env.require(balance("alice", USD(none)));
         env.trust(USD(100), "alice");
-        env.require(balance("alice", IDAC(10000))); // fee refunded
+        env.require(balance("alice", DAC(10000))); // fee refunded
         env.require(balance("alice", USD(0)));
         env(pay(gw, "alice", USD(10)), require(balance("alice", USD(10))));
 
@@ -255,7 +255,7 @@ public:
         Account const alice("alice", KeyType::ed25519);
         Account const bob("bob", KeyType::secp256k1);
         Account const carol("carol");
-        env.fund(IDAC(10000), alice, bob);
+        env.fund(DAC(10000), alice, bob);
 
         // Master key only
         env(noop(alice));
@@ -292,20 +292,20 @@ public:
         auto const gw = Account("gateway");
         auto const USD = gw["USD"];
 
-        env.fund(IDAC(10000), "alice", "bob", "carol", gw);
-        env.require(balance("alice", IDAC(10000)));
-        env.require(balance("bob", IDAC(10000)));
-        env.require(balance("carol", IDAC(10000)));
-        env.require(balance(gw, IDAC(10000)));
+        env.fund(DAC(10000), "alice", "bob", "carol", gw);
+        env.require(balance("alice", DAC(10000)));
+        env.require(balance("bob", DAC(10000)));
+        env.require(balance("carol", DAC(10000)));
+        env.require(balance(gw, DAC(10000)));
 
-        env(pay(env.master, "alice", IDAC(1000)), fee(none),     ter(temMALFORMED));
-        env(pay(env.master, "alice", IDAC(1000)), fee(1),        ter(telINSUF_FEE_P));
-        env(pay(env.master, "alice", IDAC(1000)), seq(none),     ter(temMALFORMED));
-        env(pay(env.master, "alice", IDAC(1000)), seq(20),        ter(terPRE_SEQ));
-        env(pay(env.master, "alice", IDAC(1000)), sig(none),     ter(temMALFORMED));
-        env(pay(env.master, "alice", IDAC(1000)), sig("bob"),    ter(tefBAD_AUTH_MASTER));
+        env(pay(env.master, "alice", DAC(1000)), fee(none),     ter(temMALFORMED));
+        env(pay(env.master, "alice", DAC(1000)), fee(1),        ter(telINSUF_FEE_P));
+        env(pay(env.master, "alice", DAC(1000)), seq(none),     ter(temMALFORMED));
+        env(pay(env.master, "alice", DAC(1000)), seq(20),        ter(terPRE_SEQ));
+        env(pay(env.master, "alice", DAC(1000)), sig(none),     ter(temMALFORMED));
+        env(pay(env.master, "alice", DAC(1000)), sig("bob"),    ter(tefBAD_AUTH_MASTER));
 
-        env(pay(env.master, "dilbert", IDAC(1000)), sig(env.master));
+        env(pay(env.master, "dilbert", DAC(1000)), sig(env.master));
 
         env.trust(USD(100), "alice", "bob", "carol");
         env.require(owners("alice", 1), lines("alice", 1));
@@ -315,12 +315,12 @@ public:
         env.require(balance("carol", USD(50)));
         env.require(balance(gw, Account("carol")["USD"](-50)));
 
-        env(offer("carol", IDAC(50), USD(50)), require(owners("carol", 2)));
+        env(offer("carol", DAC(50), USD(50)), require(owners("carol", 2)));
         env(pay("alice", "bob", any(USD(10))),                  ter(tecPATH_DRY));
         env(pay("alice", "bob", any(USD(10))),
-            paths(IDAC), sendmax(IDAC(10)),                       ter(tecPATH_PARTIAL));
-        env(pay("alice", "bob", any(USD(10))), paths(IDAC),
-            sendmax(IDAC(20)));
+            paths(DAC), sendmax(DAC(10)),                       ter(tecPATH_PARTIAL));
+        env(pay("alice", "bob", any(USD(10))), paths(DAC),
+            sendmax(DAC(20)));
         env.require(balance("bob", USD(10)));
         env.require(balance("carol", USD(39.5)));
 
@@ -356,7 +356,7 @@ public:
         using namespace jtx;
 
         Env env(*this, with_features(featureMultiSign));
-        env.fund(IDAC(10000), "alice");
+        env.fund(DAC(10000), "alice");
         env(signers("alice", 1,
             { { "alice", 1 }, { "bob", 2 } }),                  ter(temBAD_SIGNER));
         env(signers("alice", 1,
@@ -385,7 +385,7 @@ public:
 
         {
             Env env(*this, with_features(featureTickets));
-            env.fund(IDAC(10000), "alice");
+            env.fund(DAC(10000), "alice");
             env(noop("alice"),                  require(owners("alice", 0), tickets("alice", 0)));
             env(ticket::create("alice"),        require(owners("alice", 1), tickets("alice", 1)));
             env(ticket::create("alice"),        require(owners("alice", 2), tickets("alice", 2)));
@@ -434,7 +434,7 @@ public:
     {
         using namespace jtx;
         Env env(*this);
-        env.fund(IDAC(100000), "alice");
+        env.fund(DAC(100000), "alice");
         auto jt1 = env.jt(noop("alice"));
         BEAST_EXPECT(!jt1.get<std::uint16_t>());
         auto jt2 = env.jt(noop("alice"),
@@ -501,7 +501,7 @@ public:
     {
         using namespace jtx;
         Env env(*this);
-        env.fund(IDAC(10000), "alice");
+        env.fund(DAC(10000), "alice");
         env(noop("alice"), memodata("data"));
         env(noop("alice"), memoformat("format"));
         env(noop("alice"), memotype("type"));
@@ -534,9 +534,9 @@ public:
         Env env(*this);
         env.close();
         env.close();
-        env.fund(IDAC(100000), "alice", "bob");
+        env.fund(DAC(100000), "alice", "bob");
         env.close();
-        env(pay("alice", "bob", IDAC(100)));
+        env(pay("alice", "bob", DAC(100)));
         env.close();
         env(noop("alice"));
         env.close();
@@ -550,15 +550,15 @@ public:
         Env env(*this);
         auto const gw = Account("gw");
         auto const USD = gw["USD"];
-        env.fund(IDAC(10000), "alice", "bob");
+        env.fund(DAC(10000), "alice", "bob");
         env.json(
             pay("alice", "bob", USD(10)),
                 path(Account("alice")),
                 path("bob"),
                 path(USD),
-                path(~IDAC),
+                path(~DAC),
                 path(~USD),
-                path("bob", USD, ~IDAC, ~USD)
+                path("bob", USD, ~DAC, ~USD)
                 );
     }
 
@@ -568,7 +568,7 @@ public:
         using namespace jtx;
         Env env(*this);
 
-        env.fund(IDAC(10000), "alice");
+        env.fund(DAC(10000), "alice");
         auto const baseFee = env.current()->fees().base;
         std::uint32_t const aliceSeq = env.seq ("alice");
 
@@ -587,7 +587,7 @@ public:
         Env_ss envs(env);
 
         auto const alice = Account("alice");
-        env.fund(IDAC(10000), alice);
+        env.fund(DAC(10000), alice);
 
         {
             envs(noop(alice), fee(none), seq(none))();

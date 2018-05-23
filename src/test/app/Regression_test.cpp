@@ -36,16 +36,16 @@ struct Regression_test : public beast::unit_test::suite
         Env env(*this);
         auto const gw = Account("gw");
         auto const USD = gw["USD"];
-        env.fund(IDAC(10000), "alice", gw);
-        env(offer("alice", USD(10), IDAC(10)), require(owners("alice", 1)));
-        env(offer("alice", USD(20), IDAC(10)), json(R"raw(
+        env.fund(DAC(10000), "alice", gw);
+        env(offer("alice", USD(10), DAC(10)), require(owners("alice", 1)));
+        env(offer("alice", USD(20), DAC(10)), json(R"raw(
                 { "OfferSequence" : 2 }
             )raw"), require(owners("alice", 1)));
     }
 
     void testLowBalanceDestroy()
     {
-        testcase("Account balance < fee destroys correct amount of IDAC");
+        testcase("Account balance < fee destroys correct amount of DAC");
         using namespace jtx;
         Env env(*this);
         env.memoize("alice");
@@ -59,8 +59,8 @@ struct Regression_test : public beast::unit_test::suite
         auto expectedDrops = SYSTEM_CURRENCY_START;
         BEAST_EXPECT(closed->info().drops == expectedDrops);
 
-        auto const aliceIDAC = 400;
-        auto const aliceAmount = IDAC(aliceIDAC);
+        auto const aliceDAC = 400;
+        auto const aliceAmount = DAC(aliceDAC);
 
         auto next = std::make_shared<Ledger>(
             *closed,
@@ -109,9 +109,9 @@ struct Regression_test : public beast::unit_test::suite
             BEAST_EXPECT(sle);
             auto balance = sle->getFieldAmount(sfBalance);
 
-            BEAST_EXPECT(balance == IDAC(0));
+            BEAST_EXPECT(balance == DAC(0));
         }
-        expectedDrops -= aliceIDAC * dropsPerIDAC<int>::value;
+        expectedDrops -= aliceDAC * dropsPerDAC<int>::value;
         BEAST_EXPECT(next->info().drops == expectedDrops);
     }
 
@@ -155,7 +155,7 @@ struct Regression_test : public beast::unit_test::suite
         Account const alice {"alice", KeyType::secp256k1};
         Account const becky {"becky", KeyType::ed25519};
 
-        env.fund(IDAC(10000), alice, becky);
+        env.fund(DAC(10000), alice, becky);
 
         test256r1key (alice);
         test256r1key (becky);
@@ -175,7 +175,7 @@ struct Regression_test : public beast::unit_test::suite
         Env_ss envs(env);
 
         auto const alice = Account("alice");
-        env.fund(IDAC(100000), alice);
+        env.fund(DAC(100000), alice);
 
         auto params = Json::Value(Json::objectValue);
         // Max fee = 50k drops

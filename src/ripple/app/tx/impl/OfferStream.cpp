@@ -105,14 +105,14 @@ IOUAmount accountFundsHelper (ReadView const& view,
 }
 
 static
-IDACAmount accountFundsHelper (ReadView const& view,
+DACAmount accountFundsHelper (ReadView const& view,
     AccountID const& id,
-    IDACAmount const& amtDefault,
+    DACAmount const& amtDefault,
     Issue const& issue,
     FreezeHandling freezeHandling,
     beast::Journal j)
 {
-    return toAmount<IDACAmount> (
+    return toAmount<DACAmount> (
         accountHolds (view, id, issue.currency, issue.account, freezeHandling, j));
 }
 
@@ -221,11 +221,11 @@ void FlowOfferStream<TIn, TOut>::permRmOffer (uint256 const& offerIndex)
 
 template class FlowOfferStream<STAmount, STAmount>;
 template class FlowOfferStream<IOUAmount, IOUAmount>;
-template class FlowOfferStream<IDACAmount, IOUAmount>;
-template class FlowOfferStream<IOUAmount, IDACAmount>;
+template class FlowOfferStream<DACAmount, IOUAmount>;
+template class FlowOfferStream<IOUAmount, DACAmount>;
 
 template class TOfferStreamBase<STAmount, STAmount>;
 template class TOfferStreamBase<IOUAmount, IOUAmount>;
-template class TOfferStreamBase<IDACAmount, IOUAmount>;
-template class TOfferStreamBase<IOUAmount, IDACAmount>;
+template class TOfferStreamBase<DACAmount, IOUAmount>;
+template class TOfferStreamBase<IOUAmount, DACAmount>;
 }

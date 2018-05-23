@@ -24,7 +24,7 @@
 #include <ripple/ledger/ReadView.h>
 #include <ripple/ledger/detail/RawStateTable.h>
 #include <ripple/basics/qalloc.h>
-#include <ripple/protocol/IDACAmount.h>
+#include <ripple/protocol/DACAmount.h>
 #include <functional>
 #include <utility>
 
@@ -211,8 +211,8 @@ public:
         SLE> const& sle) override;
 
     void
-    rawDestroyIDAC(
-        IDACAmount const& fee) override;
+    rawDestroyDAC(
+        DACAmount const& fee) override;
 
     // TxsRawView
 

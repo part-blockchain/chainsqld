@@ -109,7 +109,7 @@ Currency to_currency(std::string const& code)
     return currency;
 }
 
-Currency const& idacCurrency()
+Currency const& dacCurrency()
 {
     static Currency const currency(0);
     return currency;
@@ -123,7 +123,7 @@ Currency const& noCurrency()
 
 Currency const& badCurrency()
 {
-	//0x5852500000000000 IDAC
+	//0x5852500000000000 DAC
     static Currency const currency(0x5A58430000000000);
     return currency;
 }
