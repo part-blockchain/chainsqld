@@ -1,4 +1,4 @@
-# chainsqld Source
+# dac Source
 
 Some of these directories come from entire outside repositories brought in
 using [git-subtree][]. This means that the source files are inserted directly
@@ -20,7 +20,7 @@ Source folders:
 | `ed25519-donna` | https://github.com/floodyberry/ed25519-donna | [Ed25519](http://ed25519.cr.yp.to/) digital signatures |
 | `lz4`           | https://github.com/lz4/lz4                   | LZ4 lossless compression algorithm |
 | `nudb`          | https://github.com/vinniefalco/NuDB          | Constant-time insert-only key/value database for SSD drives (Less memory usage than RocksDB.) |
-| `peersafe`      | N/A                                          | Core source code for chainsql |
+| `dac`      | N/A                                          | Core source code for dac |
 | `protobuf`      | https://github.com/google/protobuf           | Protocol buffer data interchange format. Ripple has changed some names in order to support the unity-style of build (a single .cpp added to the project, instead of linking to a separately built static library). |
 | `ripple`        | N/A                                          | **Core source code for `rippled`** |
 | `rocksdb2`      | https://github.com/facebook/rocksdb          | Fast key/value database. (Supports rotational disks better than NuDB.) |
