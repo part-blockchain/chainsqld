@@ -6,7 +6,7 @@
 - sudo apt-get install git
 
 ## 下载源码
-- git clone git@github.com:ChainSQL/chainsqld.git chainsqld
+- git clone git@github.com:Dac/dacd.git dacd
 
 ## 安装开发环境依赖
 - 进入编译目录
@@ -28,13 +28,13 @@ export BOOST_ROOT=/home/dbliu/work/chainSQL/Builds/Ubuntu/boost_1_63_0
 > source ~/.bashrc
 ```
 
-## 编译 chainsqld
+## 编译 dacd
 - 重新进入源码根目录
 ```
-> cd ~/work/chainsqld
+> cd ~/work/dacd
 ```
 - 执行编译指令
 ```
-> scons --static --enable-mysql -j2
+> scons --static -j2
 ```
-- 编译成功后，chainsqld 程序在 build 目录下
+- 编译成功后，dacd 程序在 build 目录下
