@@ -236,7 +236,7 @@ namespace ripple {
         uint256 hashNew = sha512Half(makeSlice(strCopy(tx.getFieldVL(sfRaw))));
 
         STArray users;//store Users
-        STObject obj_user(sfUser);
+        STObject obj_user(sfUserKey);
 
         if (tx.isFieldPresent(sfUser))//preflight assure sfUser and sfFlags exist together or not exist at all
         {
@@ -707,7 +707,7 @@ namespace ripple {
                             if (!isSameUser)  //mean that there no same user
                             {
                                 // optype must be Auth(preclaim assure that),just add a new user
-                                STObject obj_user(sfUser);
+                                STObject obj_user(sfUserKey);
                                 if (tx.isFieldPresent(sfUser))
                                     obj_user.setAccountID(sfUser, tx.getAccountID(sfUser));
 								if(optype == T_ASSIGN)

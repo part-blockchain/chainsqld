@@ -267,6 +267,7 @@ SField const sfMemo                = make::one(&sfMemo,                STI_OBJEC
 SField const sfSignerEntry         = make::one(&sfSignerEntry,         STI_OBJECT, 11, "SignerEntry");
 SField const sfTable               = make::one(&sfTable,               STI_OBJECT, 50, "Table");
 SField const sfRules			   = make::one(&sfRules,			   STI_OBJECT, 51, "Rule");
+SField const sfUserKey			   = make::one(&sfUserKey,			   STI_OBJECT, 52, "UserKey");
 
 // inner object (uncommon)
 SField const sfSigner              = make::one(&sfSigner,              STI_OBJECT, 16, "Signer");

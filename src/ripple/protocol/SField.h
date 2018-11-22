@@ -521,6 +521,7 @@ extern SField const sfTable;
 extern SField const sfSigner;
 extern SField const sfMajority;
 extern SField const sfRules;
+extern SField const sfUserKey;
 
 // array of objects
 // ARRAY/1 is reserved for end of array
