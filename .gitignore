@@ -136,3 +136,6 @@ deps*/
 *.exe
 *.out
 *.app
+
+# VScode config files
+.vscode/

@@ -585,17 +585,10 @@ Json::Value TxPrepareBase::prepareForCreate()
         const int plainPaddingMaxLen = 16;
         unsigned char* pCipherData = new unsigned char[raw_blob.size()+ plainPaddingMaxLen];
         unsigned long cipherDataLen = raw_blob.size()+ plainPaddingMaxLen;
-        //hEObj->SM4GenerateSessionKey(sessionKey, &sessionKeyLen);
-        //hEObj->SM4SymEncrypt(sessionKey, sessionKeyLen, raw_blob.data(), raw_blob.size(), cipherData, &cipherDataLen);
-        hEObj->SM4SymEncrypt(passBlob.data(), passBlob.size(), raw_blob.data(), raw_blob.size(), pCipherData, &cipherDataLen);
+        hEObj->SM4SymEncrypt(hEObj->ECB, passBlob.data(), passBlob.size(), raw_blob.data(), raw_blob.size(), pCipherData, &cipherDataLen);
         //passBlob = Blob(sessionKey, sessionKey + sessionKeyLen);
         rawCipher = Blob(pCipherData, pCipherData + cipherDataLen);
         delete [] pCipherData;
-        /*hEObj->SM4SymDecrypt(sessionKey, sessionKeyLen, cipherData, cipherDataLen, decipherData, &decipherDataLen);
-        plainBlob = Blob(decipherData, decipherData + decipherDataLen);
-        if (raw_blob == plainBlob)
-            DebugPrint("good");
-        else DebugPrint("wrong");*/
     }
     else
     {
@@ -624,7 +617,8 @@ Json::Value TxPrepareBase::prepareForAssign()
     PublicKey public_key;
     SecretKey secret_key;
 	std::string sPublic_key = tx_json_["PublicKey"].asString();
-    if (nullptr == HardEncryptObj::getInstance())
+	HardEncrypt* hEObj = HardEncryptObj::getInstance();
+    if (nullptr == hEObj)
     {
         auto oPublicKey = parseBase58<PublicKey>(TOKEN_ACCOUNT_PUBLIC, sPublic_key);
         if (!oPublicKey)
@@ -667,6 +661,7 @@ Json::Value TxPrepareBase::prepareForAssign()
             return generateError("Parse secret key error,please checkout!", ws_);
         }
         SecretKey tempSecKey(Slice(privateKeyStrDe58.c_str(), strlen(privateKeyStrDe58.c_str())));
+		tempSecKey.keyTypeInt = hEObj->gmOutCard;
         secret_key = tempSecKey;
     }
 	std::pair<Blob, Json::Value> result = getPassBlob(ownerID_, ownerID_, secret_key);
@@ -707,6 +702,7 @@ Json::Value TxPrepareBase::prepareForOperating()
             return generateError("Parse secret key error,please checkout!", ws_);
         }
         SecretKey tempSecKey(Slice(privateKeyStrDe58.c_str(), strlen(privateKeyStrDe58.c_str())));
+		tempSecKey.keyTypeInt = hEObj->gmOutCard;
         secret_key = tempSecKey;
     }
 
@@ -738,7 +734,7 @@ Json::Value TxPrepareBase::prepareForOperating()
         const int plainPaddingMaxLen = 16;
         unsigned char* pCipherData = new unsigned char[raw_blob.size()+ plainPaddingMaxLen];
         unsigned long cipherDataLen = raw_blob.size()+ plainPaddingMaxLen;
-        hEObj->SM4SymEncrypt(passBlob.data(), passBlob.size(), raw_blob.data(), raw_blob.size(), pCipherData, &cipherDataLen);
+        hEObj->SM4SymEncrypt(hEObj->ECB, passBlob.data(), passBlob.size(), raw_blob.data(), raw_blob.size(), pCipherData, &cipherDataLen);
         rawCipher = Blob(pCipherData, pCipherData + cipherDataLen);
         delete [] pCipherData;
     }
