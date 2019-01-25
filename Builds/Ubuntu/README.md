@@ -34,19 +34,23 @@ export BOOST_ROOT=/home/dbliu/work/chainSQL/Builds/Ubuntu/boost_1_63_0
 ```bash
 > cd ~/work/chainsqld
 ```
-- 创建编译目录 build
+- 创建并进入编译目录 build
 ```bash
-> mkdir build
+> mkdir build && cd build
 ```
 - 执行 cmake
 ```bash
 > cmake -Dtarget=gcc.debug.nounity|gcc.debug.unity|gcc.release.nounity|gcc.release.unity ..
+> #或者使用一下命令编译国密版本：
+> #cmake -Dtarget=gcc.debug.nounity|gcc.debug.unity|gcc.release.nounity|gcc.release.unity -DenableGmalg=TRUE ..
 ```
 
 > 或
 
 ```bash
 > cmake -DCMAKE_BUILD_TYPE=Release|Debug ..
+> #或者使用一下命令编译国密版本：
+> #cmake -DCMAKE_BUILD_TYPE=Release|Debug -DenableGmalg=TRUE ..
 ```
 
 - 编译
