@@ -219,7 +219,7 @@ namespace ripple
         return iRet;
     }
 
-	bool ExtVM::table_create(const struct evmc_address* address, bytesConstRef const& _name, bytesConstRef const& _raw)
+	int64_t ExtVM::table_create(const struct evmc_address* address, bytesConstRef const& _name, bytesConstRef const& _raw)
 	{
 		ApplyContext const& ctx = oSle_.ctx();
 		auto j = ctx.app.journal("ExtVM");
@@ -227,7 +227,7 @@ namespace ripple
 		return oSle_.createTable(fromEvmC(*address), _name.toString(), _raw.toString());
 	}
 
-	bool ExtVM::table_rename(const struct evmc_address* address, bytesConstRef const& _name, bytesConstRef const& _raw)
+	int64_t ExtVM::table_rename(const struct evmc_address* address, bytesConstRef const& _name, bytesConstRef const& _raw)
 	{
 		ApplyContext const& ctx = oSle_.ctx();
 		auto j = ctx.app.journal("ExtVM");
@@ -235,7 +235,7 @@ namespace ripple
 		return oSle_.renameTable(fromEvmC(*address), _name.toString(), _raw.toString());
 	}
 
-	bool ExtVM::table_insert(const struct evmc_address* address, bytesConstRef const& _name, bytesConstRef const& _raw)
+	int64_t ExtVM::table_insert(const struct evmc_address* address, bytesConstRef const& _name, bytesConstRef const& _raw)
 	{
 		ApplyContext const& ctx = oSle_.ctx();
 		auto j = ctx.app.journal("ExtVM");
@@ -243,7 +243,7 @@ namespace ripple
 		return oSle_.insertData(fromEvmC(caller), fromEvmC(*address), _name.toString(), _raw.toString());
 	}
 
-	bool ExtVM::table_delete(const struct evmc_address* address, bytesConstRef const& _name, bytesConstRef const& _raw)
+	int64_t ExtVM::table_delete(const struct evmc_address* address, bytesConstRef const& _name, bytesConstRef const& _raw)
 	{
 		ApplyContext const& ctx = oSle_.ctx();
 		auto j = ctx.app.journal("ExtVM");
@@ -251,7 +251,7 @@ namespace ripple
 		return oSle_.deleteData(fromEvmC(caller), fromEvmC(*address), _name.toString(), _raw.toString());
 	}
 
-	bool ExtVM::table_drop(const struct evmc_address* address, bytesConstRef const& _name)
+	int64_t ExtVM::table_drop(const struct evmc_address* address, bytesConstRef const& _name)
 	{
 		ApplyContext const& ctx = oSle_.ctx();
 		auto j = ctx.app.journal("ExtVM");
@@ -259,7 +259,7 @@ namespace ripple
 		return oSle_.dropTable(fromEvmC(*address), _name.toString());
 	}
 
-	bool ExtVM::table_update(const struct evmc_address* address, bytesConstRef const& _name, bytesConstRef const& _rawUpdate, bytesConstRef const& _rawCondition)
+	int64_t ExtVM::table_update(const struct evmc_address* address, bytesConstRef const& _name, bytesConstRef const& _rawUpdate, bytesConstRef const& _rawCondition)
 	{
 		ApplyContext const& ctx = oSle_.ctx();
 		auto j = ctx.app.journal("ExtVM");
@@ -267,7 +267,7 @@ namespace ripple
 		return oSle_.updateData(fromEvmC(caller), fromEvmC(*address), _name.toString(), _rawCondition.toString(), _rawUpdate.toString());
 	}
 
-	bool ExtVM::table_grant(const struct evmc_address* address1, const struct evmc_address* address2, bytesConstRef const& _name, bytesConstRef const& _raw)
+	int64_t ExtVM::table_grant(const struct evmc_address* address1, const struct evmc_address* address2, bytesConstRef const& _name, bytesConstRef const& _raw)
 	{
 		ApplyContext const& ctx = oSle_.ctx();
 		auto j = ctx.app.journal("ExtVM");
@@ -280,7 +280,7 @@ namespace ripple
 		ApplyContext const& ctx = oSle_.ctx();
 		auto j = ctx.app.journal("ExtVM");
 		JLOG(j.trace()) << "tableName is " << _name.toString() << ", raw is " << _raw.toString();
-		uint256 rel = oSle_.getDataHandle(fromEvmC(*address), _name.toString(), _raw.toString());
+		uint256 rel = oSle_.getDataHandle(fromEvmC(caller),fromEvmC(*address), _name.toString(), _raw.toString());
 		return toEvmC(rel);
 	}
 
@@ -345,12 +345,12 @@ namespace ripple
 		JLOG(j.trace()) << __FUNCTION__;
 		oSle_.transactionBegin();
 	}
-	bool ExtVM::db_trans_submit()
+	int64_t ExtVM::db_trans_submit()
 	{
 		ApplyContext const& ctx = oSle_.ctx();
 		auto j = ctx.app.journal("ExtVM");
 		JLOG(j.trace()) << __FUNCTION__;
-		return oSle_.transactionCommit(fromEvmC(myAddress));
+		return oSle_.transactionCommit(fromEvmC(caller));
 	}
 	void ExtVM::release_resource()
 	{
