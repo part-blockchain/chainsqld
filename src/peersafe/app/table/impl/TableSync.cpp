@@ -1078,6 +1078,9 @@ void TableSync::TableSyncThread()
             tmList.push_back(*iter);
         }
     }
+
+	bool bNeedReSync = false;
+	bool bNeedLocalSync = false;
 	auto iter = tmList.begin();
     while (iter != tmList.end())
     {
@@ -1175,6 +1178,7 @@ void TableSync::TableSyncThread()
 					if (pItem->InitPassphrase().first)
 					{
 						pItem->SetSyncState(TableSyncItem::SYNC_BLOCK_STOP);
+						bNeedReSync = true;
 					}
 					else
 					{
@@ -1307,6 +1311,9 @@ void TableSync::TableSyncThread()
 		iter++;
     }
     bTableSyncThread_ = false;
+	if (bNeedReSync) {
+		TryTableSync();
+	}
 }
 
 void TableSync::TryLocalSync()
