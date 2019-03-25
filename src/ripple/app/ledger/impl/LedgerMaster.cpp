@@ -1062,7 +1062,6 @@ void LedgerMaster::processFullLedgerTask(std::shared_ptr<Ledger const> const& le
 	app_.getTableSync().SeekCreateTable(ledger);
 	app_.getTableStorage().TryTableStorage();
 	app_.getTableAssistant().TryTableCheckHash();
-	app_.getTableTxAccumulator().trySweepCache();
 }
 
 bool LedgerMaster::isConfidential(const STTx& tx)
