@@ -23,7 +23,9 @@
 #include <ripple/app/main/Application.h>
 #include <ripple/protocol/STTx.h>
 #include <ripple/basics/Log.h>
-#include <ripple/basics/chrono.h>
+#include <ripple/basics/chrono.h>		
+#include <ripple/app/ledger/OpenLedger.h>		
+#include <ripple/app/misc/TxQ.h>	
 
 namespace ripple {
 
@@ -31,6 +33,7 @@ TransactionMaster::TransactionMaster (Application& app)
     : mApp (app)
     , mCache ("TransactionCache", 65536, 1800, stopwatch(),
         mApp.journal("TaggedCache"))
+	, mCacheSeq("AccountSeqCache", 10240,10, stopwatch(),mApp.journal("TaggedCache"))
     , m_pClientTxStoreDBConn(std::make_unique<TxStoreDBConn>(app.config()))
     , m_pClientTxStoreDB(std::make_unique<TxStore>(m_pClientTxStoreDBConn->GetDBConn(), app.config(), app.logs().journal("TxStore")))
     , m_pConsensusTxStoreDBConn(std::make_unique<TxStoreDBConn>(app.config()))
@@ -69,6 +72,38 @@ int TransactionMaster::getTxCount(bool chainsql)
 	}
 
 	return *txCount;
+}
+
+int TransactionMaster::getAccountSequence(AccountID const& accountId)
+{
+	std::lock_guard<std::mutex> lock(mMutexSeq);
+	auto seq = mCacheSeq.fetch(accountId);
+	if (seq)
+	{
+		mCacheSeq.refreshIfPresent(accountId);
+		return ++(*seq);
+	}
+	else
+	{
+		auto const& ledger = mApp.openLedger().current();
+		auto sle = ledger->read(keylet::account(accountId));
+
+		auto seq = (*sle)[sfSequence];
+		auto const queued = mApp.getTxQ().getAccountTxs(accountId,*ledger);
+		// If the account has any txs in the TxQ, skip those sequence
+		// numbers (accounting for possible gaps).
+		for (auto const& tx : queued)
+		{
+			if (tx.first == seq)
+				++seq;
+			else if (tx.first > seq)
+				break;
+		}
+
+		auto pInfo = std::make_shared<int>(seq);
+		mCacheSeq.canonicalize(accountId, pInfo);
+	}
+	return 0;
 }
 
 std::shared_ptr<Transaction>
@@ -158,6 +193,7 @@ TransactionMaster::canonicalize(std::shared_ptr<Transaction>* pTransaction)
 void TransactionMaster::sweep (void)
 {
     mCache.sweep ();
+	mCacheSeq.sweep();
 }
 
 TaggedCache <uint256, Transaction>& TransactionMaster::getCache()

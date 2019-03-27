@@ -68,6 +68,8 @@ public:
 		param:	return only chainsql tx if true
 	*/
 	int						getTxCount(bool chainsql);
+
+	int						getAccountSequence(AccountID const& accountId);
 private:
     Application& mApp;
     TaggedCache <uint256, Transaction> mCache;
@@ -77,6 +79,9 @@ private:
 
     std::unique_ptr <TxStoreDBConn> m_pConsensusTxStoreDBConn;
     std::unique_ptr <TxStore> m_pConsensusTxStoreDB;
+
+	TaggedCache <AccountID, int>	mCacheSeq;
+	std::mutex                      mMutexSeq;
 };
 
 } // ripple

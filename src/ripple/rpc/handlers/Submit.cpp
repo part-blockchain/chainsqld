@@ -27,6 +27,12 @@
 #include <ripple/resource/Fees.h>
 #include <ripple/rpc/Context.h>
 #include <ripple/rpc/impl/TransactionSign.h>
+#include <ripple/app/main/Application.h>		
+#include <ripple/app/ledger/LedgerMaster.h>		
+#include <ripple/app/ledger/TransactionMaster.h>		
+#include <ripple/app/misc/TxQ.h>
+#include <ripple/protocol/Indexes.h>
+#include <ripple/protocol/STParsedJSON.h>
 
 namespace ripple {
 
@@ -101,6 +107,24 @@ Json::Value doSubmit (RPC::Context& context)
     std::string reason;
     auto tpTrans = std::make_shared<Transaction> (
         stpTrans, reason, context.app);
+
+	//for tx signed but no sequence 
+	auto tx_json = tpTrans->getJson(0);
+	if (!tx_json.isMember(jss::Sequence))
+	{
+		auto const srcAddressID = parseBase58<AccountID>(
+			tx_json[jss::Account].asString());
+
+		if (!srcAddressID)
+		{
+			jvResult[jss::error] = "invalidTransaction";
+			jvResult[jss::error_exception] = "field Account parse error";
+
+			return jvResult;
+		}
+		tx_json[jss::Sequence] = context.app.getMasterTransaction().getAccountSequence(*srcAddressID);
+	}
+	
     if (tpTrans->getStatus() != NEW)
     {
         jvResult[jss::error]            = "invalidTransaction";

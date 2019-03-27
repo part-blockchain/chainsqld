@@ -171,7 +171,7 @@ void TxFormats::addCommonFields (Item& item)
         << SOElement(sfFlags,               SOE_OPTIONAL)
         << SOElement(sfSourceTag,           SOE_OPTIONAL)
         << SOElement(sfAccount,             SOE_REQUIRED)
-        << SOElement(sfSequence,            SOE_REQUIRED)
+        << SOElement(sfSequence,            SOE_OPTIONAL)
         << SOElement(sfPreviousTxnID,       SOE_OPTIONAL) // emulate027
         << SOElement(sfLastLedgerSequence,  SOE_OPTIONAL)
         << SOElement(sfAccountTxnID,        SOE_OPTIONAL)
