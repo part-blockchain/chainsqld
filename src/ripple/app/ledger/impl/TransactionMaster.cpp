@@ -23,7 +23,7 @@
 #include <ripple/app/main/Application.h>
 #include <ripple/protocol/STTx.h>
 #include <ripple/basics/Log.h>
-#include <ripple/basics/chrono.h>		
+#include <ripple/basics/chrono.h>
 #include <ripple/app/ledger/OpenLedger.h>		
 #include <ripple/app/misc/TxQ.h>	
 
@@ -33,7 +33,7 @@ TransactionMaster::TransactionMaster (Application& app)
     : mApp (app)
     , mCache ("TransactionCache", 65536, 1800, stopwatch(),
         mApp.journal("TaggedCache"))
-	, mCacheSeq("AccountSeqCache", 10240,10, stopwatch(),mApp.journal("TaggedCache"))
+	, mCacheSeq("AccountSeqCache", 10240, 10, stopwatch(), mApp.journal("TaggedCache"))
     , m_pClientTxStoreDBConn(std::make_unique<TxStoreDBConn>(app.config()))
     , m_pClientTxStoreDB(std::make_unique<TxStore>(m_pClientTxStoreDBConn->GetDBConn(), app.config(), app.logs().journal("TxStore")))
     , m_pConsensusTxStoreDBConn(std::make_unique<TxStoreDBConn>(app.config()))
@@ -87,9 +87,20 @@ int TransactionMaster::getAccountSequence(AccountID const& accountId)
 	{
 		auto const& ledger = mApp.openLedger().current();
 		auto sle = ledger->read(keylet::account(accountId));
+		if (!sle)
+		{
+			// did not find account, error.
+			auto j = mApp.journal("TransactionMaster");
+			JLOG(j.debug())
+				<< "transactionSign: getAccountSequence Failed to find account "
+				<< "in current ledger: "
+				<< toBase58(accountId);
+
+			return 0;
+		}
 
 		auto seq = (*sle)[sfSequence];
-		auto const queued = mApp.getTxQ().getAccountTxs(accountId,*ledger);
+		auto const queued = mApp.getTxQ().getAccountTxs(accountId, *ledger);
 		// If the account has any txs in the TxQ, skip those sequence
 		// numbers (accounting for possible gaps).
 		for (auto const& tx : queued)
@@ -102,6 +113,7 @@ int TransactionMaster::getAccountSequence(AccountID const& accountId)
 
 		auto pInfo = std::make_shared<int>(seq);
 		mCacheSeq.canonicalize(accountId, pInfo);
+		return seq;
 	}
 	return 0;
 }
