@@ -958,6 +958,22 @@ private:
 		return rpcError(rpcINVALID_PARAMS);
 	}
 
+	Json::Value parseHash(Json::Value const& jvParams)
+	{
+		Json::Value     txJSON;
+		Json::Reader    reader;
+
+		if (1 == jvParams.size())
+		{
+			Json::Value jvRequest;
+
+			jvRequest[jss::message] = jvParams[0u].asString();
+			return jvRequest;
+		}
+
+		return rpcError(rpcINVALID_PARAMS);
+	}
+
     // submit any multisigned transaction to the network
     //
     // submit_multisigned <json>
@@ -1251,6 +1267,7 @@ public:
             {   "g_dbname",            &RPCParser::parseGetDBName,             1,  1 },
 			{	"g_cryptraw",		   &RPCParser::parseCryptRaw,			   1,  1 },
 			{   "table_auth",		   &RPCParser::parseTableAuth,			   2,  2 },
+			{   "hash",				   &RPCParser::parseHash,			   1,  1 },
         };
 
         auto const count = jvParams.size ();

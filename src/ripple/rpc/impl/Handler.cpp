@@ -184,6 +184,7 @@ Handler handlerArray[] {
 	{   "table_auth",			byRef (&doTableAuthority),     Role::USER,   NO_CONDITION },
 	{	"tx_count",				byRef(&doTxCount),            Role::USER,	 NO_CONDITION },
 	{	"tx_crossget",			byRef(&doGetCrossChainTx),	   Role::USER,	NO_CONDITION },
+	{	"hash",					byRef(&doHash),            Role::USER,	 NO_CONDITION },
 	//Contract methods
 	{	"contract_call",		byRef(&doContractCall),	   Role::USER,	NO_CONDITION },
     // Evented methods

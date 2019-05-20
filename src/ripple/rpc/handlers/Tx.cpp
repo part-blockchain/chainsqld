@@ -234,6 +234,18 @@ Json::Value doTxCount(RPC::Context& context)
 	return ret;
 }
 
+Json::Value doHash(RPC::Context& context)
+{
+	if (!context.params.isMember(jss::message))
+		return rpcError(rpcINVALID_PARAMS);
+	Json::Value ret(Json::objectValue);
+	auto const msg = context.params[jss::message].asString();
+	Serializer s;
+	s.addRaw(strCopy(msg));
+	ret[jss::hash] = to_string(s.getSHA512Half());
+	return ret;
+}
+
 Json::Value doGetCrossChainTx(RPC::Context& context) 
 {
 	if (!context.params.isMember(jss::transaction_hash))
