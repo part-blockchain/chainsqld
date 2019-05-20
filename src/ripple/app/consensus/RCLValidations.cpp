@@ -206,6 +206,18 @@ handleNewValidation(Application& app,
 
     if (!val->isTrusted())
     {
+		boost::optional<PublicKey> pubKeySelf = app.getValidationPublicKey();
+		std::string selfPubStr = toBase58(TokenType::TOKEN_NODE_PUBLIC, *pubKeySelf);
+		std::string signerStr = toBase58(TokenType::TOKEN_NODE_PUBLIC, signer);
+		if (selfPubStr == signerStr) {
+			JLOG(j.error()) << "Self Node: "
+				<< selfPubStr;
+		}
+		else {
+			JLOG(j.error()) << "Untrusted Node: "
+				<< toBase58(TokenType::TOKEN_NODE_PUBLIC, signer);
+		}
+		
         JLOG(j.trace()) << "Node "
                         << toBase58(TokenType::TOKEN_NODE_PUBLIC, signer)
                         << " not in UNL st="
@@ -214,7 +226,10 @@ handleNewValidation(Application& app,
                         << ", shash=" << val->getSigningHash()
                         << " src=" << source;
     }
-
+	else {
+		JLOG(j.error()) << "Trusted Node : " << toBase58(TokenType::TOKEN_NODE_PUBLIC, signer);
+	}
+	
     // If not currently trusted, see if signer is currently listed
     if (!pubKey)
         pubKey = app.validators().getListedKey(signer);
@@ -266,6 +281,13 @@ handleNewValidation(Application& app,
                     << toBase58(TokenType::TOKEN_NODE_PUBLIC, signer)
                     << " not added UNtrusted/";
     }
+
+	JLOG(j.error()) << "Current quorum : " << app.validators().quorum();
+	JLOG(j.error()) <<
+		"Val for " << hash << " seq is " << val->getFieldU32(sfLedgerSequence) <<
+		" from " << toBase58(TokenType::TOKEN_NODE_PUBLIC, signer) <<
+		" added " << (val->isTrusted() ? "trusted/" : "UNtrusted/") <<
+		(isCurrent ? "current" : "stale") << " sig is : " << strHex(val->getSignature());
 
     // This currently never forwards untrusted validations, though we may
     // reconsider in the future. From @JoelKatz:

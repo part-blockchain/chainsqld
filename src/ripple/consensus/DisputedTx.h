@@ -144,19 +144,19 @@ DisputedTx<Tx_t, NodeID_t>::setVote(NodeID_t const& peer, bool votesYes)
     {
         if (votesYes)
         {
-            JLOG(j_.debug()) << "Peer " << peer << " votes YES on " << tx_.id();
+            JLOG(j_.error()) << "Peer " << peer << " votes YES on " << tx_.id();
             ++yays_;
         }
         else
         {
-            JLOG(j_.debug()) << "Peer " << peer << " votes NO on " << tx_.id();
+            JLOG(j_.error()) << "Peer " << peer << " votes NO on " << tx_.id();
             ++nays_;
         }
     }
     // changes vote to yes
     else if (votesYes && !res.first->second)
     {
-        JLOG(j_.debug()) << "Peer " << peer << " now votes YES on " << tx_.id();
+        JLOG(j_.error()) << "Peer " << peer << " now votes YES on " << tx_.id();
         --nays_;
         ++yays_;
         res.first->second = true;
@@ -164,7 +164,7 @@ DisputedTx<Tx_t, NodeID_t>::setVote(NodeID_t const& peer, bool votesYes)
     // changes vote to no
     else if (!votesYes && res.first->second)
     {
-        JLOG(j_.debug()) << "Peer " << peer << " now votes NO on " << tx_.id();
+        JLOG(j_.error()) << "Peer " << peer << " now votes NO on " << tx_.id();
         ++nays_;
         --yays_;
         res.first->second = false;
@@ -234,17 +234,17 @@ DisputedTx<Tx_t, NodeID_t>::updateVote(
 
     if (newPosition == ourVote_)
     {
-        JLOG(j_.info()) << "No change (" << (ourVote_ ? "YES" : "NO")
+        JLOG(j_.error()) << "No change (" << (ourVote_ ? "YES" : "NO")
                         << ") : weight " << weight << ", percent "
                         << percentTime;
-        JLOG(j_.debug()) << getJson();
+        JLOG(j_.error()) << getJson();
         return false;
     }
 
     ourVote_ = newPosition;
-    JLOG(j_.debug()) << "We now vote " << (ourVote_ ? "YES" : "NO") << " on "
+    JLOG(j_.error()) << "We now vote " << (ourVote_ ? "YES" : "NO") << " on "
                      << tx_.id();
-    JLOG(j_.debug()) << getJson();
+    JLOG(j_.error()) << getJson();
     return true;
 }
 

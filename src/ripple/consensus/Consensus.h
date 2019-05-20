@@ -747,7 +747,7 @@ Consensus<Adaptor>::peerProposalInternal(
         ++rawCloseTimes_.peers[newPeerProp.closeTime()];
     }
 
-    JLOG(j_.trace()) << "Processing peer proposal " << newPeerProp.proposeSeq()
+    JLOG(j_.error()) << "get peer's propose, Processing peer proposal " << newPeerProp.proposeSeq()
                      << "/" << newPeerProp.position();
 
     {
@@ -1129,7 +1129,7 @@ Consensus<Adaptor>::phaseEstablish()
         return;
     }
 
-    JLOG(j_.info()) << "Converge cutoff (" << currPeerPositions_.size()
+    JLOG(j_.error()) << "Converge cutoff (" << currPeerPositions_.size()
                     << " participants)";
     prevProposers_ = currPeerPositions_.size();
     prevRoundTime_ = result_->roundTime.read();
@@ -1350,7 +1350,7 @@ Consensus<Adaptor>::updateOurPositions()
 
         result_->set = std::move(*ourNewSet);
 
-        JLOG(j_.info()) << "Position change: CTime "
+        JLOG(j_.error()) << "Position change: CTime "
                         << consensusCloseTime.time_since_epoch().count()
                         << ", tx " << newID;
 
@@ -1409,7 +1409,7 @@ Consensus<Adaptor>::haveConsensus()
     }
     auto currentFinished = adaptor_.proposersFinished(prevLedgerID_);
 
-    JLOG(j_.debug()) << "Checking for TX consensus: agree=" << agree
+    JLOG(j_.error()) << "Checking for TX consensus: agree=" << agree
                      << ", disagree=" << disagree;
 
     // Determine if we actually have consensus or not
@@ -1435,6 +1435,7 @@ Consensus<Adaptor>::haveConsensus()
         JLOG(j_.error()) << getJson(true);
     }
 
+	JLOG(j_.error()) << "hash set consensused.";
     return true;
 }
 

@@ -879,6 +879,8 @@ RCLConsensus::Adaptor::validate(RCLCxLedger const& ledger, bool proposing)
     val.set_validation(&validation[0], validation.size());
     // Send signed validation to all of our directly connected peers
     app_.overlay().send(val);
+	JLOG(j_.error()) << "Send our candidate block validation, hash is " << ledger.id() \
+		<< " block seq is " << ledger.seq() << " sig is " << strHex(v->getSignature());
 }
 
 void

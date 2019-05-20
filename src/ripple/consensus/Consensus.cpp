@@ -53,7 +53,8 @@ shouldCloseLedger(
     if ((proposersClosed + proposersValidated) > (prevProposers / 2))
     {
         // If more than half of the network has closed, we close
-        JLOG(j.trace()) << "Others have closed";
+		JLOG(j.error()) << "previous proposer : " << prevProposers << ", current proposer: " << proposersClosed << ", previous validation: " << proposersValidated;
+		JLOG(j.error()) << "Others have closed, so we close too.";
         return true;
     }
 
@@ -80,6 +81,7 @@ shouldCloseLedger(
     }
 
     // Close the ledger
+	JLOG(j.error()) << "in open state: time exceeds 2 seconds ,and time exceed the half of previous round's time";
     return true;
 }
 
