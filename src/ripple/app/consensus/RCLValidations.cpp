@@ -208,7 +208,9 @@ handleNewValidation(Application& app,
     {
 		boost::optional<PublicKey> pubKeySelf = app.getValidationPublicKey();
 		std::string selfPubStr = toBase58(TokenType::TOKEN_NODE_PUBLIC, *pubKeySelf);
+		JLOG(j.error()) << "selfPubStr: "<< selfPubStr;
 		std::string signerStr = toBase58(TokenType::TOKEN_NODE_PUBLIC, signer);
+		JLOG(j.error()) << "signerStr: " << signerStr;
 		if (selfPubStr == signerStr) {
 			JLOG(j.error()) << "Self Node: "
 				<< selfPubStr;
