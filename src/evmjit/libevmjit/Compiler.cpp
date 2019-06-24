@@ -94,6 +94,7 @@ std::vector<BasicBlock> Compiler::createBasicBlocks(code_iterator _codeBegin, co
 		case Instruction::JUMP:
 		case Instruction::RETURN:
 		case Instruction::REVERT:
+		case Instruction::INVALID:
         case Instruction::REVERTDIY:
 		case Instruction::STOP:
 		case Instruction::SUICIDE:
@@ -960,6 +961,12 @@ void Compiler::compileBasicBlock(BasicBlock& _basicBlock, RuntimeManager& _runti
             break;
         }
 
+		case Instruction::INVALID:
+		{
+			_runtimeManager.exit(ReturnCode::InvalidInst);
+			break;
+		}
+
 		case Instruction::SUICIDE:
 		{
 			if (m_staticCall)
@@ -1303,6 +1310,7 @@ void Compiler::compileBasicBlock(BasicBlock& _basicBlock, RuntimeManager& _runti
 		default: // Invalid instruction - abort
 			_runtimeManager.exit(ReturnCode::OutOfGas);
 			it = _basicBlock.end() - 1; // finish block compilation
+			//break;
 		}
 	}
 

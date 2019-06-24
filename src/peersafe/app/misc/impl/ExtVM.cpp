@@ -179,6 +179,7 @@ namespace ripple
         {
             ApplyContext const& ctx = oSle_.ctx();
             auto j = ctx.app.journal("ExtVM");
+			JLOG(j.error()) << "inDepth:"<< depth + 1 << ", tx:" << ctx.tx.getText();
             go(depth, e, j);
             e.accrueSubState(sub);
         }

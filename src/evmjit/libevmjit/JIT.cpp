@@ -617,6 +617,11 @@ static evmc_result execute(evmc_instance* instance, evmc_context* context, evmc_
         // it was, so use generic EVM_FAILURE.
         result.status_code = EVMC_FAILURE;
     }
+	else if (returnCode == ReturnCode::InvalidInst)
+	{
+		result.status_code = EVMC_INVALID_INSTRUCTION;
+		result.gas_left = 0;
+	}
     else
     {
         // In case of success return the amount of gas left.
@@ -658,7 +663,11 @@ static int setOption(evmc_instance* instance, const char* name, const char* valu
             auto& jit = static_cast<JITImpl&>(*instance);
             jit.hitThreshold = std::stoul(value);
             return 1;
-        }
+		}
+		else if (*name == 'O' && int(*value) == 1)
+		{
+			g_optimize = true;
+		}
         return 0;
     }
     catch (...)

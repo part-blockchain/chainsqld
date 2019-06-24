@@ -179,6 +179,7 @@ enum class Instruction: uint8_t
 	STATICCALL = 0xfa,	///< Like CALL but does not allow state modification.
 
 	REVERT = 0xfd,		///< stop execution and revert state changes, without consuming all provided gas
+	INVALID = 0xfe,
 	SUICIDE = 0xff		///< halt execution and register account for later deletion
 };
 

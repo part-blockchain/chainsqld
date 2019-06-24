@@ -68,6 +68,8 @@ public:
 		evmc_message msg = { ext.myAddress, ext.caller, ext.value, 
 			ext.data.data(), ext.data.size(),ext.codeHash, 
 			gas, ext.depth, kind, flags };
+		const char isOptimize = 1;
+		m_instance->set_option(m_instance, "O", &isOptimize);
 		return Result{
 			m_instance->execute(m_instance, &ext, EVMC_CONSTANTINOPLE,
 			&msg, ext.code.data(), ext.code.size())

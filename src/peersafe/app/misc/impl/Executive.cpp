@@ -65,10 +65,13 @@ bool Executive::execute() {
 	uint256 gasPrice = uint256(m_gasPrice);
 	if (isCreation)
 	{
+		JLOG(j.error()) << "isCreation";
 		return create(sender, value, gasPrice, gas - m_baseGasRequired, &m_input, sender);
 	}
 	else
 	{
+		JLOG(j.error()) << "isCall:" << tx.getText();
+		
 		AccountID contract_address = tx.getAccountID(sfContractAddress);
 		return call(contract_address, sender, value, gasPrice, &m_input, gas - m_baseGasRequired);
 	}

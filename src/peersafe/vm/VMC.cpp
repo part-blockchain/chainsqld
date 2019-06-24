@@ -36,6 +36,9 @@ owning_bytes_ref VMC::exec(int64_t& gas, ExtVMFace& ext) {
 	case EVMC_FAILURE:
 		BOOST_THROW_EXCEPTION(OutOfGas());
 
+	case EVMC_INVALID_INSTRUCTION:
+		BOOST_THROW_EXCEPTION(InvalidInstruction());
+
 	case EVMC_UNDEFINED_INSTRUCTION:
 		BOOST_THROW_EXCEPTION(BadInstruction());
 
