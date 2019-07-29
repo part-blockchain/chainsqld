@@ -39,10 +39,11 @@ enum LogSeverity
                         // an operation
     lsDEBUG     = 1,    // Function-level progress information, operations
     lsINFO      = 2,    // Server-level progress information, major operations
-    lsWARNING   = 3,    // Conditions that warrant human attention, may indicate
+	lsCUSTOM    = 3,
+    lsWARNING   = 4,    // Conditions that warrant human attention, may indicate
                         // a problem
-    lsERROR     = 4,    // A condition that indicates a problem
-    lsFATAL     = 5     // A severe condition that indicates a server problem
+    lsERROR     = 5,    // A condition that indicates a problem
+    lsFATAL     = 6     // A severe condition that indicates a server problem
 };
 
 class Application;

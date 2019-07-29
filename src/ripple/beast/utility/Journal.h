@@ -36,6 +36,7 @@ namespace severities
         kTrace = kAll,
         kDebug,
         kInfo,
+		kCustom,
         kWarning,
         kError,
         kFatal,
@@ -309,6 +310,11 @@ static_assert(std::is_nothrow_destructible<Stream>::value == true, "");
     Stream info() const
     {
         return { m_sink, severities::kInfo };
+    }
+
+	Stream custom() const
+    {
+        return { m_sink, severities::kCustom };
     }
 
     Stream warn() const

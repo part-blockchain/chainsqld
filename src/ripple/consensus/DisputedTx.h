@@ -216,6 +216,7 @@ DisputedTx<Tx_t, NodeID_t>::updateVote(
         //
         // To prevent avalanche stalls, we increase the needed weight slightly
         // over time.
+		JLOG(j_.custom()) << "percentTime : " << percentTime << ", weight : " << weight;
         if (percentTime < p.avMID_CONSENSUS_TIME)
             newPosition = weight > p.avINIT_CONSENSUS_PCT;
         else if (percentTime < p.avLATE_CONSENSUS_TIME)
@@ -234,17 +235,17 @@ DisputedTx<Tx_t, NodeID_t>::updateVote(
 
     if (newPosition == ourVote_)
     {
-        JLOG(j_.info()) << "No change (" << (ourVote_ ? "YES" : "NO")
+        JLOG(j_.custom()) << "No change (" << (ourVote_ ? "YES" : "NO")
                         << ") : weight " << weight << ", percent "
                         << percentTime;
-        JLOG(j_.debug()) << getJson();
+        JLOG(j_.custom()) << getJson();
         return false;
     }
 
     ourVote_ = newPosition;
-    JLOG(j_.debug()) << "We now vote " << (ourVote_ ? "YES" : "NO") << " on "
+    JLOG(j_.custom()) << "We now vote " << (ourVote_ ? "YES" : "NO") << " on "
                      << tx_.id();
-    JLOG(j_.debug()) << getJson();
+    JLOG(j_.custom()) << getJson();
     return true;
 }
 

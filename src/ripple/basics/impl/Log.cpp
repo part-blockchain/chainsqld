@@ -227,6 +227,7 @@ Logs::fromSeverity (beast::severities::Severity level)
     case kTrace:   return lsTRACE;
     case kDebug:   return lsDEBUG;
     case kInfo:    return lsINFO;
+	case kCustom:  return lsCUSTOM;
     case kWarning: return lsWARNING;
     case kError:   return lsERROR;
 
@@ -248,6 +249,7 @@ Logs::toSeverity (LogSeverity level)
     case lsTRACE:   return kTrace;
     case lsDEBUG:   return kDebug;
     case lsINFO:    return kInfo;
+	case lsCUSTOM:  return kCustom;
     case lsWARNING: return kWarning;
     case lsERROR:   return kError;
     default:
@@ -267,6 +269,7 @@ Logs::toString (LogSeverity s)
     case lsTRACE:   return "Trace";
     case lsDEBUG:   return "Debug";
     case lsINFO:    return "Info";
+	case lsCUSTOM:  return "Custom";
     case lsWARNING: return "Warning";
     case lsERROR:   return "Error";
     case lsFATAL:   return "Fatal";
@@ -287,6 +290,9 @@ Logs::fromString (std::string const& s)
 
     if (boost::iequals (s, "info") || boost::iequals (s, "information"))
         return lsINFO;
+
+	if (boost::iequals (s, "custom"))
+        return lsCUSTOM;
 
     if (boost::iequals (s, "warn") || boost::iequals (s, "warning") || boost::iequals (s, "warnings"))
         return lsWARNING;
@@ -338,6 +344,7 @@ Logs::format (std::string& output, std::string const& message,
     case kTrace:    output += "TRC "; break;
     case kDebug:    output += "DBG "; break;
     case kInfo:     output += "NFO "; break;
+	case kCustom:   output += "CUS "; break;
     case kWarning:  output += "WRN "; break;
     case kError:    output += "ERR "; break;
     default:

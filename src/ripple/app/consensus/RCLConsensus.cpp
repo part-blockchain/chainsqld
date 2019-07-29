@@ -188,6 +188,7 @@ RCLConsensus::Adaptor::propose(RCLCxPeerPos::Proposal const& proposal)
     prop.set_closetime(proposal.closeTime().time_since_epoch().count());
 
     prop.set_nodepubkey(valPublic_.data(), valPublic_.size());
+	auto ourNodeID_ = calcNodeID(valPublic_);
 
     auto signingHash = sha512Half(
         HashPrefix::proposal,
@@ -199,6 +200,17 @@ RCLConsensus::Adaptor::propose(RCLCxPeerPos::Proposal const& proposal)
     auto sig = signDigest(valPublic_, valSecret_, signingHash);
 
     prop.set_signature(sig.data(), sig.size());
+	Blob blSig;
+	std::uint8_t * pSigData = sig.data();
+    for (int i = 0; i < sig.size(); i++)
+    {
+		blSig.push_back(*(pSigData++));
+    }
+
+	JLOG(j_.custom()) << "OurNodeID : " << ourNodeID_ << ", give our position : ";
+	JLOG(j_.custom()) << "Propose's hash is " << proposal.position() 
+					<< ", seq is " << proposal.proposeSeq()
+        			<< ", sig is "<< strHex(blSig);
 
     app_.overlay().send(prop);
 }
@@ -467,6 +479,8 @@ RCLConsensus::Adaptor::doAccept(
 
     if (validating_ && !consensusFail)
     {
+		JLOG(j_.custom()) << "Send our candidate block validation, hash is " << newLCLHash
+            			<< " block seq is " << sharedLCL.seq() ;
         validate(sharedLCL, proposing);
         JLOG(j_.info()) << "CNF Val " << newLCLHash;
     }
@@ -875,6 +889,7 @@ RCLConsensus::Adaptor::validate(RCLCxLedger const& ledger, bool proposing)
     app_.getHashRouter().addSuppression(signingHash);
     handleNewValidation(app_, v, "local");
     Blob validation = v->getSerialized();
+	JLOG(j_.custom()) << "validation sig is " << strHex(v->getSignature());
     protocol::TMValidation val;
     val.set_validation(&validation[0], validation.size());
     // Send signed validation to all of our directly connected peers

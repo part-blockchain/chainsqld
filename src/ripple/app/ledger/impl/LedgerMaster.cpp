@@ -1182,15 +1182,17 @@ LedgerMaster::checkAccept (
 
     auto const minVal = getNeededValidations();
     auto const tvc = app_.getValidations().numTrustedForLedger(ledger->info().hash);
+	JLOG(m_journal.custom()) << "Check for advancing accepted ledger : needed validations number : " << minVal 
+							<< ", current same validations number : " << tvc;
     if (tvc < minVal) // nothing we can do
     {
-        JLOG (m_journal.trace()) <<
+        JLOG (m_journal.custom()) <<
             "Only " << tvc <<
             " validations for " << ledger->info().hash;
         return;
     }
 
-    JLOG (m_journal.info())
+    JLOG (m_journal.custom())
         << "Advancing accepted ledger to " << ledger->info().seq
         << " with >= " << minVal << " validations";
 

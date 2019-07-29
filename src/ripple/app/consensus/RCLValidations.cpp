@@ -242,11 +242,12 @@ handleNewValidation(Application& app,
                            << seq;
         }
 
-        JLOG(j.debug()) << "Val for " << hash << " from "
-                    << toBase58(TokenType::TOKEN_NODE_PUBLIC, signer)
+        JLOG(j.custom()) << "Val for " << hash << ", seq is " << val->getFieldU32(sfLedgerSequence)
+					<< " from " << toBase58(TokenType::TOKEN_NODE_PUBLIC, signer)
                     << " added "
                     << (val->isTrusted() ? "trusted/" : "UNtrusted/")
-                    << ((res == AddOutcome::current) ? "current" : "stale");
+                    << ((res == AddOutcome::current) ? "current" : "stale")
+					<< " sig is : " << strHex(val->getSignature());
 
         // Trusted current validations should be checked and relayed.
         // Trusted validations with sameSeq replaced an older validation
